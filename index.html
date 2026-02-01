@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escopo Ultimate | Gestão de Propostas</title>
+    <title>Escopo Ultimate | Gestão Enterprise</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #334155; }
@@ -19,61 +20,84 @@
             background: linear-gradient(-45deg, #0f172a, #1e293b, #0f172a, #334155);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
-            position: relative;
-            overflow: hidden;
+            position: relative; overflow: hidden;
         }
         @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         
-        .blob {
-            position: absolute; border-radius: 50%; filter: blur(70px); opacity: 0.4;
-            animation: float 10s infinite ease-in-out;
-        }
+        .blob { position: absolute; border-radius: 50%; filter: blur(70px); opacity: 0.4; animation: float 10s infinite ease-in-out; }
         .blob-1 { top: -10%; left: -10%; width: 500px; height: 500px; background: #3b82f6; animation-delay: 0s; }
         .blob-2 { bottom: -10%; right: -10%; width: 400px; height: 400px; background: #8b5cf6; animation-delay: 5s; }
         @keyframes float { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(20px, 40px) scale(1.1); } 100% { transform: translate(0, 0) scale(1); } }
-
-        /* Cursor piscando da digitação */
         .typing-cursor::after { content: '|'; animation: blink 1s step-start infinite; color: #3b82f6; }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* Loader */
+        /* Loader & Errors */
         #system-loader { position: fixed; inset: 0; background: #0F172A; z-index: 9999; display: flex; flex-col: column; align-items: center; justify-content: center; color: white; transition: opacity 0.5s; }
-        .spinner { width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
+        .spinner { width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        #fatal-error { display: none; position: fixed; inset: 0; background: #FFF1F2; z-index: 10000; padding: 40px; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
 
-        /* Elementos Gerais */
-        .app-header { background: #0F172A; color: white; height: 64px; display: flex; align-items: center; padding: 0 32px; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
-        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; cursor: pointer; gap: 8px; }
-        .btn-primary { background: #2563EB; color: white; border: 1px solid #2563EB; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); }
-        .btn-primary:hover { background: #1D4ED8; transform: translateY(-1px); }
-        .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; }
-        .btn-outline:hover { background: rgba(255,255,255,0.1); border-color: white; }
-
-        /* Cards do Editor */
-        .editor-section { background: white; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .editor-header { background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #64748B; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px; }
+        /* --- LAYOUT DO SISTEMA (DASHBOARD/EDITOR) --- */
+        .app-header { background: #0F172A; color: white; height: 64px; display: flex; align-items: center; padding: 0 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+        .panel-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; max-width: 1600px; margin: 24px auto; padding: 0 24px; height: calc(100vh - 112px); }
         
-        /* Inputs Bonitos */
-        .input-field { width: 100%; background: #fff; border: 1px solid #CBD5E1; border-radius: 8px; padding: 10px 12px; font-size: 0.9rem; color: #1E293B; transition: all 0.2s; }
-        .input-field:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); outline: none; }
-        .item-row { background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; margin-bottom: 12px; transition: border 0.2s; }
-        .item-row:hover { border-color: #94A3B8; }
+        /* Dashboard Cards */
+        .kpi-card { background: white; padding: 24px; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-col: column; justify-content: space-between; height: 120px; }
+        .kpi-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: #64748B; margin-bottom: 8px; }
+        .kpi-value { font-size: 2rem; font-weight: 800; color: #0F172A; letter-spacing: -0.02em; }
+        
+        .project-item { background: white; border: 1px solid #E2E8F0; border-radius: 8px; padding: 20px; transition: all 0.2s; cursor: pointer; position: relative; overflow: hidden; }
+        .project-item:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05); border-color: #CBD5E1; }
+        .project-status-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
 
-        /* Print */
+        /* Editor Components */
+        .editor-section { background: white; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
+        .editor-header { background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #475569; display: flex; align-items: center; gap: 8px; }
+        .editor-body { padding: 20px; }
+        
+        .input-group { margin-bottom: 16px; }
+        .input-label { display: block; font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
+        .input-field { width: 100%; background: #fff; border: 1px solid #CBD5E1; border-radius: 6px; padding: 10px 12px; font-size: 0.875rem; color: #1E293B; transition: all 0.2s; }
+        .input-field:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); outline: none; }
+        
+        .item-row { background: #fff; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+        .item-tech-desc { width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 10px; font-size: 0.85rem; color: #475569; margin-top: 10px; min-height: 60px; font-family: 'Inter', sans-serif; }
+        
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 0.875rem; transition: all 0.2s; gap: 8px; cursor: pointer; }
+        .btn-primary { background: #0F172A; color: white; border: 1px solid #0F172A; }
+        .btn-primary:hover { background: #1E293B; }
+        .btn-secondary { background: white; color: #475569; border: 1px solid #CBD5E1; }
+        .btn-secondary:hover { background: #F1F5F9; color: #1E293B; }
+
+        @media (max-width: 1024px) { .panel-grid { grid-template-columns: 1fr; height: auto; } }
         @media print { body { background: white; } .no-print { display: none !important; } }
     </style>
 </head>
 <body class="flex flex-col min-h-screen overflow-hidden">
 
     <div id="system-loader">
-        <div class="spinner w-10 h-10 border-4 mb-4"></div>
+        <div class="spinner mb-4"></div>
         <div class="brand-font text-2xl font-bold tracking-widest">ULTIMATE</div>
         <p class="text-xs text-slate-400 mt-2 font-mono">Carregando sistema...</p>
     </div>
 
+    <div id="fatal-error">
+        <i class="fas fa-bug text-4xl text-red-500 mb-4"></i>
+        <h2 class="text-2xl font-bold text-red-900">Ops! Algo deu errado.</h2>
+        <p id="error-msg" class="text-red-700 mt-2 mb-6 max-w-md">...</p>
+        <button onclick="localStorage.clear(); window.location.reload()" class="btn btn-primary bg-red-600 border-red-600">Resetar Sistema</button>
+    </div>
+
     <script>
+        // Tratamento de Erro Global
+        window.onerror = function(msg, url, line) {
+            document.getElementById('system-loader').style.display = 'none';
+            document.getElementById('fatal-error').style.display = 'flex';
+            document.getElementById('error-msg').innerText = `${msg} (Linha ${line})`;
+        };
+
         // =================================================================
-        // ⚠️ SUAS CHAVES DO SUPABASE (Substitua aqui)
+        // ⚠️ SUAS CHAVES DO SUPABASE
         // =================================================================
         const SUPABASE_URL = 'https://outasfgohiiyndsjciau.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91dGFzZmdvaGlpeW5kc2pjaWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4MTk4ODIsImV4cCI6MjA4NTM5NTg4Mn0.4yvGfYbQYf806FJcs34yPGkuU_kVTYHW8mBtbU3JD80';
@@ -82,40 +106,35 @@
         const { createClient } = supabase;
         const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let state = { user: null, project: null, version: null, data: {} };
+        let state = {
+            user: null,
+            project: null,
+            version: null,
+            data: {
+                client: { name: '', doc: '', email: '', phone: '', address: '' },
+                location: { address: '', sameAsClient: true },
+                items: [],
+                terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' },
+                settings: { myPhone: '' }
+            }
+        };
 
-        // EFEITO DE DIGITAÇÃO (Marketing)
-        const words = ["Energia Solar", "Automação", "Climatização", "Vidraceiros", "Engenharia", "Reformas"];
-        let wordIndex = 0;
-        let charIndex = 0;
-        let isDeleting = false;
-        
+        // --- MARKETING TYPE EFFECT (LOGIN) ---
+        const words = ["Instaladores", "Eletricistas", "Vidraceiros", "Refrigeração", "Integradores"];
+        let wordIndex = 0, charIndex = 0, isDeleting = false;
         function typeEffect() {
-            const currentWord = words[wordIndex];
-            const typeElement = document.getElementById('typing-text');
-            if(!typeElement) return;
+            const el = document.getElementById('typing-text');
+            if(!el) return;
+            const current = words[wordIndex];
+            el.innerText = isDeleting ? current.substring(0, charIndex - 1) : current.substring(0, charIndex + 1);
+            charIndex = isDeleting ? charIndex - 1 : charIndex + 1;
 
-            if (isDeleting) {
-                typeElement.innerText = currentWord.substring(0, charIndex - 1);
-                charIndex--;
-            } else {
-                typeElement.innerText = currentWord.substring(0, charIndex + 1);
-                charIndex++;
-            }
-
-            if (!isDeleting && charIndex === currentWord.length) {
-                isDeleting = true;
-                setTimeout(typeEffect, 2000); // Espera ler
-            } else if (isDeleting && charIndex === 0) {
-                isDeleting = false;
-                wordIndex = (wordIndex + 1) % words.length;
-                setTimeout(typeEffect, 500);
-            } else {
-                setTimeout(typeEffect, isDeleting ? 50 : 100);
-            }
+            if (!isDeleting && charIndex === current.length) { isDeleting = true; setTimeout(typeEffect, 2000); }
+            else if (isDeleting && charIndex === 0) { isDeleting = false; wordIndex = (wordIndex + 1) % words.length; setTimeout(typeEffect, 500); }
+            else setTimeout(typeEffect, isDeleting ? 50 : 100);
         }
 
-        // --- CORE DO SISTEMA ---
+        // --- DATA LOGIC ---
         function normalizeData(dbData) {
             const schema = {
                 client: { name: '', doc: '', email: '', phone: '', address: '' },
@@ -125,17 +144,18 @@
                 settings: { myPhone: '' }
             };
             if (!dbData) return schema;
-            
-            // Corrige dados antigos
-            const items = Array.isArray(dbData) ? dbData : (dbData.items || dbData.scope || []);
-            const cleanItems = items.map(i => ({
+            if (Array.isArray(dbData)) {
+                schema.items = dbData.map(i => ({...i, description: '', type: 'original'}));
+                return schema;
+            }
+            const rawItems = Array.isArray(dbData.items) ? dbData.items : (dbData.scope || []);
+            const cleanItems = rawItems.map(i => ({
                 name: i.name || '',
                 description: i.description || '',
                 qty: parseFloat(i.qty) || 1,
                 price: parseFloat(i.price) || 0,
                 type: i.type || 'original'
             }));
-
             return {
                 client: { ...schema.client, ...(dbData.client || {}) },
                 location: { ...schema.location, ...(dbData.location || {}) },
@@ -152,17 +172,18 @@
                 const id = params.get('id');
 
                 document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
-                const { data: { session } } = await db.auth.getSession();
+                const { data: { session }, error } = await db.auth.getSession();
+                if(error) throw error;
                 state.user = session?.user;
 
                 if (view === 'public') {
-                    if(!id) throw new Error("Link quebrado");
+                    if(!id) throw new Error("Link sem ID");
                     await loadPublicProposal(id);
                     document.getElementById('view-public').classList.remove('hidden');
                 } else if (!state.user && view !== 'login') {
                     window.history.replaceState(null, '', '?view=login');
                     document.getElementById('view-login').classList.remove('hidden');
-                    typeEffect(); // Inicia animação
+                    typeEffect(); // Inicia Animação
                 } else if (state.user && view === 'login') {
                     goTo('dashboard');
                 } else {
@@ -170,12 +191,16 @@
                     if(view === 'dashboard') await loadDashboard();
                     if(view === 'editor' && id) await loadEditor(id);
                 }
-            } catch (e) {
-                alert("Erro: " + e.message);
-            } finally {
+                
                 const loader = document.getElementById('system-loader');
                 loader.style.opacity = '0';
                 setTimeout(() => { loader.style.display = 'none'; document.body.classList.remove('overflow-hidden'); }, 500);
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('system-loader').style.display = 'none';
+                document.getElementById('fatal-error').style.display = 'flex';
+                document.getElementById('error-msg').innerText = e.message;
             }
         }
 
@@ -189,49 +214,75 @@
             const email = document.getElementById('email').value;
             const btn = document.getElementById('btn-login');
             if(!email) return alert("Digite seu e-mail");
-            btn.innerHTML = '<div class="spinner w-4 h-4 border-2"></div>';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
             const { error } = await db.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href }});
-            if (error) { alert(error.message); btn.innerText = 'Entrar'; }
-            else { btn.innerText = 'Verifique seu Email'; alert('Link de acesso enviado para ' + email); }
+            if (error) { alert("Erro: " + error.message); btn.innerText = 'Tentar Novamente'; }
+            else { btn.innerText = 'Link Enviado! Verifique seu E-mail'; alert('Acesse seu e-mail e clique no link para entrar.'); }
         }
 
-        // --- DASHBOARD E EDITOR (Funções Simplificadas para caber) ---
+        // --- DASHBOARD (COM KPIs DE VOLTA!) ---
         async function loadDashboard() {
             const list = document.getElementById('project-list');
-            list.innerHTML = '<div class="col-span-3 text-center py-10 opacity-50">Carregando projetos...</div>';
+            list.innerHTML = '<div class="col-span-3 text-center py-10 text-slate-400">Carregando projetos...</div>';
+            
             const { data: projects } = await db.from('projects').select('*, versions(status, total_value, version_number)').eq('user_id', state.user.id).order('created_at', { ascending: false });
+
+            let approvedTotal = 0, pendingTotal = 0;
             list.innerHTML = '';
-            if(!projects?.length) list.innerHTML = '<div class="col-span-3 text-center py-12 border-2 border-dashed border-slate-200 rounded-xl text-slate-400">Nenhum projeto ainda.</div>';
-            else projects.forEach(p => {
-                const v = p.versions?.[0] || { total_value: 0, status: 'draft', version_number: 1 };
-                list.innerHTML += `<div onclick="goTo('editor', '${p.id}')" class="bg-white border border-slate-200 rounded-xl p-6 hover:shadow-lg transition-all cursor-pointer group"><div class="flex justify-between mb-4"><div><h3 class="font-bold text-slate-800 text-lg group-hover:text-blue-600">${p.name}</h3><p class="text-xs text-slate-400 font-bold uppercase tracking-wider">V${v.version_number} • ${new Date(p.created_at).toLocaleDateString()}</p></div><span class="px-2 py-1 rounded text-[10px] font-bold uppercase ${v.status==='approved'?'bg-emerald-100 text-emerald-700':'bg-slate-100 text-slate-600'}">${v.status==='approved'?'Aprovado':'Rascunho'}</span></div><div class="text-xl font-bold text-slate-900">R$ ${parseFloat(v.total_value).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>`;
-            });
+
+            if(!projects || !projects.length) {
+                list.innerHTML = '<div class="col-span-3 text-center py-20 border-2 border-dashed border-slate-200 rounded-xl text-slate-400">Nenhum projeto encontrado.</div>';
+            } else {
+                projects.forEach(p => {
+                    const v = (p.versions && p.versions.length > 0) ? p.versions.sort((a,b) => b.version_number - a.version_number)[0] : { total_value: 0, status: 'draft', version_number: 1 };
+                    const val = parseFloat(v.total_value) || 0;
+                    if(v.status === 'approved') approvedTotal += val; else pendingTotal += val;
+
+                    list.innerHTML += `
+                        <div onclick="goTo('editor', '${p.id}')" class="project-item group">
+                            <div class="project-status-bar ${v.status === 'approved' ? 'bg-emerald-500' : 'bg-amber-400'}"></div>
+                            <div class="flex justify-between items-start mb-4 pl-2">
+                                <div><h3 class="font-bold text-slate-800 text-lg group-hover:text-blue-600 transition-colors">${p.name}</h3><p class="text-xs text-slate-400 mt-1 uppercase font-bold tracking-wider">V${v.version_number} • ${new Date(p.created_at).toLocaleDateString()}</p></div>
+                                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${v.status === 'approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-700'}">${v.status === 'approved' ? 'Aprovado' : 'Em Aberto'}</span>
+                            </div>
+                            <div class="pl-2 border-t border-slate-50 pt-3 flex justify-between items-end">
+                                <div class="text-xs text-slate-500 truncate max-w-[150px]"><i class="far fa-user mr-1"></i> ${p.client_name || 'Sem cliente'}</div>
+                                <div class="text-lg font-bold text-slate-900">R$ ${val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                            </div>
+                        </div>`;
+                });
+            }
+            // KPIs Update
+            const kpiR = document.getElementById('kpi-revenue'); if(kpiR) kpiR.innerText = approvedTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+            const kpiP = document.getElementById('kpi-pipeline'); if(kpiP) kpiP.innerText = pendingTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
         }
 
         async function createProject() {
-            const name = prompt("Nome do Projeto:");
-            if(!name) return;
+            const name = prompt("Nome do Projeto:"); if(!name) return;
             const { data: p, error } = await db.from('projects').insert({ name, user_id: state.user.id }).select().single();
-            if(!error) {
-                const initData = normalizeData(null); initData.settings.myPhone = localStorage.getItem('escopo_phone') || '';
-                await db.from('versions').insert({ project_id: p.id, version_number: 1, items: initData, total_value: 0, status: 'draft' });
-                goTo('editor', p.id);
-            }
+            if(error) return alert(error.message);
+            const initialData = normalizeData(null); initialData.settings.myPhone = localStorage.getItem('escopo_phone') || '';
+            await db.from('versions').insert({ project_id: p.id, version_number: 1, items: initialData, total_value: 0, status: 'draft' });
+            goTo('editor', p.id);
         }
 
+        // --- EDITOR (ROBUSTO) ---
         async function loadEditor(id) {
             document.getElementById('editor-content').classList.add('hidden');
             document.getElementById('editor-loading').classList.remove('hidden');
+            
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
+            if(!proj) throw new Error("Projeto não encontrado");
             state.project = proj;
+            
             const { data: vers } = await db.from('versions').select('*').eq('project_id', id).order('version_number', { ascending: true });
             
-            // Auto-Repair
-            if (!vers?.length) {
-                const iData = normalizeData(null); iData.settings.myPhone = localStorage.getItem('escopo_phone') || '';
-                const {data:v} = await db.from('versions').insert({project_id:id, version_number:1, items:iData, total_value:0, status:'draft'}).select().single();
-                state.version = v;
-            } else state.version = vers[vers.length-1];
+            if (!vers || vers.length === 0) {
+                // Auto Repair
+                const initialData = normalizeData(null); initialData.settings.myPhone = localStorage.getItem('escopo_phone') || '';
+                const { data: newV } = await db.from('versions').insert({ project_id: id, version_number: 1, items: initialData, total_value: 0, status: 'draft' }).select().single();
+                state.version = newV;
+            } else { state.version = vers[vers.length - 1]; }
             
             state.data = normalizeData(state.version.items);
             if(state.version.notes && !state.data.terms.obs) state.data.terms.obs = state.version.notes;
@@ -244,84 +295,85 @@
 
         function renderEditor() {
             const d = state.data;
-            const isLocked = state.version.status === 'approved';
+            const isApproved = state.version.status === 'approved';
             
-            // Preenchimento
-            const set = (id,v) => { const el=document.getElementById(id); if(el) el.value=v||''; if(el && isLocked) el.disabled=true; };
-            document.getElementById('ed-title').innerText = state.project.name;
-            document.getElementById('ed-ver').innerText = `VERSÃO ${state.version.version_number}`;
+            const setVal = (id, val) => { const el = document.getElementById(id); if(el) { el.value = val || ''; el.disabled = isApproved; }};
+            const setText = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val || ''; };
+
+            setText('ed-title', state.project.name); setText('ed-ver', `V${state.version.version_number}`);
             
-            set('in-c-name', d.client.name); set('in-c-doc', d.client.doc); set('in-c-email', d.client.email);
-            set('in-c-phone', d.client.phone); set('in-c-addr', d.client.address); set('in-s-myphone', d.settings.myPhone);
-            set('in-l-addr', d.location.address); set('in-t-dead', d.terms.deadline); set('in-t-obs', d.terms.obs);
-            document.getElementById('payment-display').innerText = d.terms.paymentText || 'Defina o cronograma.';
+            setVal('in-c-name', d.client.name); setVal('in-c-doc', d.client.doc); setVal('in-c-email', d.client.email);
+            setVal('in-c-phone', d.client.phone); setVal('in-c-addr', d.client.address); setVal('in-s-myphone', d.settings.myPhone);
+            setVal('in-l-addr', d.location.address); setVal('in-t-dead', d.terms.deadline); setVal('in-t-val', d.terms.validity); setVal('in-t-obs', d.terms.obs);
             
-            // Lista
+            const locCheck = document.getElementById('in-l-check');
+            if(locCheck) { locCheck.checked = d.location.sameAsClient; locCheck.disabled = isApproved; }
+            document.getElementById('payment-display').innerText = state.data.terms.paymentText || "Clique na calculadora para gerar.";
+
             const list = document.getElementById('ed-list'); list.innerHTML = '';
             let total = 0;
-            d.items.forEach((item, i) => {
-                total += (item.qty*item.price);
-                const itemLock = isLocked || (item.type==='original' && state.version.version_number > 1);
-                list.innerHTML += `
-                <div class="item-row ${item.type==='addon'?'border-l-4 border-l-amber-400':''}">
-                    <div class="flex justify-between mb-2"><span class="text-[10px] font-bold uppercase bg-slate-100 px-2 rounded text-slate-500">${item.type}</span>${!itemLock?`<button onclick="rmItem(${i})" class="text-red-400 text-xs font-bold">X</button>`:''}</div>
-                    <div class="flex gap-2 mb-2"><input value="${item.name}" onchange="upItem(${i},'name',this.value)" class="input-field font-bold" placeholder="Item" ${itemLock?'disabled':''}><input type="number" value="${item.qty}" onchange="upItem(${i},'qty',this.value)" class="input-field w-20 text-center" ${itemLock?'disabled':''}><input type="number" value="${item.price}" onchange="upItem(${i},'price',this.value)" class="input-field w-28 text-right" ${itemLock?'disabled':''}></div>
-                    <textarea onchange="upItem(${i},'description',this.value)" class="input-field text-sm bg-slate-50 min-h-[60px]" placeholder="Descrição Técnica..." ${itemLock?'disabled':''}>${item.description||''}</textarea>
-                    <div class="text-right font-bold mt-2">R$ ${(item.qty*item.price).toLocaleString('pt-BR')}</div>
-                </div>`;
-            });
-            document.getElementById('ed-total').innerText = total.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
 
-            // Actions
-            const actions = document.getElementById('ed-actions');
-            const addBtn = document.getElementById('btn-add');
-            if(isLocked) {
-                if(addBtn) addBtn.style.display='none';
-                actions.innerHTML = `<button onclick="createAddon()" class="btn btn-primary w-full bg-amber-600 border-amber-600">Criar Aditivo (V${state.version.version_number+1})</button>`;
+            d.items.forEach((item, idx) => {
+                const totalItem = (item.qty||0) * (item.price||0); total += totalItem;
+                const isLocked = isApproved || (item.type === 'original' && state.version.version_number > 1);
+                list.innerHTML += `
+                    <div class="item-row ${item.type === 'addon' ? 'border-l-4 border-l-amber-400' : ''}">
+                        <div class="flex justify-between mb-3"><span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-2 py-1 rounded">${item.type === 'addon' ? 'Aditivo' : 'Item Original'}</span>${!isLocked ? `<button onclick="rmItem(${idx})" class="text-red-400 text-xs font-bold hover:text-red-600">EXCLUIR</button>` : ''}</div>
+                        <div class="flex gap-4 items-start"><div class="flex-1"><label class="input-label">Item</label><input value="${item.name}" onchange="upItem(${idx}, 'name', this.value)" class="input-field font-bold" ${isLocked?'disabled':''}></div><div class="w-24"><label class="input-label text-center">Qtd</label><input type="number" value="${item.qty}" onchange="upItem(${idx}, 'qty', this.value)" class="input-field text-center" ${isLocked?'disabled':''}></div><div class="w-32"><label class="input-label text-right">Valor</label><input type="number" value="${item.price}" onchange="upItem(${idx}, 'price', this.value)" class="input-field text-right" ${isLocked?'disabled':''}></div></div>
+                        <div class="mt-3"><label class="input-label">Descrição Técnica</label><textarea onchange="upItem(${idx}, 'description', this.value)" class="item-tech-desc" placeholder="Detalhes..." ${isLocked?'disabled':''}>${item.description || ''}</textarea></div>
+                        <div class="text-right mt-2 text-sm font-bold text-slate-900">Total: R$ ${totalItem.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                    </div>`;
+            });
+            setText('ed-total-display', total.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}));
+            
+            const actionArea = document.getElementById('ed-actions');
+            const btnAddItem = document.getElementById('btn-add-item');
+            if (isApproved) {
+                actionArea.innerHTML = `<button onclick="createAddon()" class="btn btn-primary w-full bg-amber-600 border-amber-600 hover:bg-amber-700">Criar Aditivo / Alteração</button>`;
+                if(btnAddItem) btnAddItem.style.display = 'none';
             } else {
-                if(addBtn) addBtn.style.display='inline-flex';
-                actions.innerHTML = `<button onclick="save()" class="btn btn-primary w-full">Salvar Proposta</button>`;
+                actionArea.innerHTML = `<button onclick="save()" class="btn btn-primary w-full py-3 shadow-lg">SALVAR PROPOSTA</button>`;
+                if(btnAddItem) btnAddItem.style.display = 'inline-flex';
             }
         }
 
-        // Logic
-        function upItem(i,f,v){ const x=state.data.items[i]; if(f==='qty'||f==='price') x[f]=parseFloat(v)||0; else x[f]=v; renderEditor(); }
-        function addItem(){ state.data.items.push({name:'', description:'', qty:1, price:0, type: state.version.version_number>1?'addon':'original'}); renderEditor(); }
-        function rmItem(i){ state.data.items.splice(i,1); renderEditor(); }
-        function upSettings(f,v){ state.data.settings[f]=v; localStorage.setItem('escopo_phone',v); }
-        function calcTotal(){ return state.data.items.reduce((acc,i)=>acc+(i.qty*i.price),0); }
+        // --- LOGIC ---
+        function upClient(f, v) { state.data.client[f] = v; }
+        function toggleLocation(c) { state.data.location.sameAsClient = c; renderEditor(); }
+        function upLocation(v) { state.data.location.address = v; }
+        function upTerms(f, v) { state.data.terms[f] = v; }
+        function upSettings(f, v) { state.data.settings[f] = v; localStorage.setItem('escopo_phone', v); }
+        function upItem(i, f, v) { const item = state.data.items[i]; if(f==='qty'||f==='price') item[f] = parseFloat(v)||0; else item[f] = v; renderEditor(); }
+        function addItem() { state.data.items.push({ name: '', description: '', qty: 1, price: 0, type: state.version.version_number > 1 ? 'addon' : 'original' }); renderEditor(); }
+        function rmItem(i) { state.data.items.splice(i, 1); renderEditor(); }
+        function calcTotal() { return state.data.items.reduce((acc, i) => acc + (i.qty * i.price), 0); }
 
         function generatePayment() {
-            const t = calcTotal(); if(!t) return alert("Adicione itens.");
+            const total = calcTotal();
+            if(total === 0) return alert("Adicione valores primeiro.");
             const mode = document.getElementById('pay-mode').value;
-            let txt = "";
-            if(mode === 'entry') {
-                const p = prompt("Entrada %?", "30"); const n = prompt("Parcelas?", "2");
-                if(p&&n) { const e = t*(p/100); const r = (t-e)/n; txt=`Entrada: ${e.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}\n+ ${n}x de ${r.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}`; }
-            } else txt = `À Vista: ${t.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}`;
-            state.data.terms.paymentText = txt; renderEditor();
+            let text = "";
+            if(mode === 'entry_installments') {
+                const entryP = prompt("Entrada %?", "30"); const inst = prompt("Parcelas?", "2");
+                if(!entryP || !inst) return;
+                const entryVal = total * (parseInt(entryP)/100); const restVal = (total - entryVal) / parseInt(inst);
+                text = `CRONOGRAMA:\n1. Entrada: ${entryVal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}\n`;
+                for(let i=1; i<=parseInt(inst); i++) text += `${i+1}. Parcela: ${restVal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}\n`;
+            } else if (mode === 'single') { text = `À Vista: ${total.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}`; }
+            state.data.terms.paymentText = text; renderEditor(); 
         }
 
         async function save() {
-            state.data.client.name = document.getElementById('in-c-name').value;
-            state.data.client.doc = document.getElementById('in-c-doc').value;
-            state.data.client.email = document.getElementById('in-c-email').value;
-            state.data.client.phone = document.getElementById('in-c-phone').value;
-            state.data.client.address = document.getElementById('in-c-addr').value;
-            state.data.location.address = document.getElementById('in-l-addr').value;
-            state.data.terms.deadline = document.getElementById('in-t-dead').value;
-            state.data.terms.obs = document.getElementById('in-t-obs').value;
-            
-            if(state.data.client.name) await db.from('projects').update({client_name:state.data.client.name}).eq('id',state.project.id);
-            const {error} = await db.from('versions').update({items:state.data, total_value:calcTotal(), notes:state.data.terms.obs}).eq('id',state.version.id);
-            if(!error) alert("Salvo!");
+            const total = calcTotal();
+            if(state.data.client.name) await db.from('projects').update({ client_name: state.data.client.name }).eq('id', state.project.id);
+            const { error } = await db.from('versions').update({ items: state.data, total_value: total, notes: state.data.terms.obs }).eq('id', state.version.id);
+            if(!error) alert("Salvo!"); else alert(error.message);
         }
 
         async function createAddon() {
-            if(confirm("Criar nova versão?")) {
-                const {error} = await db.from('versions').insert({project_id:state.project.id, version_number:state.version.version_number+1, items:state.data, total_value:calcTotal(), status:'draft'});
-                if(!error) { alert("Aditivo Criado!"); loadEditor(state.project.id); }
-            }
+            if(!confirm("Criar aditivo?")) return;
+            const { error } = await db.from('versions').insert({ project_id: state.project.id, version_number: state.version.version_number + 1, items: state.data, total_value: calcTotal(), status: 'draft' });
+            if(!error) { alert("Aditivo criado!"); loadEditor(state.project.id); }
         }
 
         function share() {
@@ -329,34 +381,35 @@
             navigator.clipboard.writeText(url); alert("Link copiado!");
         }
 
-        // Public & Approve
+        // --- PUBLIC DOC ---
         async function loadPublicProposal(id) {
-            const {data:v} = await db.from('versions').select('*, projects(name)').eq('id',id).single();
-            if(!v) throw new Error("Não encontrado");
+            const { data: v } = await db.from('versions').select('*, projects(name)').eq('id', id).maybeSingle();
+            if (!v) throw new Error("Não encontrado.");
             state.version = v; const d = normalizeData(v.items);
-            const set = (id,v) => { document.getElementById(id).innerText = v||'-'; };
-            
-            set('doc-title', v.projects.name); set('doc-id', `#${v.version_number}`);
-            set('doc-date', new Date(v.created_at).toLocaleDateString());
-            set('doc-c-name', d.client.name); set('doc-total', parseFloat(v.total_value).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
-            set('doc-payment', d.terms.paymentText); document.getElementById('doc-obs').innerText = d.terms.obs||'';
+            const setText = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val || '-'; };
 
-            const tb = document.getElementById('doc-items'); tb.innerHTML='';
+            setText('doc-title', v.projects?.name); setText('doc-id', `#${v.version_number}`); setText('doc-date', new Date(v.created_at).toLocaleDateString());
+            setText('doc-c-name', d.client.name); setText('doc-c-doc', d.client.doc); setText('doc-c-addr', d.location.sameAsClient ? d.client.address : d.location.address);
+
+            const tbody = document.getElementById('doc-items-body'); tbody.innerHTML = '';
             d.items.forEach(i => {
-                tb.innerHTML += `<tr class="border-b last:border-0"><td class="py-3"><div class="font-bold text-slate-800 ${i.type==='addon'?'text-amber-600':''}">${i.type==='addon'?'[ADITIVO] ':''}${i.name}</div><div class="text-xs text-slate-500 whitespace-pre-wrap">${i.description}</div></td><td class="text-center">${i.qty}</td><td class="text-right font-bold">R$ ${(i.qty*i.price).toLocaleString('pt-BR')}</td></tr>`;
+                tbody.innerHTML += `<tr class="border-b border-slate-100 last:border-0"><td class="py-4 pl-4"><div class="font-bold text-slate-800 ${i.type==='addon'?'text-amber-600':''}">${i.type==='addon'?'[EXTRA] ':''}${i.name}</div>${i.description ? `<div class="text-xs text-slate-500 mt-1 whitespace-pre-wrap">${i.description}</div>` : ''}</td><td class="text-center text-sm">${i.qty}</td><td class="text-right text-sm pr-4 font-bold">R$ ${(i.qty*i.price).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`;
             });
 
-            if(v.status==='approved') document.getElementById('doc-actions').innerHTML = `<div class="bg-emerald-100 text-emerald-800 p-4 text-center font-bold rounded">✅ APROVADO</div>`;
-            else document.getElementById('doc-actions').innerHTML = `<button onclick="approve()" class="btn btn-primary w-full shadow-xl text-lg">ACEITAR E APROVAR</button>`;
+            setText('doc-total', parseFloat(v.total_value).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}));
+            setText('doc-payment', d.terms.paymentText); setText('doc-deadline', d.terms.deadline); setText('doc-validity', d.terms.validity); setText('doc-obs', d.terms.obs);
+
+            if(v.status === 'approved') document.getElementById('stamp-approved').classList.remove('hidden');
+            else document.getElementById('doc-actions').innerHTML = `<button onclick="approve()" class="btn btn-primary w-full py-4 text-lg shadow-xl">ACEITAR E APROVAR</button>`;
         }
 
         async function approve() {
-            if(confirm("Confirmar aprovação?")) {
-                await db.from('versions').update({status:'approved', approved_at:new Date()}).eq('id',state.version.id);
-                const phone = normalizeData(state.version.items).settings?.myPhone;
-                if(phone) window.open(`https://wa.me/${phone.replace(/\D/g,'')}?text=✅ Aprovado: ${state.version.projects.name}`, '_blank');
-                window.location.reload();
-            }
+            if(!confirm("Aprovar proposta?")) return;
+            let ip = 'IP'; try { const r = await fetch('https://api.ipify.org?format=json'); const j = await r.json(); ip = j.ip; } catch(e){}
+            await db.from('versions').update({ status: 'approved', approved_at: new Date(), approved_by_ip: ip }).eq('id', state.version.id);
+            const phone = normalizeData(state.version.items).settings?.myPhone;
+            if(phone) window.open(`https://wa.me/${phone.replace(/\D/g,'')}?text=✅ Aprovado: ${state.version.projects.name}`, '_blank');
+            window.location.reload();
         }
 
         window.onload = init; window.onpopstate = init;
@@ -364,133 +417,75 @@
 
     <section id="view-login" class="hidden flex-1 grid grid-cols-1 lg:grid-cols-2 h-screen">
         <div class="relative hidden lg:flex flex-col justify-center p-16 animated-bg text-white">
-            <div class="blob blob-1"></div>
-            <div class="blob blob-2"></div>
-            
+            <div class="blob blob-1"></div><div class="blob blob-2"></div>
             <div class="relative z-10 max-w-lg">
                 <div class="brand-font text-sm font-bold tracking-widest text-blue-400 mb-4">ESCOPO ULTIMATE</div>
-                <h1 class="text-5xl font-extrabold leading-tight mb-6">
-                    Orçamentos que <br>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Garantem seu Lucro</span>
-                </h1>
-                
-                <div class="text-xl text-slate-300 font-light mb-8 h-8">
-                    Ideal para <span id="typing-text" class="text-white font-bold typing-cursor"></span>
-                </div>
-
+                <h1 class="text-5xl font-extrabold leading-tight mb-6">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Garantem seu Lucro</span></h1>
+                <div class="text-xl text-slate-300 font-light mb-8 h-8">Ideal para <span id="typing-text" class="text-white font-bold typing-cursor"></span></div>
                 <div class="space-y-4 text-slate-300">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400"><i class="fas fa-shield-alt"></i></div>
-                        <div><strong class="text-white block">Bloqueio de Aditivos</strong> Evite o "já que você está aqui" de graça.</div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400"><i class="fas fa-file-signature"></i></div>
-                        <div><strong class="text-white block">Assinatura Digital</strong> Formalize o aceite técnico com IP e Data.</div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400"><i class="fas fa-coins"></i></div>
-                        <div><strong class="text-white block">Cronograma de Pagamento</strong> Defina entradas e parcelas claras.</div>
-                    </div>
+                    <div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400"><i class="fas fa-shield-alt"></i></div><div><strong class="text-white block">Evite prejuízos</strong> Registre mudanças de escopo e se proteja.</div></div>
+                    <div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400"><i class="fas fa-check-circle"></i></div><div><strong class="text-white block">Aprovação do cliente</strong> Orçamentos aprovados por link, com histórico.</div></div>
+                    <div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400"><i class="fas fa-handshake"></i></div><div><strong class="text-white block">Menos discussão</strong> Tudo documentado, sem retrabalho.</div></div>
                 </div>
-            </div>
-            
-            <div class="absolute bottom-8 left-16 text-xs text-slate-500">
-                &copy; 2024 Ultimate Systems. Enterprise Grade Security.
             </div>
         </div>
-
         <div class="flex flex-col justify-center items-center p-8 bg-slate-50 relative">
             <div class="max-w-md w-full bg-white p-10 rounded-2xl shadow-xl border border-slate-100">
-                <div class="text-center mb-8">
-                    <div class="w-12 h-12 bg-blue-600 rounded-lg mx-auto flex items-center justify-center text-white text-xl font-bold mb-4 shadow-lg shadow-blue-500/30">U</div>
-                    <h2 class="text-2xl font-bold text-slate-900">Acesse sua conta</h2>
-                    <p class="text-slate-500 text-sm mt-2">Digite seu e-mail corporativo para entrar.</p>
-                </div>
-
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase mb-2">E-mail Profissional</label>
-                        <input type="email" id="email" placeholder="nome@empresa.com.br" class="input-field py-3 text-center text-lg bg-slate-50 focus:bg-white transition-colors">
-                    </div>
-                    
-                    <button onclick="handleLogin()" id="btn-login" class="btn btn-primary w-full py-4 text-lg shadow-xl shadow-blue-600/20">
-                        <i class="fas fa-arrow-right"></i> Enviar Link de Acesso
-                    </button>
-                </div>
-
-                <p class="text-center text-xs text-slate-400 mt-8">
-                    Ao entrar, você concorda com os Termos de Serviço.<br>
-                    Acesso exclusivo para prestadores credenciados.
-                </p>
+                <div class="text-center mb-8"><div class="w-12 h-12 bg-blue-600 rounded-lg mx-auto flex items-center justify-center text-white text-xl font-bold mb-4 shadow-lg">U</div><h2 class="text-2xl font-bold text-slate-900">Acesse sua conta</h2><p class="text-slate-500 text-sm mt-2">Digite seu e-mail corporativo para entrar.</p></div>
+                <div class="space-y-4"><div><label class="block text-xs font-bold text-slate-700 uppercase mb-2">E-mail Profissional</label><input type="email" id="email" placeholder="nome@empresa.com.br" class="input-field py-3 text-center text-lg bg-slate-50 focus:bg-white"></div><button onclick="handleLogin()" id="btn-login" class="btn btn-primary w-full py-4 text-lg shadow-xl"><i class="fas fa-arrow-right"></i> Enviar Link de Acesso</button></div>
             </div>
-            
-            <div class="lg:hidden absolute top-8 text-center w-full">
-                <span class="brand-font font-bold text-slate-900 tracking-widest">ESCOPO ULTIMATE</span>
-            </div>
+            <div class="lg:hidden absolute top-8 text-center w-full"><span class="brand-font font-bold text-slate-900 tracking-widest">ESCOPO ULTIMATE</span></div>
         </div>
     </section>
 
-    <section id="view-dashboard" class="hidden flex-1 max-w-5xl mx-auto w-full p-6">
-        <div class="app-header rounded-xl mb-8 mt-4">
-            <span class="font-bold">ESCOPO ULTIMATE</span>
-            <div class="flex gap-4">
-                <button onclick="createProject()" class="text-sm bg-blue-600 px-4 py-2 rounded hover:bg-blue-500">Novo Projeto</button>
-                <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="text-slate-400"><i class="fas fa-power-off"></i></button>
-            </div>
+    <section id="view-dashboard" class="hidden flex-1">
+        <div class="app-header">
+            <div class="brand-font font-bold text-lg tracking-tight">Escopo<span class="text-blue-400">ENTERPRISE</span></div>
+            <div class="flex gap-3"><button onclick="createProject()" class="btn btn-primary bg-white text-slate-900 hover:bg-slate-100 text-xs border-white"><i class="fas fa-plus"></i> Novo Projeto</button><button onclick="db.auth.signOut().then(()=>window.location.reload())" class="text-slate-400 hover:text-white px-2"><i class="fas fa-sign-out-alt"></i></button></div>
         </div>
-        <div id="project-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        <div class="max-w-6xl mx-auto p-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div class="kpi-card border-emerald-200"><div class="kpi-label text-emerald-600">Faturamento Aprovado</div><div class="kpi-value" id="kpi-revenue">R$ 0,00</div></div>
+                <div class="kpi-card border-amber-200"><div class="kpi-label text-amber-600">Pipeline (Em Aberto)</div><div class="kpi-value" id="kpi-pipeline">R$ 0,00</div></div>
+            </div>
+            <h2 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6">Propostas Recentes</h2>
+            <div id="project-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
     </section>
 
-    <section id="view-editor" class="hidden flex-1 h-screen flex flex-col bg-slate-100">
-        <div class="bg-white border-b px-6 py-3 flex justify-between items-center shadow-sm z-10">
-            <div class="flex items-center gap-4">
-                <button onclick="goTo('dashboard')" class="text-slate-400 hover:text-slate-800"><i class="fas fa-arrow-left"></i></button>
-                <div><h2 id="ed-title" class="font-bold text-slate-800 leading-none">...</h2><span id="ed-ver" class="text-[10px] font-bold text-blue-600 uppercase">V1</span></div>
+    <section id="view-editor" class="hidden flex-1 bg-slate-50 h-screen flex flex-col">
+        <div id="editor-loading" class="flex-1 flex items-center justify-center"><div class="spinner border-slate-900"></div></div>
+        <div id="editor-content" class="hidden flex flex-col h-full">
+            <div class="app-header justify-between">
+                <div class="flex items-center gap-4"><button onclick="goTo('dashboard')" class="text-slate-400 hover:text-white"><i class="fas fa-arrow-left"></i></button><div><h2 id="ed-title" class="font-bold leading-none text-lg">...</h2><span id="ed-ver" class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">V1</span></div></div>
+                <button onclick="share()" class="btn btn-secondary bg-slate-800 border-slate-700 text-white hover:bg-slate-700 text-xs"><i class="fas fa-link"></i> Link Cliente</button>
             </div>
-            <button onclick="share()" class="btn btn-outline text-slate-600 border-slate-300 hover:bg-slate-50 text-sm py-2"><i class="fas fa-link"></i> Link Cliente</button>
-        </div>
-        
-        <div class="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-[1fr_400px] gap-6 p-6 max-w-[1600px] mx-auto w-full">
-            <div class="overflow-y-auto pr-2 pb-20">
-                <div class="editor-section">
-                    <div class="editor-header"><i class="fas fa-user"></i> Cliente</div>
-                    <div class="p-4 space-y-4">
-                        <input id="in-c-name" class="input-field" placeholder="Nome do Cliente">
-                        <div class="grid grid-cols-2 gap-4"><input id="in-c-doc" class="input-field" placeholder="CPF/CNPJ"><input id="in-c-phone" class="input-field" placeholder="Telefone"></div>
-                        <input id="in-c-email" class="input-field" placeholder="Email"><input id="in-c-addr" class="input-field" placeholder="Endereço">
-                        <div class="pt-4 border-t"><label class="text-xs font-bold text-blue-600">Seu WhatsApp (Notificação)</label><input id="in-s-myphone" class="input-field border-blue-200 bg-blue-50"></div>
-                    </div>
+            <div class="panel-grid overflow-hidden">
+                <div class="overflow-y-auto pr-2 pb-20">
+                    <div class="editor-section"><div class="editor-header"><i class="fas fa-user-tie"></i> Dados do Cliente</div><div class="editor-body"><div class="input-group"><label class="input-label">Nome</label><input id="in-c-name" onchange="upClient('name', this.value)" class="input-field"></div><div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Doc</label><input id="in-c-doc" onchange="upClient('doc', this.value)" class="input-field"></div><div class="input-group"><label class="input-label">Tel</label><input id="in-c-phone" onchange="upClient('phone', this.value)" class="input-field"></div></div><div class="input-group"><label class="input-label">Email</label><input id="in-c-email" onchange="upClient('email', this.value)" class="input-field"></div><div class="input-group"><label class="input-label">Endereço</label><input id="in-c-addr" onchange="upClient('address', this.value)" class="input-field"></div><div class="mt-6 pt-4 border-t border-slate-100"><label class="input-label text-blue-600">Seu WhatsApp</label><input id="in-s-myphone" onchange="upSettings('myPhone', this.value)" class="input-field bg-blue-50 border-blue-200"></div></div></div>
+                    <div class="editor-section"><div class="editor-header justify-between"><span><i class="fas fa-list-ol"></i> Escopo</span><button id="btn-add-item" onclick="addItem()" class="btn btn-primary text-xs py-1 px-3 bg-slate-800 border-none">+ Item</button></div><div class="editor-body bg-slate-50 min-h-[300px]"><div id="ed-list"></div></div></div>
                 </div>
-                <div class="editor-section">
-                    <div class="editor-header justify-between"><span><i class="fas fa-list"></i> Escopo</span><button id="btn-add" onclick="addItem()" class="text-blue-600 text-xs font-bold">+ ITEM</button></div>
-                    <div id="ed-list" class="p-4 bg-slate-50 min-h-[200px]"></div>
-                </div>
-            </div>
-            <div class="overflow-y-auto pb-20">
-                <div class="editor-section">
-                    <div class="editor-header"><i class="fas fa-wallet"></i> Financeiro</div>
-                    <div class="p-6">
-                        <div class="text-center mb-6"><div class="text-xs text-slate-400 font-bold uppercase">Total Global</div><div id="ed-total" class="text-3xl font-bold text-slate-900">R$ 0,00</div></div>
-                        <div class="mb-4"><label class="text-xs font-bold text-slate-500 block mb-1">Pagamento</label><div class="flex gap-2 mb-2"><select id="pay-mode" class="input-field"><option value="entry">Entrada + Parc</option><option value="vista">À Vista</option></select><button onclick="generatePayment()" class="btn btn-secondary px-3"><i class="fas fa-calculator"></i></button></div><div id="payment-display" class="text-xs bg-slate-50 p-3 border rounded text-slate-600 whitespace-pre-line"></div></div>
-                        <div class="grid grid-cols-2 gap-2 mb-2"><input id="in-t-dead" class="input-field" placeholder="Prazo"><input id="in-l-addr" class="input-field" placeholder="Local Obra"></div>
-                        <textarea id="in-t-obs" class="input-field h-20" placeholder="Obs..."></textarea>
-                        <div id="ed-actions" class="mt-4"></div>
-                    </div>
+                <div class="overflow-y-auto pb-20">
+                    <div class="editor-section sticky top-0 shadow-lg"><div class="editor-header"><i class="fas fa-coins"></i> Resumo</div><div class="editor-body"><div class="bg-slate-900 text-white p-6 rounded-lg text-center mb-6"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total</div><div id="ed-total-display" class="text-3xl font-bold">R$ 0,00</div></div><div class="input-group"><label class="input-label">Pagamento</label><div class="flex gap-2 mb-2"><select id="pay-mode" class="input-field"><option value="entry_installments">Entrada + Parc</option><option value="single">À Vista</option></select><button onclick="generatePayment()" class="btn btn-secondary px-3"><i class="fas fa-calculator"></i></button></div><div id="payment-display" class="text-xs bg-slate-50 p-3 rounded border border-slate-200 text-slate-600 whitespace-pre-line min-h-[60px]"></div></div><div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Prazo</label><input id="in-t-dead" onchange="upTerms('deadline', this.value)" class="input-field"></div><div class="input-group"><label class="input-label">Validade</label><select id="in-t-val" onchange="upTerms('validity', this.value)" class="input-field"><option>7 dias</option><option>15 dias</option></select></div></div><div class="input-group"><label class="input-label">Obs</label><textarea id="in-t-obs" onchange="upTerms('obs', this.value)" class="input-field h-20"></textarea></div><div id="ed-actions" class="mt-6"></div></div></div>
+                    <div class="editor-section"><div class="editor-header"><i class="fas fa-map-marker-alt"></i> Local</div><div class="editor-body"><label class="flex items-center gap-2 text-xs font-bold text-slate-600 mb-2 cursor-pointer"><input type="checkbox" id="in-l-check" onchange="toggleLocation(this.checked)"> Mesmo do Cliente</label><input id="in-l-addr" onchange="upLocation(this.value)" class="input-field" placeholder="Endereço da obra"></div></div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10 overflow-y-auto">
-        <div id="public-content" class="max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] flex flex-col relative">
-            <div class="bg-slate-900 text-white p-12 flex justify-between"><div><h1 id="doc-title" class="text-3xl font-bold mb-1">Projeto</h1><p class="text-xs uppercase opacity-50">Proposta Técnica</p></div><div class="text-right"><div id="doc-id" class="font-bold text-lg">#REF</div><div id="doc-date" class="text-sm opacity-70">--/--/--</div></div></div>
+    <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10 overflow-y-auto print:p-0">
+        <div id="public-loading" class="flex justify-center mt-20"><div class="spinner border-slate-900"></div></div>
+        <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col">
+            <div id="stamp-approved" class="hidden absolute top-10 right-10 border-4 border-emerald-600 text-emerald-600 font-bold text-3xl px-6 py-2 uppercase opacity-30 transform -rotate-12 z-20">APROVADO</div>
+            <div class="bg-slate-900 text-white p-12 print:bg-white print:text-black print:border-b-2"><div class="flex justify-between items-start"><div><h1 id="doc-title" class="text-3xl font-bold mb-2">Projeto</h1><p class="text-xs uppercase tracking-widest text-slate-400">Proposta Técnica</p></div><div class="text-right"><div id="doc-id" class="font-bold text-lg">#REF</div><div id="doc-date" class="text-sm opacity-70">--/--/--</div></div></div></div>
             <div class="p-12 flex-1">
-                <div class="mb-12 border-b pb-8"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2">Cliente</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div></div>
-                <table class="w-full mb-12"><tbody id="doc-items"></tbody></table>
-                <div class="bg-slate-50 p-6 rounded mb-8"><h4 class="font-bold text-xs uppercase text-slate-400 mb-2">Pagamento</h4><div id="doc-payment" class="font-mono text-sm text-slate-700 whitespace-pre-line"></div><div class="mt-4 text-right"><span class="text-xs uppercase text-slate-400 block">Total</span><div id="doc-total" class="text-2xl font-bold text-slate-900">R$ 0,00</div></div></div>
-                <div id="doc-obs" class="text-xs italic text-slate-500 text-justify"></div>
-                <div id="doc-actions" class="mt-12 no-print"></div>
+                <div class="flex gap-12 mb-12 text-sm"><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Contratante</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div><div id="doc-c-doc" class="text-slate-500"></div></div><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Local</h3><div id="doc-c-addr" class="text-slate-600"></div></div></div>
+                <div class="mb-12"><h3 class="font-bold text-xs uppercase text-slate-400 mb-4 tracking-wider">Escopo</h3><table class="w-full"><tbody id="doc-items-body"></tbody></table></div>
+                <div class="bg-slate-50 border border-slate-100 rounded-lg p-8 mb-12 flex gap-12"><div class="flex-1"><h4 class="font-bold text-xs uppercase text-slate-400 mb-2">Pagamento</h4><div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line"></div><div class="mt-4 flex gap-6 text-sm"><div><span class="font-bold text-xs uppercase text-slate-400 block">Entrega</span><span id="doc-deadline"></span></div><div><span class="font-bold text-xs uppercase text-slate-400 block">Validade</span><span id="doc-validity"></span></div></div></div><div class="text-right"><h4 class="font-bold text-xs uppercase text-slate-400 mb-1">Total</h4><div id="doc-total" class="text-3xl font-bold text-slate-900">R$ 0,00</div></div></div>
+                <div id="doc-obs" class="text-xs text-slate-500 italic text-justify"></div>
+                <div id="doc-actions" class="no-print mt-12"></div>
             </div>
+            <div class="bg-slate-50 p-4 text-center border-t no-print"><button onclick="window.print()" class="text-xs font-bold text-slate-400 uppercase hover:text-slate-600"><i class="fas fa-print"></i> Salvar PDF</button></div>
         </div>
     </section>
 
