@@ -3,105 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aprovado | Gestão de Propostas</title>
+    <title>Aprovado | Acesso</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;700;800&display=swap" rel="stylesheet">
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #334155; }
+        h1, h2, h3, .brand-font { font-family: 'Outfit', sans-serif; }
+
+        /* --- ANIMAÇÕES DE FUNDO (O "Mover" que você pediu) --- */
+        @keyframes float { 0% { transform: translate(0px, 0px) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-20px, 20px) scale(0.9); } 100% { transform: translate(0px, 0px) scale(1); } }
+        @keyframes float-delay { 0% { transform: translate(0px, 0px) scale(1); } 33% { transform: translate(-30px, 50px) scale(1.2); } 66% { transform: translate(20px, -20px) scale(0.8); } 100% { transform: translate(0px, 0px) scale(1); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Layout de Login */
+        .login-wrapper { display: flex; min-height: 100vh; overflow: hidden; }
         
-        /* Loading */
-        #system-loader { position: fixed; inset: 0; background: #0F172A; z-index: 9999; display: flex; flex-col: column; align-items: center; justify-content: center; color: white; transition: opacity 0.5s; }
-        .loader-spin { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-top-color: #10B981; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        
-        /* TELA DE LOGIN (ESTILO PREMIUM DA FOTO) */
-        .login-split { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
-        
-        /* Lado Esquerdo (Escuro com Texto) */
-        .login-left { 
-            width: 45%; 
-            background: #1e293b; /* Slate 800 */
-            background-image: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: white; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            padding: 5rem; 
-            position: relative;
+        /* Lado Esquerdo (Visual) */
+        .login-visual { 
+            position: relative; width: 50%; background: #0f172a; color: white; 
+            display: flex; flex-direction: column; justify-content: center; padding: 6vw; 
+            overflow: hidden; z-index: 1;
         }
         
-        /* Detalhes do Lado Esquerdo */
-        .brand-subtitle { font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: #94a3b8; font-weight: 700; margin-bottom: 1rem; }
-        .hero-title { font-family: 'Inter', sans-serif; font-size: 3.5rem; font-weight: 800; line-height: 1.1; margin-bottom: 1rem; background: linear-gradient(to right, #fff, #cbd5e1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero-highlight { color: #34d399; -webkit-text-fill-color: #34d399; }
-        
-        .feature-list { margin-top: 3rem; display: flex; flex-col; gap: 2rem; }
-        .feature-item { display: flex; gap: 1rem; align-items: flex-start; }
+        /* As "Luzes" Flutuantes */
+        .blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4; z-index: -1; }
+        .blob-1 { top: -10%; left: -10%; width: 500px; height: 500px; background: #10B981; animation: float 10s ease-in-out infinite; }
+        .blob-2 { bottom: -10%; right: -10%; width: 600px; height: 600px; background: #3B82F6; animation: float-delay 12s ease-in-out infinite; }
+
+        /* Conteúdo Animado */
+        .anim-entry { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+
+        .feature-box { 
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(10px); padding: 20px; border-radius: 16px; margin-bottom: 16px; 
+            display: flex; align-items: center; gap: 16px; transition: transform 0.3s;
+        }
+        .feature-box:hover { transform: translateX(10px); background: rgba(255, 255, 255, 0.1); border-color: #10B981; }
         .feature-icon { 
-            width: 48px; height: 48px; 
-            background: rgba(255,255,255,0.1); 
-            border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; 
-            color: #34d399; flex-shrink: 0; font-size: 1.2rem;
+            width: 48px; height: 48px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); 
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; 
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
         }
-        .feature-text h3 { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.25rem; color: white; }
-        .feature-text p { font-size: 0.9rem; color: #94a3b8; line-height: 1.5; }
 
-        /* Lado Direito (Branco com Card) */
-        .login-right { width: 55%; background: white; display: flex; align-items: center; justify-content: center; padding: 2rem; }
-        .login-card { width: 100%; max-width: 420px; text-align: center; }
+        /* Lado Direito (Form) */
+        .login-form-side { width: 50%; background: white; display: flex; align-items: center; justify-content: center; padding: 2rem; position: relative; }
+        .form-container { width: 100%; max-width: 400px; }
         
-        /* Input & Button do Login */
-        .login-input { 
-            width: 100%; background: #F8FAFC; border: 1px solid #E2E8F0; 
-            border-radius: 8px; padding: 16px; font-size: 1rem; text-align: center; 
-            transition: all 0.2s; margin-bottom: 1rem; outline: none;
+        .input-modern { 
+            width: 100%; padding: 16px; background: #F1F5F9; border: 2px solid transparent; 
+            border-radius: 12px; font-size: 1rem; color: #334155; transition: all 0.3s; outline: none; text-align: center;
         }
-        .login-input:focus { border-color: #0F172A; box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.05); background: white; }
-        .login-btn {
-            width: 100%; background: #0F172A; color: white; font-weight: 600; padding: 16px;
-            border-radius: 8px; font-size: 1rem; transition: all 0.2s;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        .input-modern:focus { background: white; border-color: #10B981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
+        
+        .btn-modern { 
+            width: 100%; padding: 16px; background: #0F172A; color: white; font-weight: 700; 
+            border-radius: 12px; font-size: 1rem; margin-top: 16px; transition: all 0.3s; 
+            box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.15); cursor: pointer; border: none;
         }
-        .login-btn:hover { background: #1E293B; transform: translateY(-2px); }
+        .btn-modern:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.2); background: #1E293B; }
 
-        /* Responsivo */
+        /* Mobile */
         @media (max-width: 1024px) { 
-            .login-left { display: none; } 
-            .login-right { width: 100%; background: #F8FAFC; }
-            .login-card { background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+            .login-visual { display: none; } 
+            .login-form-side { width: 100%; background: #F8FAFC; } 
+            .form-container { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.05); }
         }
 
-        /* Resto do Sistema (Interno) */
-        .app-header { background: #0F172A; color: white; height: 64px; display: flex; align-items: center; padding: 0 32px; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
-        .panel-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; max-width: 1600px; margin: 24px auto; padding: 0 24px; height: calc(100vh - 112px); }
-        .project-item { background: white; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; transition: all 0.2s; cursor: pointer; position: relative; overflow: hidden; }
-        .project-item:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05); border-color: #10B981; }
-        .project-status-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+        /* Resto do Sistema (Dashboard/Editor) */
+        .app-header { background: #FFFFFF; border-bottom: 1px solid #E2E8F0; height: 70px; display: flex; align-items: center; padding: 0 32px; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+        .panel-grid { display: grid; grid-template-columns: 1fr 380px; gap: 24px; max-width: 1600px; margin: 32px auto; padding: 0 24px; height: calc(100vh - 130px); }
         
-        .editor-section { background: white; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; margin-bottom: 24px; }
-        .editor-header { background: #F8FAFC; padding: 12px 24px; border-bottom: 1px solid #E2E8F0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #64748B; display: flex; align-items: center; gap: 8px; }
-        .editor-body { padding: 24px; }
+        .project-item { background: white; border: 1px solid #E2E8F0; border-radius: 16px; padding: 24px; transition: all 0.2s; cursor: pointer; position: relative; overflow: hidden; }
+        .project-item:hover { transform: translateY(-4px); box-shadow: 0 15px 30px -5px rgba(0,0,0,0.05); border-color: #10B981; }
+        
+        .editor-section { background: white; border: 1px solid #E2E8F0; border-radius: 16px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .editor-header { background: #F8FAFC; padding: 16px 24px; border-bottom: 1px solid #E2E8F0; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #64748B; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px; }
         .input-field { width: 100%; background: #fff; border: 1px solid #CBD5E1; border-radius: 8px; padding: 10px; font-size: 0.9rem; transition: all 0.2s; }
-        .item-row { background: #fff; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+        .input-field:focus { border-color: #10B981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); outline: none; }
         
-        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.875rem; transition: all 0.2s; gap: 8px; cursor: pointer; }
-        .btn-primary { background: #0F172A; color: white; border: 1px solid #0F172A; } .btn-primary:hover { background: #1E293B; }
-        .btn-secondary { background: white; color: #475569; border: 1px solid #CBD5E1; }
-
+        /* Loading Overlay */
+        #system-loader { position: fixed; inset: 0; background: #0F172A; z-index: 9999; display: flex; flex-col: column; align-items: center; justify-content: center; color: white; transition: opacity 0.5s; }
         @media print { body { background: white; } .no-print { display: none !important; } }
-        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
 
     <div id="system-loader">
         <div class="loader-spin"></div>
-        <h2 class="text-xl font-bold tracking-widest text-emerald-400">APROVADO</h2>
-        <p class="text-xs text-slate-500 mt-2">Carregando...</p>
+        <h2 class="text-2xl font-bold tracking-widest text-emerald-400 brand-font mt-4">APROVADO</h2>
     </div>
 
     <script>
@@ -117,6 +113,7 @@
 
         let state = { user: null, project: null, version: null, data: { items: [], client: {}, terms: {}, location: {} } };
 
+        // --- LÓGICA DE DADOS ---
         function normalizeData(dbData) {
             const schema = { client: { name: '', doc: '', email: '', phone: '', address: '' }, location: { address: '', sameAsClient: true }, items: [], terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, settings: { myPhone: '' } };
             if (!dbData) return schema;
@@ -156,7 +153,7 @@
                     if(view === 'dashboard') await loadDashboard();
                     if(view === 'editor' && id) await loadEditor(id);
                 }
-                setTimeout(() => { document.getElementById('system-loader').style.display='none'; }, 500);
+                setTimeout(() => { document.getElementById('system-loader').style.display='none'; }, 600);
             } catch (e) { alert("Erro: " + e.message); }
         }
 
@@ -172,21 +169,22 @@
             btn.innerHTML = 'Enviando...';
             const { error } = await db.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href }});
             if(error) { alert(error.message); btn.innerText = 'Entrar'; }
-            else { btn.innerText = 'Link Enviado!'; alert('Verifique seu e-mail.'); }
+            else { btn.innerText = 'Verifique seu E-mail'; alert('Link enviado!'); }
         }
 
+        // --- DASHBOARD & EDITOR (Lógica mantida V10) ---
         async function loadDashboard() {
             const list = document.getElementById('project-list');
             list.innerHTML = '<div class="col-span-3 text-center py-10 text-slate-400">Carregando...</div>';
             const { data: projects } = await db.from('projects').select('*, versions(status, total_value, version_number)').eq('user_id', state.user.id).order('created_at', { ascending: false });
             
             let ap = 0, pe = 0; list.innerHTML = '';
-            if(!projects || !projects.length) list.innerHTML = `<div class="col-span-3 text-center py-20 border-2 border-dashed border-slate-200 rounded-xl text-slate-400">Nenhum projeto ainda.</div>`;
+            if(!projects || !projects.length) list.innerHTML = `<div class="col-span-3 text-center py-20 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 opacity-50"><i class="fas fa-plus text-4xl mb-4"></i><br>Crie seu primeiro orçamento</div>`;
             else {
                 projects.forEach(p => {
                     const v = (p.versions && p.versions.length) ? p.versions.sort((a,b)=>b.version_number-a.version_number)[0] : { total_value: 0, status: 'draft', version_number: 1 };
                     const val = parseFloat(v.total_value)||0; if(v.status==='approved') ap+=val; else pe+=val;
-                    list.innerHTML += `<div onclick="goTo('editor', '${p.id}')" class="project-item group"><div class="project-status-bar ${v.status==='approved'?'bg-emerald-500':'bg-amber-400'}"></div><div class="flex justify-between items-start mb-4 pl-2"><div><h3 class="font-bold text-slate-800 text-lg group-hover:text-emerald-600 transition-colors">${p.name}</h3><p class="text-xs text-slate-400 mt-1 font-bold uppercase">V${v.version_number} • ${new Date(p.created_at).toLocaleDateString()}</p></div><span class="px-2 py-1 rounded text-[10px] font-bold uppercase ${v.status==='approved'?'bg-emerald-100 text-emerald-800':'bg-amber-50 text-amber-700'}">${v.status==='approved'?'Aprovado':'Aberto'}</span></div><div class="pl-2 border-t border-slate-50 pt-3 flex justify-between items-end"><div class="text-xs text-slate-500 truncate max-w-[150px]"><i class="far fa-user mr-1"></i> ${p.client_name||'Cliente'}</div><div class="text-lg font-bold text-slate-900">R$ ${val.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div></div>`;
+                    list.innerHTML += `<div onclick="goTo('editor', '${p.id}')" class="project-item group"><div class="project-status-bar ${v.status==='approved'?'bg-emerald-500':'bg-amber-400'}"></div><div class="flex justify-between items-start mb-4 pl-2"><div><h3 class="font-bold text-slate-800 text-lg group-hover:text-emerald-600 transition-colors">${p.name}</h3><p class="text-xs text-slate-400 mt-1 font-bold uppercase tracking-wider">V${v.version_number} • ${new Date(p.created_at).toLocaleDateString()}</p></div><span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${v.status==='approved'?'bg-emerald-100 text-emerald-800':'bg-amber-50 text-amber-700'}">${v.status==='approved'?'Aprovado':'Aberto'}</span></div><div class="pl-2 border-t border-slate-50 pt-4 flex justify-between items-end"><div class="text-xs text-slate-500 truncate max-w-[150px] font-medium"><i class="far fa-user mr-1"></i> ${p.client_name||'Cliente'}</div><div class="text-xl font-bold text-slate-900 brand-font">R$ ${val.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div></div>`;
                 });
             }
             document.getElementById('kpi-revenue').innerText = ap.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
@@ -241,14 +239,14 @@
             d.items.forEach((i, idx) => {
                 const tot = (i.qty||0)*(i.price||0); total += tot;
                 const locked = isApp || (i.type==='original' && state.version.version_number>1);
-                list.innerHTML += `<div class="item-row ${i.type==='addon'?'border-l-4 border-l-amber-400':''}"><div class="flex justify-between mb-3"><span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-1 rounded">${i.type==='addon'?'Aditivo':'Item'}</span>${!locked?`<button onclick="rmItem(${idx})" class="text-red-400 text-xs font-bold hover:text-red-600">EXCLUIR</button>`:''}</div><div class="flex gap-4 items-start mb-3"><div class="flex-1"><label class="input-label">Título</label><input value="${i.name}" onchange="upItem(${idx},'name',this.value)" class="input-field font-bold" ${locked?'disabled':''}></div><div class="w-24"><label class="input-label text-center">Qtd</label><input type="number" value="${i.qty}" onchange="upItem(${idx},'qty',this.value)" class="input-field text-center" ${locked?'disabled':''}></div><div class="w-32"><label class="input-label text-right">Preço</label><input type="number" value="${i.price}" onchange="upItem(${idx},'price',this.value)" class="input-field text-right" ${locked?'disabled':''}></div></div><div><label class="input-label">Descrição Técnica</label><textarea onchange="upItem(${idx},'description',this.value)" class="item-tech-desc" ${locked?'disabled':''}>${i.description||''}</textarea></div><div class="text-right mt-2 text-sm font-bold text-slate-900">Total: R$ ${tot.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>`;
+                list.innerHTML += `<div class="item-row ${i.type==='addon'?'border-l-4 border-l-amber-400':''}"><div class="flex justify-between mb-3"><span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-1 rounded">${i.type==='addon'?'Aditivo':'Item'}</span>${!locked?`<button onclick="rmItem(${idx})" class="text-red-400 text-xs font-bold hover:text-red-600">EXCLUIR</button>`:''}</div><div class="flex gap-4 items-start mb-3"><div class="flex-1"><label class="input-label text-xs font-bold text-slate-500 mb-1 block">Título</label><input value="${i.name}" onchange="upItem(${idx},'name',this.value)" class="input-field font-bold" ${locked?'disabled':''}></div><div class="w-24"><label class="input-label text-xs font-bold text-slate-500 mb-1 block text-center">Qtd</label><input type="number" value="${i.qty}" onchange="upItem(${idx},'qty',this.value)" class="input-field text-center" ${locked?'disabled':''}></div><div class="w-32"><label class="input-label text-xs font-bold text-slate-500 mb-1 block text-right">Preço</label><input type="number" value="${i.price}" onchange="upItem(${idx},'price',this.value)" class="input-field text-right" ${locked?'disabled':''}></div></div><div><label class="input-label text-xs font-bold text-slate-500 mb-1 block">Descrição Técnica</label><textarea onchange="upItem(${idx},'description',this.value)" class="item-tech-desc w-full border border-slate-200 rounded p-2 text-sm" rows="2" ${locked?'disabled':''}>${i.description||''}</textarea></div><div class="text-right mt-2 text-sm font-bold text-slate-900">Total: R$ ${tot.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div></div>`;
             });
             txt('ed-total-display', total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
             
             const acts = document.getElementById('ed-actions'); const btnAdd = document.getElementById('btn-add-item');
             document.querySelectorAll('input, textarea, select').forEach(i => { if(i.id && !i.id.includes('search')) i.disabled = isApp; });
             if(isApp) { acts.innerHTML = `<button onclick="createAddon()" class="btn btn-primary w-full bg-amber-600 border-amber-600 hover:bg-amber-700">Criar Aditivo / Alteração</button>`; if(btnAdd) btnAdd.style.display = 'none'; } 
-            else { acts.innerHTML = `<button onclick="save()" class="btn btn-primary w-full py-3 shadow-lg"><i class="fas fa-save"></i> SALVAR PROPOSTA</button>`; if(btnAdd) btnAdd.style.display = 'inline-flex'; }
+            else { acts.innerHTML = `<button onclick="save()" class="btn btn-primary w-full py-3 shadow-lg bg-slate-900 text-white font-bold rounded-lg hover:bg-slate-800 transition-colors">SALVAR PROPOSTA</button>`; if(btnAdd) btnAdd.style.display = 'inline-flex'; }
         }
 
         function upClient(f,v) { state.data.client[f]=v; }
@@ -314,7 +312,7 @@
                 document.getElementById('stamp-approved').classList.remove('hidden');
                 acts.innerHTML = `<div class="bg-emerald-50 text-emerald-800 p-4 rounded-lg text-center font-bold border border-emerald-100">PROPOSTA APROVADA</div>`;
             } else {
-                acts.innerHTML = `<button onclick="approve()" class="btn btn-success w-full py-4 text-lg shadow-xl uppercase tracking-wider">Aprovar Proposta</button>`;
+                acts.innerHTML = `<button onclick="approve()" class="btn btn-success w-full py-4 text-lg shadow-xl uppercase tracking-wider bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition-colors">Aprovar Proposta</button>`;
             }
         }
 
@@ -330,74 +328,86 @@
         window.onload = init; window.onpopstate = init;
     </script>
 
-    <section id="view-login" class="hidden flex-1 login-split">
-        <div class="login-left">
-            <div class="brand-subtitle">Gestão Inteligente</div>
-            <h1 class="hero-title">Orçamentos que <br><span class="hero-highlight">Garantem</span> seu Lucro</h1>
-            <p class="text-slate-400 mb-12 text-lg">A ferramenta definitiva para prestadores de serviço e pequenas empresas.</p>
-            
-            <div class="feature-list">
-                <div class="feature-item">
-                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-                    <div class="feature-text">
-                        <h3>Evite prejuízos</h3>
-                        <p>Registre mudanças de escopo e se proteja de clientes indecisos.</p>
+    <section id="view-login" class="hidden flex-1 login-wrapper">
+        <div class="login-visual">
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
+
+            <div class="z-10 anim-entry">
+                <div class="brand-font text-emerald-400 text-sm tracking-widest font-bold mb-4 uppercase">Gestão Inteligente</div>
+                <h1 class="text-6xl font-bold mb-6 leading-tight brand-font">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">Garantem</span> seu Lucro</h1>
+                <p class="text-slate-400 text-lg mb-12 max-w-md">O sistema definitivo para quem vende projetos e serviços. Profissionalize sua gestão hoje.</p>
+                
+                <div class="flex flex-col gap-6">
+                    <div class="feature-box delay-100">
+                        <div class="feature-icon"><i class="fas fa-shield-alt text-white"></i></div>
+                        <div>
+                            <h3 class="font-bold text-lg">Evite prejuízos</h3>
+                            <p class="text-sm text-slate-300">Registre mudanças de escopo e se proteja.</p>
+                        </div>
                     </div>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon"><i class="fas fa-check-double"></i></div>
-                    <div class="feature-text">
-                        <h3>Aprovação do cliente</h3>
-                        <p>Orçamentos aprovados por link, com histórico e IP registrado.</p>
+                    <div class="feature-box delay-200">
+                        <div class="feature-icon"><i class="fas fa-check-circle text-white"></i></div>
+                        <div>
+                            <h3 class="font-bold text-lg">Aprovação do cliente</h3>
+                            <p class="text-sm text-slate-300">Link direto, histórico e IP registrado.</p>
+                        </div>
                     </div>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon"><i class="fas fa-comments"></i></div>
-                    <div class="feature-text">
-                        <h3>Menos discussão</h3>
-                        <p>Tudo documentado. Acabe com o "disse me disse" e garanta o pagamento.</p>
+                    <div class="feature-box delay-300">
+                        <div class="feature-icon"><i class="fas fa-comments text-white"></i></div>
+                        <div>
+                            <h3 class="font-bold text-lg">Menos discussão</h3>
+                            <p class="text-sm text-slate-300">Tudo documentado, sem retrabalho.</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="login-right">
-            <div class="login-card">
-                <div class="mb-8">
-                    <div class="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-3xl text-emerald-500 mx-auto mb-4 shadow-sm">
+        <div class="login-form-side">
+            <div class="form-container anim-entry delay-300">
+                <div class="text-center mb-10">
+                    <div class="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-3xl text-emerald-600 mx-auto mb-4 shadow-sm transform rotate-3">
                         <i class="fas fa-check"></i>
                     </div>
-                    <h2 class="text-2xl font-bold text-slate-900">Acesse sua conta</h2>
-                    <p class="text-slate-500 mt-2 text-sm">Digite seu e-mail corporativo para entrar.</p>
+                    <h2 class="text-3xl font-bold text-slate-900 brand-font">Acesse sua conta</h2>
+                    <p class="text-slate-500 mt-2">Sem senha. Apenas seu e-mail profissional.</p>
                 </div>
 
-                <div class="text-left">
-                    <label class="text-xs font-bold text-slate-500 uppercase ml-1 mb-1 block">E-mail Profissional</label>
-                    <input type="email" id="email" placeholder="voce@empresa.com" class="login-input">
-                    <button onclick="handleLogin()" id="btn-login" class="login-btn">Link Enviado! Verifique seu E-mail</button>
+                <div class="space-y-4">
+                    <input type="email" id="email" placeholder="nome@empresa.com" class="input-modern">
+                    <button onclick="handleLogin()" id="btn-login" class="btn-modern">Receber Link de Acesso</button>
                 </div>
                 
-                <p class="mt-8 text-xs text-slate-400">
-                    Ao continuar, você concorda com os Termos de Uso do <strong>Aprovado</strong>.
+                <p class="text-center text-xs text-slate-400 mt-8">
+                    Uso liberado • <span class="text-emerald-600 font-bold">Versão Beta</span>
                 </p>
             </div>
         </div>
     </section>
 
-    <section id="view-dashboard" class="hidden flex-1">
-        <div class="app-header">
-            <div class="font-bold text-xl flex items-center gap-2"><i class="fas fa-check-circle text-emerald-400"></i> Aprovado</div>
+    <section id="view-dashboard" class="hidden flex-1 bg-slate-50">
+        <div class="app-header bg-white">
+            <div class="font-bold text-xl flex items-center gap-2 brand-font tracking-tight"><div class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white text-sm"><i class="fas fa-check"></i></div> Aprovado</div>
             <div class="flex gap-3">
-                <button onclick="createProject()" class="btn btn-primary bg-white text-slate-900 hover:bg-slate-100 text-xs border-white"><i class="fas fa-plus"></i> Novo</button>
-                <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="text-slate-400 hover:text-white px-2"><i class="fas fa-sign-out-alt"></i></button>
+                <button onclick="createProject()" class="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 transition-colors">+ Novo Projeto</button>
+                <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="text-slate-400 hover:text-red-500 px-2 transition-colors"><i class="fas fa-power-off"></i></button>
             </div>
         </div>
-        <div class="max-w-6xl mx-auto p-8">
+        <div class="max-w-7xl mx-auto p-8">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                <div class="kpi-card border-emerald-200"><div class="text-xs font-bold uppercase text-emerald-600 mb-2">Aprovado</div><div class="text-3xl font-bold text-slate-800" id="kpi-revenue">R$ 0,00</div></div>
-                <div class="kpi-card border-amber-200"><div class="text-xs font-bold uppercase text-amber-600 mb-2">Em Aberto</div><div class="text-3xl font-bold text-slate-800" id="kpi-pipeline">R$ 0,00</div></div>
+                <div class="bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm relative overflow-hidden">
+                    <div class="absolute right-0 top-0 p-4 opacity-10 text-6xl text-emerald-500"><i class="fas fa-wallet"></i></div>
+                    <div class="text-xs font-bold uppercase text-emerald-600 mb-2 tracking-widest">Aprovado</div>
+                    <div class="text-4xl font-bold text-slate-800 brand-font" id="kpi-revenue">R$ 0,00</div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden">
+                    <div class="absolute right-0 top-0 p-4 opacity-10 text-6xl text-slate-400"><i class="fas fa-clock"></i></div>
+                    <div class="text-xs font-bold uppercase text-amber-500 mb-2 tracking-widest">Em Aberto</div>
+                    <div class="text-4xl font-bold text-slate-800 brand-font" id="kpi-pipeline">R$ 0,00</div>
+                </div>
             </div>
-            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Propostas</h2>
+            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Seus Projetos</h2>
             <div id="project-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
     </section>
@@ -405,21 +415,21 @@
     <section id="view-editor" class="hidden flex-1 bg-slate-50 h-screen flex flex-col">
         <div id="editor-loading" class="flex-1 flex items-center justify-center"><div class="loader-spin"></div></div>
         <div id="editor-content" class="hidden flex-col h-full">
-            <div class="app-header justify-between">
+            <div class="app-header justify-between bg-white">
                 <div class="flex items-center gap-4">
-                    <button onclick="goTo('dashboard')" class="text-slate-400 hover:text-white"><i class="fas fa-arrow-left"></i></button>
-                    <div><h2 id="ed-title" class="font-bold leading-none text-lg">...</h2><span id="ed-ver" class="text-[10px] text-slate-400 uppercase font-bold">V1</span></div>
+                    <button onclick="goTo('dashboard')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fas fa-arrow-left"></i></button>
+                    <div><h2 id="ed-title" class="font-bold leading-none text-lg text-slate-800">...</h2><span id="ed-ver" class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">V1</span></div>
                 </div>
-                <button onclick="share()" class="btn btn-secondary bg-slate-800 border-slate-700 text-white hover:bg-slate-700 text-xs"><i class="fas fa-share-alt"></i> Enviar</button>
+                <button onclick="share()" class="bg-white border border-slate-200 text-slate-700 hover:border-emerald-500 hover:text-emerald-600 px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2"><i class="fas fa-link"></i> Link Cliente</button>
             </div>
             <div class="panel-grid overflow-hidden">
                 <div class="overflow-y-auto pr-2 pb-20 no-scrollbar">
-                    <div class="editor-section"><div class="editor-header"><i class="fas fa-user-tie"></i> Cliente</div><div class="editor-body"><div class="input-group"><label class="input-label">Nome</label><input id="in-c-name" onchange="upClient('name',this.value)" class="input-field"></div><div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Doc</label><input id="in-c-doc" onchange="upClient('doc',this.value)" class="input-field"></div><div class="input-group"><label class="input-label">Tel</label><input id="in-c-phone" onchange="upClient('phone',this.value)" class="input-field"></div></div><div class="input-group"><label class="input-label">Email</label><input id="in-c-email" onchange="upClient('email',this.value)" class="input-field"></div><div class="input-group"><label class="input-label">Endereço</label><input id="in-c-addr" onchange="upClient('address',this.value)" class="input-field"></div><div class="mt-4 pt-4 border-t"><label class="input-label text-emerald-600">Seu WhatsApp (Notificação)</label><input id="in-s-myphone" onchange="upSettings('myPhone',this.value)" class="input-field bg-emerald-50 border-emerald-200"></div></div></div>
-                    <div class="editor-section"><div class="editor-header justify-between"><span><i class="fas fa-list"></i> Escopo</span><button id="btn-add-item" onclick="addItem()" class="btn btn-primary text-xs py-1 px-3">+ Item</button></div><div class="editor-body bg-slate-50 min-h-[300px]"><div id="ed-list"></div></div></div>
+                    <div class="editor-section"><div class="editor-header"><i class="fas fa-user-tie text-slate-400"></i> Cliente</div><div class="editor-body"><div class="input-group"><label class="input-label text-xs font-bold text-slate-500 mb-1 block">Nome / Empresa</label><input id="in-c-name" onchange="upClient('name',this.value)" class="input-field" placeholder="Ex: Construtora Silva"></div><div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label text-xs font-bold text-slate-500 mb-1 block">CPF/CNPJ</label><input id="in-c-doc" onchange="upClient('doc',this.value)" class="input-field"></div><div class="input-group"><label class="input-label text-xs font-bold text-slate-500 mb-1 block">Telefone</label><input id="in-c-phone" onchange="upClient('phone',this.value)" class="input-field"></div></div><div class="input-group"><label class="input-label text-xs font-bold text-slate-500 mb-1 block">E-mail</label><input id="in-c-email" onchange="upClient('email',this.value)" class="input-field"></div><div class="input-group"><label class="input-label text-xs font-bold text-slate-500 mb-1 block">Endereço</label><input id="in-c-addr" onchange="upClient('address',this.value)" class="input-field"></div><div class="mt-4 pt-4 border-t border-slate-100"><label class="input-label text-xs font-bold text-emerald-600 mb-1 block">Seu WhatsApp (Para receber o Aceite)</label><input id="in-s-myphone" onchange="upSettings('myPhone',this.value)" class="input-field bg-emerald-50 border-emerald-200 text-emerald-800" placeholder="5511999999999"></div></div></div>
+                    <div class="editor-section"><div class="editor-header justify-between"><span><i class="fas fa-list-ol text-slate-400"></i> Escopo</span><button id="btn-add-item" onclick="addItem()" class="text-xs bg-slate-900 text-white px-3 py-1 rounded font-bold hover:bg-slate-700">+ Adicionar Item</button></div><div class="editor-body bg-slate-50 min-h-[300px]"><div id="ed-list" class="space-y-3"></div></div></div>
                 </div>
                 <div class="overflow-y-auto pb-20 no-scrollbar">
-                    <div class="editor-section sticky top-0 shadow-lg"><div class="editor-header"><i class="fas fa-wallet"></i> Valor</div><div class="editor-body"><div class="bg-slate-900 text-white p-6 rounded-lg text-center mb-6"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total</div><div id="ed-total-display" class="text-3xl font-bold">R$ 0,00</div></div><div class="input-group"><div class="flex gap-2 mb-2"><select id="pay-mode" class="input-field"><option value="entry_installments">Parcelado</option><option value="single">À Vista</option></select><button onclick="generatePayment()" class="btn btn-secondary px-3"><i class="fas fa-calculator"></i></button></div><div id="payment-display" class="text-xs bg-slate-50 p-3 rounded border border-slate-200 text-slate-600 whitespace-pre-line min-h-[60px]">...</div></div><div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Entrega</label><input id="in-t-dead" onchange="upTerms('deadline',this.value)" class="input-field"></div><div class="input-group"><label class="input-label">Validade</label><select id="in-t-val" onchange="upTerms('validity',this.value)" class="input-field"><option>7 dias</option><option>15 dias</option><option>30 dias</option></select></div></div><div class="input-group"><label class="input-label">Obs</label><textarea id="in-t-obs" onchange="upTerms('obs',this.value)" class="input-field h-20"></textarea></div><div id="ed-actions" class="mt-6"></div></div></div>
-                    <div class="editor-section"><div class="editor-header"><i class="fas fa-map-marker-alt"></i> Local</div><div class="editor-body"><label class="flex items-center gap-2 text-xs font-bold text-slate-600 mb-2 cursor-pointer"><input type="checkbox" id="in-l-check" onchange="toggleLocation(this.checked)"> Mesmo do Cliente</label><input id="in-l-addr" onchange="upLocation(this.value)" class="input-field"></div></div>
+                    <div class="editor-section sticky top-0 shadow-lg border-emerald-100"><div class="editor-header bg-emerald-50/50 text-emerald-800"><i class="fas fa-coins"></i> Resumo Financeiro</div><div class="editor-body"><div class="bg-slate-900 text-white p-6 rounded-xl text-center mb-6 shadow-xl"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Valor Total</div><div id="ed-total-display" class="text-4xl font-bold brand-font">R$ 0,00</div></div><div class="input-group"><div class="flex gap-2 mb-2"><select id="pay-mode" class="input-field font-bold text-slate-700"><option value="entry_installments">Entrada + Parcelas</option><option value="single">Pagamento Único</option></select><button onclick="generatePayment()" class="bg-slate-200 text-slate-600 px-3 rounded-lg hover:bg-slate-300"><i class="fas fa-calculator"></i></button></div><div id="payment-display" class="text-xs bg-amber-50 p-3 rounded border border-amber-100 text-amber-900 whitespace-pre-line min-h-[60px] font-mono">...</div></div><div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label text-xs font-bold text-slate-500 mb-1 block">Entrega</label><input id="in-t-dead" onchange="upTerms('deadline',this.value)" class="input-field" placeholder="Ex: 15 dias"></div><div class="input-group"><label class="input-label text-xs font-bold text-slate-500 mb-1 block">Validade</label><select id="in-t-val" onchange="upTerms('validity',this.value)" class="input-field"><option>7 dias</option><option>15 dias</option><option>30 dias</option></select></div></div><div class="input-group"><label class="input-label text-xs font-bold text-slate-500 mb-1 block">Observações</label><textarea id="in-t-obs" onchange="upTerms('obs',this.value)" class="input-field h-24 text-sm" placeholder="Garantias, condições..."></textarea></div><div id="ed-actions" class="mt-6"></div></div></div>
+                    <div class="editor-section"><div class="editor-header"><i class="fas fa-map-marker-alt text-slate-400"></i> Local</div><div class="editor-body"><label class="flex items-center gap-2 text-xs font-bold text-slate-600 mb-2 cursor-pointer select-none"><input type="checkbox" id="in-l-check" onchange="toggleLocation(this.checked)" class="accent-emerald-500"> Mesmo endereço do cliente</label><input id="in-l-addr" onchange="upLocation(this.value)" class="input-field" placeholder="Endereço da obra/serviço"></div></div>
                 </div>
             </div>
         </div>
@@ -428,16 +438,16 @@
     <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10 overflow-y-auto print:p-0">
         <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col">
             <div id="stamp-approved" class="hidden absolute top-10 right-10 border-4 border-emerald-600 text-emerald-600 font-bold text-3xl px-6 py-2 uppercase opacity-30 transform -rotate-12 z-20">APROVADO</div>
-            <div class="bg-slate-900 text-white p-12 print:bg-white print:text-black print:border-b-2"><div class="flex justify-between items-start"><div><h1 id="doc-title" class="text-3xl font-bold mb-2">Projeto</h1><p class="text-xs uppercase tracking-widest text-slate-400">Proposta Técnica</p></div><div class="text-right"><div id="doc-id" class="font-bold text-lg">#REF</div><div id="doc-date" class="text-sm opacity-70">--/--/--</div></div></div></div>
+            <div class="bg-slate-900 text-white p-12 print:bg-white print:text-black print:border-b-2"><div class="flex justify-between items-start"><div><h1 id="doc-title" class="text-4xl font-bold mb-2 brand-font">Projeto</h1><p class="text-xs uppercase tracking-widest text-slate-400 font-bold">Proposta Técnica e Comercial</p></div><div class="text-right"><div id="doc-id" class="font-bold text-xl text-emerald-400">#REF</div><div id="doc-date" class="text-sm opacity-70 mt-1">--/--/--</div></div></div></div>
             <div class="p-12 flex-1">
-                <div class="flex gap-12 mb-12 text-sm"><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Cliente</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div><div id="doc-c-doc" class="text-slate-500"></div></div><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Local</h3><div id="doc-c-addr" class="text-slate-600"></div></div></div>
-                <div class="mb-12"><h3 class="font-bold text-xs uppercase text-slate-400 mb-4 tracking-wider">Escopo</h3><table class="w-full"><tbody id="doc-items-body"></tbody></table></div>
-                <div class="bg-slate-50 border border-slate-100 rounded-lg p-8 mb-12 flex gap-12"><div class="flex-1"><h4 class="font-bold text-xs uppercase text-slate-400 mb-2">Pagamento</h4><div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line"></div><div class="mt-4 flex gap-6 text-sm"><div><span class="font-bold text-xs uppercase text-slate-400 block">Entrega</span><span id="doc-deadline"></span></div><div><span class="font-bold text-xs uppercase text-slate-400 block">Validade</span><span id="doc-validity"></span></div></div></div><div class="text-right"><h4 class="font-bold text-xs uppercase text-slate-400 mb-1">Total</h4><div id="doc-total" class="text-3xl font-bold text-slate-900">R$ 0,00</div></div></div>
-                <div id="doc-obs" class="text-xs text-slate-500 italic text-justify"></div>
-                <div class="p-4 text-center text-[10px] text-slate-400 border-t border-slate-100 mt-auto">Gerado via <strong>Aprovado</strong> • <span class="text-blue-600">aprovado.app</span></div>
+                <div class="flex gap-12 mb-12 text-sm"><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1 tracking-wider">Contratante</h3><div id="doc-c-name" class="font-bold text-xl text-slate-900"></div><div id="doc-c-doc" class="text-slate-500 mt-1"></div></div><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1 tracking-wider">Local de Execução</h3><div id="doc-c-addr" class="text-slate-700 text-lg"></div></div></div>
+                <div class="mb-12"><h3 class="font-bold text-xs uppercase text-slate-400 mb-4 tracking-wider">Escopo Detalhado</h3><table class="w-full text-sm"><tbody id="doc-items-body"></tbody></table></div>
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-8 mb-12 flex gap-12"><div class="flex-1"><h4 class="font-bold text-xs uppercase text-slate-400 mb-3 tracking-wider">Condições de Pagamento</h4><div id="doc-payment" class="text-sm font-mono text-slate-800 whitespace-pre-line bg-white p-4 rounded border border-slate-200"></div><div class="mt-4 flex gap-8 text-sm"><div><span class="font-bold text-xs uppercase text-slate-400 block mb-1">Prazo de Entrega</span><span id="doc-deadline" class="font-bold text-slate-900"></span></div><div><span class="font-bold text-xs uppercase text-slate-400 block mb-1">Validade da Proposta</span><span id="doc-validity" class="font-bold text-slate-900"></span></div></div></div><div class="text-right"><h4 class="font-bold text-xs uppercase text-slate-400 mb-2 tracking-wider">Investimento Total</h4><div id="doc-total" class="text-4xl font-bold text-slate-900 brand-font">R$ 0,00</div></div></div>
+                <div id="doc-obs" class="text-xs text-slate-500 italic text-justify leading-relaxed"></div>
+                <div class="p-6 text-center text-[10px] text-slate-400 border-t border-slate-100 mt-auto">Documento gerado profissionalmente via <strong>Aprovado</strong> • Crie o seu grátis em <span class="text-blue-600 font-bold">aprovado.app</span></div>
                 <div id="doc-actions" class="no-print mt-8"></div>
             </div>
-            <div class="bg-slate-50 p-4 text-center border-t no-print"><button onclick="window.print()" class="text-xs font-bold text-slate-400 uppercase hover:text-slate-600"><i class="fas fa-print"></i> PDF</button></div>
+            <div class="bg-slate-50 p-4 text-center border-t no-print"><button onclick="window.print()" class="text-xs font-bold text-slate-400 uppercase hover:text-slate-600 transition-colors"><i class="fas fa-print mr-1"></i> Salvar PDF / Imprimir</button></div>
         </div>
     </section>
 
