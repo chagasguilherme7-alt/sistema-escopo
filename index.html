@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
@@ -100,7 +100,7 @@
             data: { client: {}, location: {}, items: [], terms: {}, settings: {}, history: [] }
         };
 
-        // --- NORMALIZAÇÃO DE DADOS (CRUCIAL PARA V21) ---
+        // --- NORMALIZAÇÃO DE DADOS ---
         function normalizeData(dbData) {
             const schema = { 
                 client: { name: '', doc: '', email: '', phone: '', address: '' }, 
@@ -108,12 +108,11 @@
                 items: [], 
                 terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, 
                 settings: { myPhone: '', serviceType: 'Outros' },
-                history: [] // Novo array de histórico
+                history: []
             };
             
             if (!dbData) return schema;
             
-            // Corrige items antigos
             const rawItems = Array.isArray(dbData.items) ? dbData.items : (dbData.scope || []);
             const cleanItems = rawItems.map(i => ({ name: i.name || '', description: i.description || '', qty: parseFloat(i.qty) || 1, price: parseFloat(i.price) || 0, type: i.type || 'original' }));
             
@@ -123,7 +122,7 @@
                 items: cleanItems, 
                 terms: { ...schema.terms, ...(dbData.terms || {}) }, 
                 settings: { ...schema.settings, ...(dbData.settings || {}) },
-                history: Array.isArray(dbData.history) ? dbData.history : [] // Garante histórico
+                history: Array.isArray(dbData.history) ? dbData.history : []
             };
         }
 
@@ -201,7 +200,7 @@
             else { btn.innerText = 'Enviado!'; alert('Verifique seu e-mail.'); }
         }
 
-        // --- DASHBOARD MASTER (V21) ---
+        // --- DASHBOARD MASTER ---
         function goTo(view, id = null) {
             window.history.pushState(null, '', id ? `?view=${view}&id=${id}` : `?view=${view}`);
             init();
@@ -234,8 +233,6 @@
                 const matchSearch = p.name.toLowerCase().includes(search) || (p.client_name||'').toLowerCase().includes(search);
                 const matchStatus = filterStatus === 'all' || v.status === filterStatus;
                 
-                // KPIs globais (calculados sobre tudo, não só filtrados da busca visual)
-                // Na verdade, KPIs geralmente refletem o todo. Vamos calcular sobre TODOS os projetos primeiro.
                 return matchSearch && matchStatus;
             });
 
@@ -243,7 +240,7 @@
             state.projectsCache.forEach(p => {
                 const v = p.versions?.[0] || { status: 'draft', total_value: 0 };
                 const val = parseFloat(v.total_value) || 0;
-                totalRev += val; // Receita Estimada (Pipeline Total)
+                totalRev += val; 
                 if(v.status === 'approved') { totalAprov += val; countAprov++; }
                 if(v.status === 'negotiating' || v.status === 'sent') countNegoc++;
                 if(v.status === 'canceled') countCancel++;
@@ -296,7 +293,7 @@
             const { data: p, error } = await db.from('projects').insert({ name, user_id: state.user.id, client_name: 'Novo Cliente' }).select().single();
             const d = normalizeData(null); 
             d.settings.myPhone = localStorage.getItem('escopo_phone') || '';
-            logHistory('created', 'provider', 'Orçamento criado via painel.', d); // Log inicial
+            logHistory('created', 'provider', 'Orçamento criado via painel.', d); 
             await db.from('versions').insert({ project_id: p.id, version_number: 1, items: d, total_value: 0, status: 'draft' });
             goTo('editor', p.id);
         }
@@ -312,7 +309,6 @@
             state.version = vers[vers.length - 1];
             state.data = normalizeData(state.version.items);
             
-            // Fallback de dados legados
             if(state.version.notes && !state.data.terms.obs) state.data.terms.obs = state.version.notes;
             if(!state.data.settings.myPhone) state.data.settings.myPhone = localStorage.getItem('escopo_phone') || '';
 
@@ -325,24 +321,19 @@
             const d = state.data;
             const isLocked = state.version.status === 'approved' || state.version.status === 'canceled';
             
-            // Header
             document.getElementById('ed-title').innerText = state.project.name;
             document.getElementById('ed-ver').innerText = `V${state.version.version_number}`;
             document.getElementById('ed-status-badge').className = `status-badge ml-2 ${state.version.status === 'approved' ? 'st-approved' : state.version.status === 'canceled' ? 'st-canceled' : 'st-draft'}`;
             document.getElementById('ed-status-badge').innerText = state.version.status.toUpperCase();
 
-            // Preenchimento Inputs
             const set = (id,v) => { const el=document.getElementById(id); if(el) el.value=v||''; };
             set('c-name', d.client.name); set('c-doc', d.client.doc); set('c-phone', d.client.phone); set('c-email', d.client.email); set('c-addr', d.client.address); set('s-phone', d.settings.myPhone);
             
-            // Tipo de Serviço
             const svc = document.getElementById('s-type');
             if(svc) svc.value = d.settings.serviceType || 'Outros';
 
-            // Termos
             set('t-dead', d.terms.deadline); set('t-val', d.terms.validity); set('t-obs', d.terms.obs);
 
-            // Render Items
             const list = document.getElementById('ed-items'); list.innerHTML = ''; let total = 0;
             d.items.forEach((i,x) => {
                 const t = (i.qty||0)*(i.price||0); total+=t;
@@ -359,7 +350,6 @@
             });
             document.getElementById('ed-total').innerText = total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 
-            // Render Timeline (Histórico)
             const histList = document.getElementById('ed-history');
             histList.innerHTML = '';
             if(d.history && d.history.length > 0) {
@@ -380,7 +370,6 @@
                 histList.innerHTML = '<div class="text-xs text-slate-400 italic">Sem histórico registrado.</div>';
             }
 
-            // Botões de Ação
             const actions = document.getElementById('ed-actions');
             if (isLocked) {
                 actions.innerHTML = `<button onclick="createAddon()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg mb-2 shadow-lg"><i class="fas fa-copy mr-2"></i> Duplicar / Aditivo</button>`;
@@ -392,7 +381,6 @@
             }
         }
 
-        // Funções de Update
         function upVal(k,v) { 
             if(k.startsWith('c-')) state.data.client[k.substring(2)] = v; 
             else if(k.startsWith('t-')) state.data.terms[k.substring(2)] = v; 
@@ -413,7 +401,7 @@
         async function createAddon() {
             if(!confirm("Criar nova versão (Aditivo)?")) return;
             const t = state.data.items.reduce((a,b)=>a+(b.qty*b.price),0);
-            logHistory('created', 'provider', 'Criou nova versão/aditivo.'); // Log
+            logHistory('created', 'provider', 'Criou nova versão/aditivo.'); 
             await db.from('versions').insert({project_id:state.project.id, version_number:state.version.version_number+1, items:state.data, total_value:t, status:'draft'});
             loadEditor(state.project.id);
         }
@@ -422,7 +410,7 @@
             if(!confirm(`Mudar status para ${newStatus}?`)) return;
             await db.from('versions').update({status: newStatus}).eq('id',state.version.id);
             logHistory(newStatus, 'provider', 'Alteração manual de status.');
-            save(); // Salva o histórico
+            save(); 
             loadEditor(state.project.id);
         }
 
@@ -442,7 +430,6 @@
                 state.version = v;
                 state.data = normalizeData(v.items);
                 
-                // Render Public Data
                 const setText = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val || '-'; };
                 setText('doc-title', v.projects?.name); setText('doc-id', `#${v.project_id.substr(0,4).toUpperCase()}-${v.version_number}`);
                 setText('doc-c-name', state.data.client.name);
@@ -451,7 +438,6 @@
                 state.data.items.forEach(i => { list.innerHTML += `<tr class="border-b"><td class="py-2 font-bold">${i.name}<br><span class="font-normal text-xs text-slate-500">${i.description}</span></td><td class="text-right">R$ ${(i.qty*i.price).toLocaleString('pt-BR')}</td></tr>`; });
                 setText('doc-total', parseFloat(v.total_value).toLocaleString('pt-BR', {style:'currency',currency:'BRL'}));
 
-                // Botões de Interação
                 const actions = document.getElementById('doc-actions');
                 if(v.status === 'approved') {
                     document.getElementById('stamp-approved').classList.remove('hidden');
@@ -469,8 +455,6 @@
                 }
                 
                 document.getElementById('public-content').classList.remove('hidden');
-                
-                // Log view se for a primeira vez na sessao (opcional, simples aqui)
             } finally { document.getElementById('public-loading').classList.add('hidden'); }
         }
 
@@ -497,12 +481,11 @@
             const text = document.getElementById('modal-input').value;
             if(!text) return alert("Por favor, escreva uma mensagem.");
             
-            logHistory(action, 'client', text); // Adiciona ao histórico
+            logHistory(action, 'client', text); 
             
-            // Atualiza DB
             await db.from('versions').update({
                 status: newStatus,
-                items: state.data // Salva o histórico novo dentro do JSON items
+                items: state.data 
             }).eq('id', state.version.id);
 
             alert("Enviado com sucesso!");
@@ -519,7 +502,6 @@
                 items: state.data
             }).eq('id', state.version.id);
             
-            // Notifica Zap
             const phone = state.data.settings?.myPhone;
             if(phone) {
                 const msg = `✅ O cliente APROVOU o orçamento ${state.version.projects.name}!`;
@@ -538,7 +520,12 @@
             <div class="relative z-10 anim-entry">
                 <div class="text-blue-300 font-bold tracking-widest text-xs uppercase mb-4">Aprovado.app</div>
                 <h1 class="text-5xl font-extrabold leading-tight mb-2 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">Garantem sua segurança</span></h1>
-                <div class="ideal-para-container"><span>Ideal para:</span><span id="rotator" class="rotating-wrapper"></span></div>
+                
+                <div class="ideal-para-container">
+                    <span>Ideal para:</span>
+                    <span id="rotator" class="rotating-wrapper"></span>
+                </div>
+
                 <div class="space-y-4">
                     <div class="benefit-item delay-100"><div class="icon-circle bg-blue-600 text-white"><i class="fas fa-shield-alt"></i></div><div><h3 class="font-bold text-lg">Evite prejuízos</h3><p class="text-sm text-indigo-100 opacity-80">Registre mudanças de escopo.</p></div></div>
                     <div class="benefit-item delay-200"><div class="icon-circle bg-emerald-500 text-white"><i class="fas fa-check"></i></div><div><h3 class="font-bold text-lg">Aprovação</h3><p class="text-sm text-indigo-100 opacity-80">Link direto e histórico.</p></div></div>
@@ -568,112 +555,72 @@
         
         <div class="max-w-7xl mx-auto p-8">
             <div class="kpi-grid">
-                <div class="kpi-card border-l-4 border-l-slate-800">
-                    <div class="kpi-label">Receita Estimada</div>
-                    <div class="kpi-value" id="kpi-total-est">R$ 0,00</div>
-                </div>
-                <div class="kpi-card border-l-4 border-l-emerald-500">
-                    <div class="kpi-label">Receita Aprovada</div>
-                    <div class="kpi-value text-emerald-600" id="kpi-total-apr">R$ 0,00</div>
-                </div>
-                <div class="kpi-card bg-amber-50 border-amber-200">
-                    <div class="kpi-label text-amber-700">Em Negociação</div>
-                    <div class="kpi-value text-amber-700" id="kpi-count-neg">0</div>
-                </div>
-                <div class="kpi-card bg-emerald-50 border-emerald-200">
-                    <div class="kpi-label text-emerald-700">Aprovados</div>
-                    <div class="kpi-value text-emerald-700" id="kpi-count-apr">0</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Cancelados</div>
-                    <div class="kpi-value text-red-500" id="kpi-count-can">0</div>
-                </div>
+                <div class="kpi-card border-l-4 border-l-slate-800"><div class="kpi-label">Receita Estimada</div><div class="kpi-value" id="kpi-total-est">R$ 0,00</div></div>
+                <div class="kpi-card border-l-4 border-l-emerald-500"><div class="kpi-label">Receita Aprovada</div><div class="kpi-value text-emerald-600" id="kpi-total-apr">R$ 0,00</div></div>
+                <div class="kpi-card bg-amber-50 border-amber-200"><div class="kpi-label text-amber-700">Em Negociação</div><div class="kpi-value text-amber-700" id="kpi-count-neg">0</div></div>
+                <div class="kpi-card bg-emerald-50 border-emerald-200"><div class="kpi-label text-emerald-700">Aprovados</div><div class="kpi-value text-emerald-700" id="kpi-count-apr">0</div></div>
+                <div class="kpi-card"><div class="kpi-label">Cancelados</div><div class="kpi-value text-red-500" id="kpi-count-can">0</div></div>
             </div>
 
             <div class="flex flex-col md:flex-row gap-4 mb-6 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <div class="flex-1 w-full relative">
-                    <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
-                    <input id="dash-search" onkeyup="renderDashboardList()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Buscar cliente ou projeto...">
-                </div>
-                <select id="dash-filter" onchange="renderDashboardList()" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
-                    <option value="all">Todos os Status</option>
-                    <option value="draft">Rascunhos</option>
-                    <option value="sent">Enviados</option>
-                    <option value="negotiating">Em Negociação</option>
-                    <option value="approved">Aprovados</option>
-                    <option value="canceled">Cancelados</option>
-                </select>
+                <div class="flex-1 w-full relative"><i class="fas fa-search absolute left-3 top-3 text-slate-400"></i><input id="dash-search" onkeyup="renderDashboardList()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Buscar cliente ou projeto..."></div>
+                <select id="dash-filter" onchange="renderDashboardList()" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none"><option value="all">Todos os Status</option><option value="draft">Rascunhos</option><option value="sent">Enviados</option><option value="negotiating">Em Negociação</option><option value="approved">Aprovados</option><option value="canceled">Cancelados</option></select>
             </div>
 
             <div id="project-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
     </section>
 
-    <section id="view-editor" class="hidden grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 w-full max-w-[1600px] mx-auto p-6 h-[calc(100vh-70px)]">
-        <div class="overflow-y-auto pr-2 pb-20">
-            <div class="flex justify-between items-end mb-6">
-                <div>
-                    <button onclick="goTo('dashboard')" class="text-xs font-bold text-slate-400 hover:text-slate-600 mb-1"><i class="fas fa-arrow-left"></i> VOLTAR</button>
-                    <div class="flex items-center gap-3">
-                        <h2 id="ed-title" class="text-2xl font-bold font-heading text-slate-900">...</h2>
-                        <span id="ed-ver" class="text-xs bg-slate-200 px-2 py-1 rounded font-bold text-slate-600">V1</span>
-                        <span id="ed-status-badge"></span>
+    <section id="view-editor" class="hidden flex flex-col h-screen">
+        <div id="editor-loading" class="flex-1 flex items-center justify-center bg-slate-50"><div class="loader-spin"></div></div>
+        
+        <div id="editor-content" class="hidden grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 w-full max-w-[1600px] mx-auto p-6 h-[calc(100vh-70px)]">
+            <div class="overflow-y-auto pr-2 pb-20">
+                <div class="flex justify-between items-end mb-6">
+                    <div>
+                        <button onclick="goTo('dashboard')" class="text-xs font-bold text-slate-400 hover:text-slate-600 mb-1"><i class="fas fa-arrow-left"></i> VOLTAR</button>
+                        <div class="flex items-center gap-3"><h2 id="ed-title" class="text-2xl font-bold font-heading text-slate-900">...</h2><span id="ed-ver" class="text-xs bg-slate-200 px-2 py-1 rounded font-bold text-slate-600">V1</span><span id="ed-status-badge"></span></div>
+                    </div>
+                    <button onclick="share()" class="text-sm bg-white border border-blue-200 text-blue-600 px-4 py-2 rounded-lg font-bold hover:bg-blue-50 transition-all shadow-sm"><i class="fas fa-link mr-2"></i>Link Cliente</button>
+                </div>
+
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden mb-6 shadow-sm">
+                    <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 font-bold text-xs uppercase text-slate-500">Dados do Cliente</div>
+                    <div class="p-6 grid gap-4">
+                        <input id="c-name" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Nome do Cliente / Empresa" onchange="upVal('c-name',this.value)">
+                        <div class="grid grid-cols-2 gap-4"><input id="c-doc" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="CPF/CNPJ" onchange="upVal('c-doc',this.value)"><input id="c-phone" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Telefone" onchange="upVal('c-phone',this.value)"></div>
+                        <input id="c-email" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="E-mail" onchange="upVal('c-email',this.value)">
+                        <input id="c-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Endereço Completo" onchange="upVal('c-addr',this.value)">
                     </div>
                 </div>
-                <button onclick="share()" class="text-sm bg-white border border-blue-200 text-blue-600 px-4 py-2 rounded-lg font-bold hover:bg-blue-50 transition-all shadow-sm"><i class="fas fa-link mr-2"></i>Link Cliente</button>
-            </div>
 
-            <div class="bg-white border border-slate-200 rounded-xl overflow-hidden mb-6 shadow-sm">
-                <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 font-bold text-xs uppercase text-slate-500">Dados do Cliente</div>
-                <div class="p-6 grid gap-4">
-                    <input id="c-name" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Nome do Cliente / Empresa" onchange="upVal('c-name',this.value)">
-                    <div class="grid grid-cols-2 gap-4">
-                        <input id="c-doc" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="CPF/CNPJ" onchange="upVal('c-doc',this.value)">
-                        <input id="c-phone" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Telefone" onchange="upVal('c-phone',this.value)">
-                    </div>
-                    <input id="c-email" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="E-mail" onchange="upVal('c-email',this.value)">
-                    <input id="c-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Endereço Completo" onchange="upVal('c-addr',this.value)">
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm mb-6">
+                    <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 font-bold text-xs uppercase text-slate-500 flex justify-between items-center"><span>Escopo do Serviço</span><button id="btn-add-item" onclick="addItem()" class="text-blue-600 hover:underline font-bold text-xs">+ Adicionar Item</button></div>
+                    <div id="ed-items" class="p-6"></div>
                 </div>
-            </div>
 
-            <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm mb-6">
-                <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 font-bold text-xs uppercase text-slate-500 flex justify-between items-center">
-                    <span>Escopo do Serviço</span>
-                    <button id="btn-add-item" onclick="addItem()" class="text-blue-600 hover:underline font-bold text-xs">+ Adicionar Item</button>
-                </div>
-                <div id="ed-items" class="p-6"></div>
-            </div>
-
-            <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm p-6">
-                <label class="block text-xs font-bold text-slate-500 mb-2">Categoria do Serviço</label>
-                <select id="s-type" onchange="upVal('s-type',this.value)" class="w-full border p-2 rounded mb-4 text-sm">
-                    <option>Outros</option><option>Eletricista</option><option>Encanador</option><option>Reforma Geral</option><option>Instalação de Ar</option><option>Pintura</option><option>Marcenaria</option>
-                </select>
-                <label class="block text-xs font-bold text-blue-600 mb-2">Seu WhatsApp (Para notificações)</label>
-                <input id="s-phone" class="w-full border border-blue-100 bg-blue-50 p-2 rounded text-sm" placeholder="Ex: 5511999999999" onchange="upVal('s-phone',this.value)">
-            </div>
-        </div>
-
-        <div class="overflow-y-auto pb-20">
-            <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-lg sticky top-0 mb-6">
-                <div class="bg-slate-900 px-6 py-4 border-b border-slate-800 font-bold text-xs uppercase text-slate-400">Resumo Financeiro</div>
-                <div class="p-6">
-                    <div class="text-center mb-6">
-                        <div class="text-xs text-slate-400 uppercase tracking-widest mb-1">Total Global</div>
-                        <div id="ed-total" class="text-4xl font-bold font-heading text-slate-900">R$ 0,00</div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <input id="t-dead" class="border p-2 rounded text-sm" placeholder="Prazo" onchange="upVal('t-dead',this.value)">
-                        <input id="t-val" class="border p-2 rounded text-sm" placeholder="Validade" onchange="upVal('t-val',this.value)">
-                    </div>
-                    <textarea id="t-obs" class="w-full border p-2 rounded text-sm h-20 mb-4 bg-slate-50" placeholder="Condições de pagamento..." onchange="upVal('t-obs',this.value)"></textarea>
-                    <div id="ed-actions"></div>
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm p-6">
+                    <label class="block text-xs font-bold text-slate-500 mb-2">Categoria do Serviço</label>
+                    <select id="s-type" onchange="upVal('s-type',this.value)" class="w-full border p-2 rounded mb-4 text-sm"><option>Outros</option><option>Eletricista</option><option>Encanador</option><option>Reforma Geral</option><option>Instalação de Ar</option><option>Pintura</option><option>Marcenaria</option></select>
+                    <label class="block text-xs font-bold text-blue-600 mb-2">Seu WhatsApp (Para notificações)</label>
+                    <input id="s-phone" class="w-full border border-blue-100 bg-blue-50 p-2 rounded text-sm" placeholder="Ex: 5511999999999" onchange="upVal('s-phone',this.value)">
                 </div>
             </div>
 
-            <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 font-bold text-xs uppercase text-slate-500">Linha do Tempo</div>
-                <div id="ed-history" class="p-6 space-y-4 text-sm"></div>
+            <div class="overflow-y-auto pb-20">
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-lg sticky top-0 mb-6">
+                    <div class="bg-slate-900 px-6 py-4 border-b border-slate-800 font-bold text-xs uppercase text-slate-400">Resumo Financeiro</div>
+                    <div class="p-6">
+                        <div class="text-center mb-6"><div class="text-xs text-slate-400 uppercase tracking-widest mb-1">Total Global</div><div id="ed-total" class="text-4xl font-bold font-heading text-slate-900">R$ 0,00</div></div>
+                        <div class="grid grid-cols-2 gap-4 mb-4"><input id="t-dead" class="border p-2 rounded text-sm" placeholder="Prazo" onchange="upVal('t-dead',this.value)"><input id="t-val" class="border p-2 rounded text-sm" placeholder="Validade" onchange="upVal('t-val',this.value)"></div>
+                        <textarea id="t-obs" class="w-full border p-2 rounded text-sm h-20 mb-4 bg-slate-50" placeholder="Condições de pagamento..." onchange="upVal('t-obs',this.value)"></textarea>
+                        <div id="ed-actions"></div>
+                    </div>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 font-bold text-xs uppercase text-slate-500">Linha do Tempo</div>
+                    <div id="ed-history" class="p-6 space-y-4 text-sm"></div>
+                </div>
             </div>
         </div>
     </section>
@@ -682,35 +629,13 @@
         <div id="public-loading" class="flex justify-center mt-20"><div class="spinner border-slate-900"></div></div>
         <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col rounded-none md:rounded-xl overflow-hidden">
             <div id="stamp-approved" class="hidden absolute top-10 right-10 border-4 border-emerald-600 text-emerald-600 font-bold text-3xl px-6 py-2 uppercase opacity-30 transform -rotate-12 z-20">APROVADO</div>
-            
             <div class="bg-slate-900 text-white p-12 print:bg-white print:text-black print:border-b-2">
-                <div class="flex justify-between items-start">
-                    <div><h1 id="doc-title" class="text-3xl font-bold mb-2 font-heading">Projeto</h1><p class="text-xs uppercase tracking-widest text-slate-400">Proposta Comercial</p></div>
-                    <div class="text-right"><div id="doc-id" class="font-bold text-lg">#REF</div><div id="doc-date" class="text-sm opacity-70">--/--/--</div></div>
-                </div>
+                <div class="flex justify-between items-start"><div><h1 id="doc-title" class="text-3xl font-bold mb-2 font-heading">Projeto</h1><p class="text-xs uppercase tracking-widest text-slate-400">Proposta Comercial</p></div><div class="text-right"><div id="doc-id" class="font-bold text-lg">#REF</div><div id="doc-date" class="text-sm opacity-70">--/--/--</div></div></div>
             </div>
-
             <div class="p-12 flex-1">
-                <div class="flex gap-12 mb-12 text-sm">
-                    <div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Para</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div></div>
-                    <div class="flex-1 text-right"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Investimento Total</h3><div class="font-bold text-3xl font-heading text-slate-900" id="doc-total">R$ 0,00</div></div>
-                </div>
-
-                <div class="mb-12">
-                    <h3 class="font-bold text-xs uppercase text-slate-400 mb-4 tracking-wider">Detalhamento</h3>
-                    <table class="w-full text-sm"><tbody id="doc-items-body"></tbody></table>
-                </div>
-
-                <div class="bg-slate-50 p-6 rounded-lg text-sm text-slate-600 mb-8 border border-slate-100">
-                    <h4 class="font-bold text-xs uppercase text-slate-400 mb-2">Condições</h4>
-                    <p id="doc-payment" class="mb-2 whitespace-pre-line"></p>
-                    <div class="flex gap-4">
-                        <span><strong>Prazo:</strong> <span id="doc-deadline"></span></span>
-                        <span><strong>Validade:</strong> <span id="doc-validity"></span></span>
-                    </div>
-                    <div id="doc-obs" class="mt-2 text-xs italic"></div>
-                </div>
-
+                <div class="flex gap-12 mb-12 text-sm"><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Para</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div></div><div class="flex-1 text-right"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Investimento Total</h3><div class="font-bold text-3xl font-heading text-slate-900" id="doc-total">R$ 0,00</div></div></div>
+                <div class="mb-12"><h3 class="font-bold text-xs uppercase text-slate-400 mb-4 tracking-wider">Detalhamento</h3><table class="w-full text-sm"><tbody id="doc-items-body"></tbody></table></div>
+                <div class="bg-slate-50 p-6 rounded-lg text-sm text-slate-600 mb-8 border border-slate-100"><h4 class="font-bold text-xs uppercase text-slate-400 mb-2">Condições</h4><p id="doc-payment" class="mb-2 whitespace-pre-line"></p><div class="flex gap-4"><span><strong>Prazo:</strong> <span id="doc-deadline"></span></span><span><strong>Validade:</strong> <span id="doc-validity"></span></span></div><div id="doc-obs" class="mt-2 text-xs italic"></div></div>
                 <div id="doc-actions" class="no-print mt-12"></div>
             </div>
             <div class="bg-slate-50 p-4 text-center border-t no-print text-xs text-slate-400">Gerado via <strong>Aprovado.app</strong></div>
@@ -721,10 +646,7 @@
         <div class="modal-box">
             <h3 id="modal-title" class="text-xl font-bold mb-4 text-slate-800"></h3>
             <textarea id="modal-input" class="w-full border p-3 rounded-lg mb-4 h-32 text-sm bg-slate-50" placeholder="Digite aqui..."></textarea>
-            <div class="flex gap-3">
-                <button onclick="document.getElementById('interaction-modal').style.display='none'" class="flex-1 py-3 border rounded text-slate-500 font-bold hover:bg-slate-50">Cancelar</button>
-                <button id="modal-btn" class="flex-1 py-3 rounded text-white font-bold"></button>
-            </div>
+            <div class="flex gap-3"><button onclick="document.getElementById('interaction-modal').style.display='none'" class="flex-1 py-3 border rounded text-slate-500 font-bold hover:bg-slate-50">Cancelar</button><button id="modal-btn" class="flex-1 py-3 rounded text-white font-bold"></button></div>
         </div>
     </div>
 
