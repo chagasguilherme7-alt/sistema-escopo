@@ -24,11 +24,39 @@
         .delay-200 { animation-delay: 0.2s; }
         .delay-300 { animation-delay: 0.3s; }
 
-        /* Texto Rotativo Ajustado */
-        .rotating-wrapper { display: inline-flex; vertical-align: bottom; height: 1.2em; overflow: hidden; position: relative; width: auto; min-width: 300px; } /* Aumentei min-width para caber frases longas */
-        .rotate-word { position: absolute; left: 0; top: 0; opacity: 0; transform: translateY(100%); transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); white-space: nowrap; color: #a5b4fc; font-weight: 700; }
-        .rotate-word.active { opacity: 1; transform: translateY(0); position: relative; }
-        .rotate-word.exit { opacity: 0; transform: translateY(-100%); position: absolute; }
+        /* --- CORREÇÃO DE ALINHAMENTO DO TEXTO ROTATIVO --- */
+        .rotating-container {
+            display: flex;
+            align-items: baseline; /* Garante que a base das letras fique na mesma linha */
+            gap: 0.5rem; /* Espaço entre "para:" e o texto */
+            font-size: 1.125rem; /* text-lg */
+            line-height: 1.5;
+            margin-top: 1.5rem;
+            margin-bottom: 2.5rem;
+            color: #c7d2fe; /* Indigo 200 */
+        }
+
+        .rotating-wrapper { 
+            position: relative; 
+            height: 1.5em; 
+            overflow: hidden; 
+            width: 350px; /* Largura fixa para caber o maior texto sem empurrar layout */
+            display: block;
+        }
+
+        .rotate-word { 
+            position: absolute; 
+            left: 0; 
+            top: 0; 
+            opacity: 0; 
+            transform: translateY(100%); 
+            transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); 
+            white-space: nowrap; 
+            color: #ffffff; 
+            font-weight: 700; 
+        }
+        .rotate-word.active { opacity: 1; transform: translateY(0); }
+        .rotate-word.exit { opacity: 0; transform: translateY(-100%); }
 
         /* Layout Login */
         .split-screen { display: flex; min-height: 100vh; width: 100%; position: absolute; top: 0; left: 0; z-index: 50; background: white; }
@@ -73,6 +101,7 @@
         @media (max-width: 1024px) {
             .split-screen { flex-direction: column; position: relative; height: auto; }
             .left-area { width: 100%; padding: 3rem 2rem; min-height: auto; text-align: center; }
+            .rotating-container { justify-content: center; } /* Centraliza no mobile */
             .right-area { width: 100%; padding: 2rem; background: white; }
             .login-card { box-shadow: none; border: none; padding: 0; }
             .benefit-item { flex-direction: column; align-items: center; text-align: center; }
@@ -163,19 +192,17 @@
                     if(!id) throw new Error("Link inválido.");
                     await loadPublicProposal(id);
                     document.getElementById('view-public').classList.remove('hidden');
-                } else if (!state.user) {
-                    // Sem usuário = Tela de Login
+                } else if (!state.user && view !== 'login') {
                     window.history.replaceState(null, '', '?view=login');
                     document.getElementById('view-login').classList.remove('hidden');
-                    initRotator(); // <--- CORREÇÃO: Inicia animação agora!
-                } else if (view === 'login') {
-                    // Tem usuário mas ta na url login = Vai pro dashboard
+                    initRotator(); 
+                } else if (state.user && view === 'login') {
                     goTo('dashboard');
                 } else {
-                    // Tem usuário e url interna
                     if(view === 'dashboard') await loadDashboard();
                     if(view === 'editor' && id) await loadEditor(id);
-                    document.getElementById(`view-${view}`).classList.remove('hidden');
+                    if(view !== 'login') document.getElementById(`view-${view}`).classList.remove('hidden');
+                    else document.getElementById('view-login').classList.remove('hidden');
                 }
                 setTimeout(() => { document.getElementById('system-loader').style.display = 'none'; document.body.classList.remove('overflow-hidden'); }, 500);
             } catch (e) {
@@ -185,7 +212,6 @@
             }
         }
 
-        // --- LÓGICA DO TEXTO ROTATIVO NOVO ---
         function initRotator() {
             const words = ["Prestadores de Serviços", "Eletricistas", "Instaladores", "Manutenção", "Serviços Personalizados"];
             let idx = 0;
@@ -393,9 +419,12 @@
             <div class="relative z-10 anim-entry">
                 <div class="text-blue-300 font-bold tracking-widest text-xs uppercase mb-4">Aprovado.app</div>
                 <h1 class="text-5xl font-extrabold leading-tight mb-2 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">Garantem sua segurança</span></h1>
-                <p class="text-indigo-200 text-lg mb-10 max-w-lg mt-6">
-                    Ideal para: <span id="rotator" class="rotating-wrapper text-white font-bold"></span>
-                </p>
+                
+                <div class="rotating-container">
+                    <span>Ideal para:</span>
+                    <span id="rotator" class="rotating-wrapper text-white font-bold relative h-[1.5em] overflow-hidden"></span>
+                </div>
+
                 <div class="space-y-4">
                     <div class="benefit-item delay-100"><div class="icon-circle bg-blue-600 text-white"><i class="fas fa-shield-alt"></i></div><div><h3 class="font-bold text-lg">Evite prejuízos</h3><p class="text-sm text-indigo-100 opacity-80">Registre mudanças de escopo.</p></div></div>
                     <div class="benefit-item delay-200"><div class="icon-circle bg-emerald-500 text-white"><i class="fas fa-check"></i></div><div><h3 class="font-bold text-lg">Aprovação</h3><p class="text-sm text-indigo-100 opacity-80">Link direto e histórico.</p></div></div>
