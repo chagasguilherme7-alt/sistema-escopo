@@ -25,7 +25,7 @@
         .delay-300 { animation-delay: 0.3s; }
 
         /* Texto Rotativo Ajustado */
-        .rotating-wrapper { display: inline-flex; vertical-align: bottom; height: 1.2em; overflow: hidden; position: relative; width: auto; min-width: 200px; }
+        .rotating-wrapper { display: inline-flex; vertical-align: bottom; height: 1.2em; overflow: hidden; position: relative; width: auto; min-width: 300px; } /* Aumentei min-width para caber frases longas */
         .rotate-word { position: absolute; left: 0; top: 0; opacity: 0; transform: translateY(100%); transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); white-space: nowrap; color: #a5b4fc; font-weight: 700; }
         .rotate-word.active { opacity: 1; transform: translateY(0); position: relative; }
         .rotate-word.exit { opacity: 0; transform: translateY(-100%); position: absolute; }
@@ -163,17 +163,19 @@
                     if(!id) throw new Error("Link inválido.");
                     await loadPublicProposal(id);
                     document.getElementById('view-public').classList.remove('hidden');
-                } else if (!state.user && view !== 'login') {
+                } else if (!state.user) {
+                    // Sem usuário = Tela de Login
                     window.history.replaceState(null, '', '?view=login');
                     document.getElementById('view-login').classList.remove('hidden');
-                    initRotator(); // Animação do login novo
-                } else if (state.user && view === 'login') {
+                    initRotator(); // <--- CORREÇÃO: Inicia animação agora!
+                } else if (view === 'login') {
+                    // Tem usuário mas ta na url login = Vai pro dashboard
                     goTo('dashboard');
                 } else {
+                    // Tem usuário e url interna
                     if(view === 'dashboard') await loadDashboard();
                     if(view === 'editor' && id) await loadEditor(id);
-                    if(view !== 'login') document.getElementById(`view-${view}`).classList.remove('hidden');
-                    else document.getElementById('view-login').classList.remove('hidden');
+                    document.getElementById(`view-${view}`).classList.remove('hidden');
                 }
                 setTimeout(() => { document.getElementById('system-loader').style.display = 'none'; document.body.classList.remove('overflow-hidden'); }, 500);
             } catch (e) {
