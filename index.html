@@ -381,6 +381,7 @@ if (btnAddItem) {
         
         // --- CORREÇÃO DO ADICIONAR ITEM ---
         function addItem() { 
+            console.log('ADD ITEM FOI CHAMADO', state.data.items);
             if(!Array.isArray(state.data.items)) state.data.items = [];
             state.data.items.push({name:'',description:'',qty:1,price:0,type:state.version.version_number>1?'addon':'original'}); 
             renderEditor(); 
@@ -755,6 +756,7 @@ setHTML('doc-items-body', html);
 
 </body>
 </html>
+
 
 
 
