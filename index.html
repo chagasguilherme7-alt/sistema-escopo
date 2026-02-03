@@ -15,18 +15,18 @@
         body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #334155; overflow-x: hidden; }
         .font-heading { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-        /* Animações */
+        /* --- ANIMAÇÕES --- */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .anim-entry { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
 
-        /* Login: Texto Rotativo */
+        /* LOGIN: TEXTO ROTATIVO */
         .ideal-para-container { display: flex; align-items: center; justify-content: center; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.25rem; color: #94a3b8; margin-bottom: 3rem; margin-top: 1rem; }
         @media (min-width: 1024px) { .ideal-para-container { justify-content: flex-start; } }
         .rotating-wrapper { position: relative; height: 1.5em; width: 350px; overflow: hidden; margin-left: 0.5rem; display: inline-block; vertical-align: middle; text-align: left; }
         .rotate-word { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; font-weight: 700; color: #ffffff; opacity: 0; transform: translateY(100%); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
         .rotate-word.active { opacity: 1; transform: translateY(0); } .rotate-word.exit { opacity: 0; transform: translateY(-100%); }
 
-        /* Layout */
+        /* LAYOUT LOGIN */
         .split-screen { display: flex; min-height: 100vh; width: 100%; position: absolute; top: 0; left: 0; z-index: 50; background: white; }
         .left-area { width: 60%; background: radial-gradient(circle at top left, #1e1b4b, #0f172a), linear-gradient(135deg, #172554 0%, #1e3a8a 100%); color: white; display: flex; flex-direction: column; justify-content: center; padding: 5rem 6rem; position: relative; overflow: hidden; }
         .glow-orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.35; }
@@ -46,7 +46,7 @@
 
         @media (max-width: 1024px) { .split-screen { flex-direction: column; position: relative; height: auto; } .left-area { width: 100%; padding: 3rem 2rem; min-height: auto; text-align: center; } .ideal-para-container { justify-content: center; } .right-area { width: 100%; padding: 2rem; background: white; } .login-card { box-shadow: none; border: none; padding: 0; } .benefit-item { flex-direction: column; align-items: center; text-align: center; } .glow-orb { display: none; } }
 
-        /* Dashboard & Editor */
+        /* DASHBOARD & EDITOR */
         #system-loader { position: fixed; inset: 0; background: #0F172A; z-index: 9999; display: flex; flex-col: column; align-items: center; justify-content: center; color: white; transition: opacity 0.5s; }
         .loader-spin { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         .app-header { background: #fff; border-bottom: 1px solid #e2e8f0; height: 70px; display: flex; align-items: center; padding: 0 32px; justify-content: space-between; position: sticky; top: 0; z-index: 40; }
@@ -55,14 +55,18 @@
         .kpi-card:hover { transform: translateY(-2px); }
         .status-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.05em; }
         .st-draft { background: #f1f5f9; color: #64748b; } .st-sent { background: #dbeafe; color: #1e40af; } .st-negotiating { background: #ffedd5; color: #c2410c; } .st-approved { background: #dcfce7; color: #166534; } .st-canceled { background: #fee2e2; color: #991b1b; }
+        
+        /* Timeline Fixes */
         .timeline-item { position: relative; padding-left: 2rem; border-left: 2px solid #e2e8f0; padding-bottom: 1.5rem; }
         .timeline-item::before { content: ''; position: absolute; left: -5px; top: 0; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
         .timeline-item:last-child { border-left: transparent; }
         .timeline-desc { font-size: 0.85rem; color: #334155; margin-top: 6px; background: #fff7ed; padding: 12px; border-radius: 8px; border: 1px solid #fed7aa; font-style: italic; }
         .timeline-desc.system { background: #f8fafc; border-color: #f1f5f9; font-style: normal; }
+        
         .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); z-index: 60; display: none; align-items: center; justify-content: center; }
         .modal-box { background: white; width: 90%; max-width: 500px; padding: 2rem; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); animation: fadeInUp 0.3s ease-out; }
         #fatal-error { display: none; position: fixed; inset: 0; background: #FFF1F2; z-index: 10000; padding: 40px; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
+        
         @media print { .no-print { display: none !important; } body { background: white; } }
     </style>
 </head>
@@ -72,17 +76,18 @@
     <div id="fatal-error"><i class="fas fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i><h2 class="text-2xl font-bold text-slate-800">Ops! Algo deu errado.</h2><p id="error-msg" class="text-slate-600 mt-2 mb-6 max-w-md">...</p><button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button></div>
 
     <script>
-        // --- BLINDAGEM DE ERROS (IMPEDE TELA BRANCA) ---
-        function setText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
+        // --- FUNÇÕES DE SEGURANÇA (ANTI-CRASH) ---
+        function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+        function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
         function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
-        function getValue(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
 
-        // Tratamento de Erro Global
         window.onerror = function(msg) {
-            console.error("Erro detectado:", msg);
-            // Não mostra tela de erro fatal para erros menores, apenas loga
-            return false; 
+            console.error(msg);
+            // Ignora erro de null para não travar a tela (blindagem)
+            if (msg.includes('null')) return true;
+            document.getElementById('system-loader').style.display = 'none';
+            return false;
         };
 
         const SUPABASE_URL = 'https://outasfgohiiyndsjciau.supabase.co'; 
@@ -124,10 +129,10 @@
                 if (view === 'public') {
                     if(!id) throw new Error("Link inválido.");
                     await loadPublicProposal(id);
-                    const el = document.getElementById('view-public'); if(el) el.classList.remove('hidden');
+                    document.getElementById('view-public').classList.remove('hidden');
                 } else if (!state.user && view !== 'login') {
                     window.history.replaceState(null, '', '?view=login');
-                    const el = document.getElementById('view-login'); if(el) el.classList.remove('hidden');
+                    document.getElementById('view-login').classList.remove('hidden');
                     initRotator();
                 } else if (state.user && view === 'login') {
                     goTo('dashboard');
@@ -155,7 +160,7 @@
             words.forEach((w, i) => { const s = document.createElement('span'); s.className = `rotate-word ${i===0?'active':''}`; s.innerText = w; el.appendChild(s); });
             setInterval(() => {
                 const spans = el.querySelectorAll('.rotate-word');
-                if(spans.length === 0) return;
+                if(!spans.length) return;
                 spans[idx].classList.remove('active'); spans[idx].classList.add('exit');
                 idx = (idx + 1) % words.length;
                 spans[idx].classList.remove('exit'); spans[idx].classList.add('active');
@@ -163,7 +168,7 @@
         }
 
         async function handleLogin() {
-            const email = getValue('email');
+            const email = safeVal('email');
             const btn = document.getElementById('btn-login');
             if(!email) return alert("Digite o e-mail");
             if(btn) { btn.innerHTML = 'Enviando...'; btn.disabled = true; }
@@ -185,8 +190,8 @@
         function renderDashboardList() {
             const list = document.getElementById('project-list');
             if(!list) return;
-            const search = getValue('dash-search').toLowerCase();
-            const filterStatus = getValue('dash-filter');
+            const search = safeVal('dash-search').toLowerCase();
+            const filterStatus = safeVal('dash-filter');
             let totalRev = 0, totalAprov = 0, countAprov = 0, countNegoc = 0, countCancel = 0;
 
             const filtered = state.projectsCache.filter(p => {
@@ -205,11 +210,11 @@
                 if(v.status === 'canceled') countCancel++;
             });
 
-            setText('kpi-total-est', totalRev.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
-            setText('kpi-total-apr', totalAprov.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
-            setText('kpi-count-neg', countNegoc);
-            setText('kpi-count-apr', countAprov);
-            setText('kpi-count-can', countCancel);
+            safeText('kpi-total-est', totalRev.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
+            safeText('kpi-total-apr', totalAprov.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
+            safeText('kpi-count-neg', countNegoc);
+            safeText('kpi-count-apr', countAprov);
+            safeText('kpi-count-can', countCancel);
 
             let html = '';
             if(filtered.length === 0) html = '<div class="col-span-full text-center py-20 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Nenhum orçamento encontrado.</div>';
@@ -275,8 +280,8 @@
 
         function renderEditor() {
             const d = state.data; const isLocked = state.version.status === 'approved' || state.version.status === 'canceled';
-            setText('ed-title', state.project.name);
-            setText('ed-ver', `V${state.version.version_number}`);
+            safeText('ed-title', state.project.name);
+            safeText('ed-ver', `V${state.version.version_number}`);
             
             const badge = document.getElementById('ed-status-badge');
             if(badge) {
@@ -294,7 +299,7 @@
                 html += `<div class="bg-white border p-4 rounded-lg mb-2 relative group">${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}<div class="grid grid-cols-12 gap-2 mb-2"><div class="col-span-8"><label class="text-[10px] uppercase font-bold text-slate-400">Item</label><input class="w-full font-bold bg-transparent outline-none" value="${i.name}" onchange="upItem(${x},'name',this.value)" ${isLocked?'disabled':''}></div><div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-400 text-center block">Qtd</label><input type="number" class="w-full text-center bg-slate-50 rounded" value="${i.qty}" onchange="upItem(${x},'qty',this.value)" ${isLocked?'disabled':''}></div><div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-400 text-right block">$$</label><input type="number" class="w-full text-right bg-slate-50 rounded" value="${i.price}" onchange="upItem(${x},'price',this.value)" ${isLocked?'disabled':''}></div></div><textarea class="w-full text-xs text-slate-500 bg-transparent outline-none resize-none" rows="1" onchange="upItem(${x},'description',this.value)" placeholder="Descrição técnica..." ${isLocked?'disabled':''}>${i.description||''}</textarea></div>`;
             });
             setHTML('ed-items', html);
-            setText('ed-total', total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
+            safeText('ed-total', total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
 
             let histHtml = '';
             if(d.history && d.history.length > 0) {
@@ -321,6 +326,28 @@
         function addItem() { state.data.items.push({name:'',description:'',qty:1,price:0,type:state.version.version_number>1?'addon':'original'}); renderEditor(); }
         function rmItem(i) { state.data.items.splice(i, 1); renderEditor(); }
         
+        function generatePayment() {
+            const total = state.data.items.reduce((acc, i) => acc + (i.qty * i.price), 0);
+            if(total === 0) return alert("Adicione valores primeiro.");
+            const mode = document.getElementById('pay-mode').value;
+            let text = "";
+            if(mode === 'entry_installments') {
+                const entryP = prompt("Porcentagem de Entrada? (Ex: 30)", "30");
+                const inst = prompt("Restante em quantas vezes?", "2");
+                if(!entryP || !inst) return;
+                const entryVal = total * (parseInt(entryP)/100);
+                const restVal = (total - entryVal) / parseInt(inst);
+                text = `CRONOGRAMA:\n1. Entrada: ${entryVal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}\n`;
+                for(let i=1; i<=parseInt(inst); i++) text += `${i+1}. Parcela (30d): ${restVal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}\n`;
+            } else text = `Pagamento Único: ${total.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}`;
+            
+            // Corrige onde o texto é salvo e atualiza visual
+            state.data.terms.paymentText = text;
+            renderEditor(); 
+            // Atualiza o textarea
+            setVal('t-obs', text); // Opcional, se quiser que vá para obs
+        }
+
         async function save() {
             const t = state.data.items.reduce((a,b)=>a+(b.qty*b.price),0);
             if(state.data.client.name) await db.from('projects').update({client_name:state.data.client.name}).eq('id',state.project.id);
@@ -357,15 +384,19 @@
                 if (!v) throw new Error("Orçamento não encontrado.");
                 state.version = v; state.data = normalizeData(v.items);
                 
-                setText('doc-title', v.projects?.name); setText('doc-id', `#${v.project_id.substr(0,4).toUpperCase()}-${v.version_number}`);
-                setText('doc-c-name', d.client.name);
+                safeText('doc-title', v.projects?.name);
+                safeText('doc-id', `#${v.project_id.substr(0,4).toUpperCase()}-${v.version_number}`);
+                safeText('doc-c-name', d.client.name);
                 
                 let html = '';
                 state.data.items.forEach(i => { html += `<tr class="border-b border-slate-100"><td class="py-4 pl-4"><div class="font-bold text-slate-800">${i.name}<br><span class="font-normal text-xs text-slate-500">${i.description}</span></td><td class="text-center">${i.qty}</td><td class="text-right pr-4 font-bold">R$ ${(i.qty*i.price).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`; });
                 setHTML('doc-items-body', html);
                 
-                setText('doc-total', parseFloat(v.total_value).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}));
-                setText('doc-payment', d.terms.paymentText); setText('doc-deadline', d.terms.deadline); setText('doc-validity', d.terms.validity); setText('doc-obs', d.terms.obs);
+                safeText('doc-total', parseFloat(v.total_value).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}));
+                safeText('doc-payment', d.terms.paymentText); 
+                safeText('doc-deadline', d.terms.deadline); 
+                safeText('doc-validity', d.terms.validity); 
+                safeText('doc-obs', d.terms.obs);
 
                 const actions = document.getElementById('doc-actions');
                 if(actions) {
@@ -385,7 +416,7 @@
             } catch(e) { 
                 const load = document.getElementById('public-loading'); if(load) load.classList.add('hidden');
                 const fatal = document.getElementById('fatal-error'); if(fatal) fatal.style.display = 'flex';
-                setText('error-msg', "Link inválido ou expirado.");
+                safeText('error-msg', "Link inválido ou expirado.");
             } finally { const load = document.getElementById('public-loading'); if(load) load.classList.add('hidden'); }
         }
 
@@ -450,7 +481,7 @@
         }
 
         async function executeAction(type) {
-            const inputVal = getValue('modal-input');
+            const inputVal = safeVal('modal-input');
             const btn = document.getElementById('modal-btn');
             btn.innerText = "Processando...";
             btn.disabled = true;
@@ -506,7 +537,12 @@
             <div class="relative z-10 anim-entry">
                 <div class="text-blue-300 font-bold tracking-widest text-xs uppercase mb-4">Aprovado.app</div>
                 <h1 class="text-5xl font-extrabold leading-tight mb-2 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">Garantem seu</span></h1>
-                <div class="ideal-para-container"><span>Ideal para:</span><span id="rotator" class="rotating-wrapper"></span></div>
+                
+                <div class="ideal-para-container">
+                    <span>Ideal para:</span>
+                    <span id="rotator" class="rotating-wrapper"></span>
+                </div>
+
                 <div class="space-y-4">
                     <div class="benefit-item delay-100"><div class="icon-circle bg-blue-600 text-white"><i class="fas fa-shield-alt"></i></div><div><h3 class="font-bold text-lg">Evite prejuízos</h3><p class="text-sm text-indigo-100 opacity-80">Registre mudanças de escopo.</p></div></div>
                     <div class="benefit-item delay-200"><div class="icon-circle bg-emerald-500 text-white"><i class="fas fa-check"></i></div><div><h3 class="font-bold text-lg">Aprovação</h3><p class="text-sm text-indigo-100 opacity-80">Link direto e histórico.</p></div></div>
@@ -553,46 +589,21 @@
         </div>
     </section>
 
-    <section id="view-editor" class="hidden flex-1 bg-slate-50 h-screen flex flex-col">
-        <div id="editor-loading" class="flex-1 flex items-center justify-center"><div class="spinner border-slate-900"></div></div>
-        <div id="editor-content" class="hidden flex flex-col h-full">
-            <div class="app-header justify-between">
-                <div class="flex items-center gap-4">
-                    <button onclick="goTo('dashboard')" class="text-slate-400 hover:text-white"><i class="fas fa-arrow-left"></i></button>
-                    <div><h2 id="ed-title" class="font-bold leading-none text-lg text-white">...</h2><span id="ed-ver" class="text-[10px] text-slate-400 uppercase font-bold">V1</span><span id="ed-status-badge" class="ml-2 text-[10px] uppercase font-bold bg-white text-slate-900 px-2 py-1 rounded"></span></div>
+    <section id="view-editor" class="hidden flex flex-col h-screen">
+        <div id="editor-loading" class="flex-1 flex items-center justify-center bg-slate-50"><div class="loader-spin"></div></div>
+        <div id="editor-content" class="hidden grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 w-full max-w-[1600px] mx-auto p-6 h-[calc(100vh-70px)]">
+            <div class="overflow-y-auto pr-2 pb-20">
+                <div class="flex justify-between items-end mb-6">
+                    <div><button onclick="goTo('dashboard')" class="text-xs font-bold text-slate-400 hover:text-slate-600 mb-1"><i class="fas fa-arrow-left"></i> VOLTAR</button><div class="flex items-center gap-3"><h2 id="ed-title" class="text-2xl font-bold font-heading text-slate-900">...</h2><span id="ed-ver" class="text-xs bg-slate-200 px-2 py-1 rounded font-bold text-slate-600">V1</span><span id="ed-status-badge"></span></div></div>
+                    <button onclick="share()" class="text-sm bg-white border border-blue-200 text-blue-600 px-4 py-2 rounded-lg font-bold hover:bg-blue-50 transition-all shadow-sm"><i class="fas fa-link mr-2"></i>Link Cliente</button>
                 </div>
-                <button onclick="share()" class="btn btn-secondary bg-slate-800 border-slate-700 text-white hover:bg-slate-700 text-xs"><i class="fas fa-link"></i> Link Cliente</button>
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden mb-6 shadow-sm"><div class="bg-slate-50 px-6 py-3 border-b border-slate-200 font-bold text-xs uppercase text-slate-500">Dados do Cliente</div><div class="p-6 grid gap-4"><input id="c-name" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Nome do Cliente / Empresa" onchange="upVal('c-name',this.value)"><div class="grid grid-cols-2 gap-4"><input id="c-doc" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="CPF/CNPJ" onchange="upVal('c-doc',this.value)"><input id="c-phone" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Telefone" onchange="upVal('c-phone',this.value)"></div><input id="c-email" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="E-mail" onchange="upVal('c-email',this.value)"><input id="c-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Endereço Completo" onchange="upVal('c-addr',this.value)"></div></div>
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm mb-6"><div class="bg-slate-50 px-6 py-3 border-b border-slate-200 font-bold text-xs uppercase text-slate-500 flex justify-between items-center"><span>Escopo do Serviço</span><button id="btn-add-item" onclick="addItem()" class="text-blue-600 hover:underline font-bold text-xs">+ Adicionar Item</button></div><div id="ed-items" class="p-6"></div></div>
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm p-6"><label class="block text-xs font-bold text-slate-500 mb-2">Categoria do Serviço</label><select id="s-type" onchange="upVal('s-type',this.value)" class="w-full border p-2 rounded mb-4 text-sm"><option>Outros</option><option>Eletricista</option><option>Encanador</option><option>Reforma Geral</option><option>Instalação de Ar</option><option>Pintura</option><option>Marcenaria</option></select><label class="block text-xs font-bold text-blue-600 mb-2">Seu WhatsApp (Para notificações)</label><input id="s-phone" class="w-full border border-blue-100 bg-blue-50 p-2 rounded text-sm" placeholder="Ex: 5511999999999" onchange="upVal('s-phone',this.value)"></div>
             </div>
-            <div class="panel-grid overflow-hidden">
-                <div class="overflow-y-auto pr-2 pb-20 no-scrollbar">
-                    <div class="editor-section">
-                        <div class="editor-header"><i class="fas fa-user-tie"></i> Dados do Cliente</div>
-                        <div class="editor-body">
-                            <div class="input-group"><label class="input-label">Nome</label><input id="c-name" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Nome do Cliente / Empresa" onchange="upVal('c-name',this.value)"></div>
-                            <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Doc</label><input id="c-doc" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="CPF/CNPJ" onchange="upVal('c-doc',this.value)"></div><div class="input-group"><label class="input-label">Tel</label><input id="c-phone" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Telefone" onchange="upVal('c-phone',this.value)"></div></div>
-                            <div class="input-group"><label class="input-label">Email</label><input id="c-email" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="E-mail" onchange="upVal('c-email',this.value)"></div>
-                            <div class="input-group"><label class="input-label">Endereço</label><input id="c-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Endereço Completo" onchange="upVal('c-addr',this.value)"></div>
-                            <div class="mt-4 pt-4 border-t"><label class="input-label text-blue-600">Seu WhatsApp</label><input id="in-s-myphone" onchange="upSettings('myPhone', this.value)" class="input-field bg-blue-50 border-blue-200"></div>
-                        </div>
-                    </div>
-                    <div class="editor-section">
-                        <div class="editor-header justify-between"><span><i class="fas fa-list-ol"></i> Escopo</span><button id="btn-add-item" onclick="addItem()" class="btn btn-primary text-xs py-1 px-3 bg-slate-800 border-none">+ Item</button></div>
-                        <div class="editor-body bg-slate-50 min-h-[300px]"><div id="ed-list"></div></div>
-                    </div>
-                </div>
-                <div class="overflow-y-auto pb-20 no-scrollbar">
-                    <div class="editor-section sticky top-0 shadow-lg">
-                        <div class="editor-header"><i class="fas fa-coins"></i> Financeiro</div>
-                        <div class="editor-body">
-                            <div class="bg-slate-900 text-white p-6 rounded-lg text-center mb-6"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Global</div><div id="ed-total" class="text-3xl font-bold">R$ 0,00</div></div>
-                            <div class="input-group"><div class="flex gap-2 mb-2"><select id="pay-mode" class="input-field"><option value="entry_installments">Entrada + Parcelas</option><option value="single">Único</option></select><button onclick="generatePayment()" class="btn btn-secondary px-3"><i class="fas fa-calculator"></i></button></div><div id="payment-display" class="text-xs bg-slate-50 p-3 rounded border border-slate-200 text-slate-600 whitespace-pre-line min-h-[60px]">...</div></div>
-                            <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Entrega</label><input id="t-dead" class="border p-2 rounded text-sm" placeholder="Prazo" onchange="upVal('t-dead',this.value)"></div><div class="input-group"><label class="input-label">Validade</label><input id="t-val" class="border p-2 rounded text-sm" placeholder="Validade" onchange="upVal('t-val',this.value)"></div></div>
-                            <div class="input-group"><label class="input-label">Obs</label><textarea id="t-obs" class="w-full border p-2 rounded text-sm h-20 mb-4 bg-slate-50" placeholder="Condições de pagamento..." onchange="upVal('t-obs',this.value)"></textarea></div>
-                            <div id="ed-actions" class="mt-6"></div>
-                        </div>
-                    </div>
-                    <div class="editor-section"><div class="editor-header"><i class="fas fa-history"></i> Histórico</div><div id="ed-history" class="p-4 space-y-4"></div></div>
-                </div>
+            <div class="overflow-y-auto pb-20">
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-lg sticky top-0 mb-6"><div class="bg-slate-900 px-6 py-4 border-b border-slate-800 font-bold text-xs uppercase text-slate-400">Resumo Financeiro</div><div class="p-6"><div class="text-center mb-6"><div class="text-xs text-slate-400 uppercase tracking-widest mb-1">Total Global</div><div id="ed-total" class="text-4xl font-bold font-heading text-slate-900">R$ 0,00</div></div><div class="grid grid-cols-2 gap-4 mb-4"><input id="t-dead" class="border p-2 rounded text-sm" placeholder="Prazo" onchange="upVal('t-dead',this.value)"><input id="t-val" class="border p-2 rounded text-sm" placeholder="Validade" onchange="upVal('t-val',this.value)"></div><textarea id="t-obs" class="w-full border p-2 rounded text-sm h-20 mb-4 bg-slate-50" placeholder="Condições de pagamento..." onchange="upVal('t-obs',this.value)"></textarea><div id="ed-actions"></div></div></div>
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"><div class="bg-slate-50 px-6 py-3 border-b border-slate-200 font-bold text-xs uppercase text-slate-500">Linha do Tempo</div><div id="ed-history" class="p-6 space-y-4 text-sm"></div></div>
             </div>
         </div>
     </section>
