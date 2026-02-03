@@ -17,10 +17,8 @@
 
         /* --- ANIMAÇÕES --- */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0px); } }
         
         .anim-entry { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
-        .delay-100 { animation-delay: 0.1s; } .delay-200 { animation-delay: 0.2s; } .delay-300 { animation-delay: 0.3s; }
 
         /* LOGIN: TEXTO ROTATIVO */
         .ideal-para-container { display: flex; align-items: center; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.25rem; color: #94a3b8; margin-bottom: 3rem; margin-top: 1rem; }
@@ -78,7 +76,6 @@
     <div id="fatal-error"><i class="fas fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i><h2 class="text-2xl font-bold text-slate-800">Ops! Algo deu errado.</h2><p id="error-msg" class="text-slate-600 mt-2 mb-6 max-w-md">...</p><button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button></div>
 
     <script>
-        // TRATAMENTO DE ERROS GLOBAL
         window.onerror = function(msg) {
             document.getElementById('system-loader').style.display = 'none';
             document.getElementById('fatal-error').style.display = 'flex';
@@ -95,11 +92,11 @@
         function normalizeData(dbData) {
             const schema = { client: { name: '', doc: '', email: '', phone: '', address: '' }, location: { address: '', sameAsClient: true }, items: [], terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, settings: { myPhone: '', serviceType: 'Outros' }, history: [] };
             if (!dbData) return schema;
-            const cleanItems = (Array.isArray(dbData.items) ? dbData.items : (dbData.scope || [])).map(i => ({ name: i.name || '', description: i.description || '', qty: parseFloat(i.qty) || 1, price: parseFloat(i.price) || 0, type: i.type || 'original' }));
+            const items = (Array.isArray(dbData.items) ? dbData.items : (dbData.scope || [])).map(i => ({ name: i.name || '', description: i.description || '', qty: parseFloat(i.qty) || 1, price: parseFloat(i.price) || 0, type: i.type || 'original' }));
             return { 
                 client: { ...schema.client, ...(dbData.client || {}) }, 
                 location: { ...schema.location, ...(dbData.location || {}) }, 
-                items: cleanItems, 
+                items: items, 
                 terms: { ...schema.terms, ...(dbData.terms || {}) }, 
                 settings: { ...schema.settings, ...(dbData.settings || {}) }, 
                 history: Array.isArray(dbData.history) ? dbData.history : [] 
@@ -138,11 +135,7 @@
                     else { document.getElementById('view-login').classList.remove('hidden'); initRotator(); }
                 }
                 setTimeout(() => { document.getElementById('system-loader').style.display = 'none'; }, 500);
-            } catch (e) { 
-                document.getElementById('system-loader').style.display = 'none';
-                document.getElementById('fatal-error').style.display = 'flex';
-                document.getElementById('error-msg').innerText = e.message;
-            }
+            } catch (e) { document.getElementById('system-loader').style.display = 'none'; document.getElementById('fatal-error').style.display = 'flex'; document.getElementById('error-msg').innerText = e.message; }
         }
 
         function initRotator() {
@@ -221,41 +214,41 @@
                 if(v.status === 'approved') { badgeClass = 'st-approved'; statusLabel = 'Aprovado'; }
                 if(v.status === 'canceled') { badgeClass = 'st-canceled'; statusLabel = 'Cancelado'; }
 
-                // --- BOTÃO DE EXCLUIR ADICIONADO AQUI ---
+                // --- CARD ATUALIZADO (LIXEIRA EMBAIXO, STATUS EM CIMA) ---
                 list.innerHTML += `
                     <div onclick="goTo('editor', '${p.id}')" class="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group relative">
-                        <button onclick="deleteProject('${p.id}', event)" class="absolute top-4 right-4 text-slate-300 hover:text-red-500 z-10 p-2 transition-colors" title="Excluir Orçamento"><i class="fas fa-trash-alt"></i></button>
                         <div class="flex justify-between items-start mb-3">
-                            <div><h3 class="font-bold text-slate-800 group-hover:text-blue-600 transition-colors">${p.name}</h3><p class="text-xs text-slate-500 mt-1"><i class="far fa-user mr-1"></i> ${p.client_name || 'Novo Cliente'}</p></div>
+                            <div>
+                                <h3 class="font-bold text-slate-800 group-hover:text-blue-600 transition-colors">${p.name}</h3>
+                                <p class="text-xs text-slate-500 mt-1"><i class="far fa-user mr-1"></i> ${p.client_name || 'Novo Cliente'}</p>
+                            </div>
                             <span class="status-badge ${badgeClass}">${statusLabel}</span>
                         </div>
-                        <div class="border-t border-slate-100 pt-3 flex justify-between items-end"><div class="text-xs text-slate-400">V${v.version_number} • ${new Date(p.created_at).toLocaleDateString()}</div><div class="text-lg font-bold text-slate-900">${val.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</div></div>
+                        <div class="border-t border-slate-100 pt-3 flex justify-between items-end">
+                            <div class="text-xs text-slate-400">V${v.version_number} • ${new Date(p.created_at).toLocaleDateString()}</div>
+                            <div class="flex items-center gap-3">
+                                <div class="text-lg font-bold text-slate-900">${val.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</div>
+                                <button onclick="deleteProject('${p.id}', event)" class="text-slate-300 hover:text-red-500 transition-colors p-1 opacity-0 group-hover:opacity-100" title="Excluir"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>
                     </div>`;
             });
         }
 
         // --- FUNÇÃO DE DELETAR ---
         async function deleteProject(id, event) {
-            event.stopPropagation(); // Impede de abrir o editor ao clicar na lixeira
-            if(!confirm("Tem certeza que deseja EXCLUIR este orçamento permanentemente? Essa ação não pode ser desfeita.")) return;
-            
-            // Deleta projeto (o Supabase deleta versões em cascata se configurado, senão deleta projeto)
+            event.stopPropagation(); 
+            if(!confirm("Tem certeza que deseja EXCLUIR este orçamento permanentemente?")) return;
             const { error } = await db.from('projects').delete().eq('id', id);
-            
-            if(error) {
-                alert("Erro ao excluir: " + error.message);
-            } else {
-                // Atualiza lista localmente para não precisar recarregar tudo
-                state.projectsCache = state.projectsCache.filter(p => p.id !== id);
-                renderDashboardList();
-            }
+            if(error) alert("Erro ao excluir: " + error.message);
+            else { state.projectsCache = state.projectsCache.filter(p => p.id !== id); renderDashboardList(); }
         }
 
         async function createProject() {
             const name = prompt("Nome do Orçamento:"); if(!name) return;
             const { data: p, error } = await db.from('projects').insert({ name, user_id: state.user.id, client_name: 'Novo Cliente' }).select().single();
             const d = normalizeData(null); d.settings.myPhone = localStorage.getItem('escopo_phone') || '';
-            logHistory('created', 'provider', 'Orçamento criado via painel.'); 
+            logHistory('created', 'provider', 'Orçamento criado via painel.', d); 
             await db.from('versions').insert({ project_id: p.id, version_number: 1, items: d, total_value: 0, status: 'draft' });
             goTo('editor', p.id);
         }
@@ -354,15 +347,9 @@
         async function loadPublicProposal(id) {
             try {
                 document.getElementById('public-loading').classList.remove('hidden');
-                // Use maybeSingle to prevent crashing if not found
                 const { data: v } = await db.from('versions').select('*, projects(name)').eq('id', id).maybeSingle();
-                
-                if (!v) {
-                    throw new Error("Orçamento não encontrado ou link expirado.");
-                }
-                
-                state.version = v; 
-                state.data = normalizeData(v.items);
+                if (!v) throw new Error("Orçamento não encontrado.");
+                state.version = v; state.data = normalizeData(v.items);
                 
                 const setText = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val || '-'; };
                 setText('doc-title', v.projects?.name); setText('doc-id', `#${v.project_id.substr(0,4).toUpperCase()}-${v.version_number}`);
@@ -374,11 +361,8 @@
                 setText('doc-payment', d.terms.paymentText); setText('doc-deadline', d.terms.deadline); setText('doc-validity', d.terms.validity); setText('doc-obs', d.terms.obs);
 
                 const actions = document.getElementById('doc-actions');
-                if(v.status === 'approved') {
-                    document.getElementById('stamp-approved').classList.remove('hidden');
-                    actions.innerHTML = `<div class="bg-green-100 text-green-800 p-4 rounded text-center font-bold">PROPOSTA APROVADA</div>`;
-                } else if (v.status === 'canceled') {
-                    actions.innerHTML = `<div class="bg-red-100 text-red-800 p-4 rounded text-center font-bold">PROPOSTA CANCELADA</div>`;
+                if(v.status === 'approved' || v.status === 'canceled') {
+                    showSuccessScreen(v.status);
                 } else {
                     actions.innerHTML = `
                         <button onclick="openModal('approve')" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 mb-3 transition-transform hover:scale-[1.01]">APROVAR PROPOSTA</button>
@@ -388,30 +372,42 @@
                         </div>
                     `;
                 }
-                
                 document.getElementById('public-content').classList.remove('hidden');
-            } catch(e) {
-                document.getElementById('public-loading').classList.add('hidden');
-                document.getElementById('fatal-error').style.display = 'flex';
-                document.getElementById('error-msg').innerText = "Não foi possível carregar o orçamento. Verifique se o link está correto.";
+            } catch(e) { 
+                document.getElementById('public-loading').classList.add('hidden'); 
+                document.getElementById('fatal-error').style.display = 'flex'; 
+                document.getElementById('error-msg').innerText = "Link inválido ou expirado."; 
             } finally { document.getElementById('public-loading').classList.add('hidden'); }
         }
 
-        // --- SEGURANÇA: VALIDAR IDENTIDADE ---
-        function cleanText(t) { return t.replace(/[^a-zA-Z0-9]/g, '').toLowerCase(); }
+        // --- TELA DE SUCESSO (Feedback Visual) ---
+        function showSuccessScreen(type) {
+            const screen = document.getElementById('view-success');
+            const icon = document.getElementById('success-icon');
+            const title = document.getElementById('success-title');
+            const desc = document.getElementById('success-desc');
+            
+            document.getElementById('public-content').classList.add('hidden');
+            screen.classList.remove('hidden');
 
-        function checkIdentity(input) {
-            const cleanInput = cleanText(input);
-            const doc = cleanText(state.data.client.doc || '');
-            const email = cleanText(state.data.client.email || '');
-            if(!doc && !email) return true; // Se não configurou, libera (mas avisa)
-            return (doc && cleanInput.includes(doc)) || (email && cleanInput === email);
+            if(type === 'approved' || type === 'approve') {
+                icon.className = "fas fa-check-circle text-6xl text-green-500 mb-4";
+                title.innerText = "Orçamento Aprovado!";
+                desc.innerText = "Obrigado pela confiança. O prestador já foi notificado.";
+            } else if (type === 'negotiating' || type === 'change_request') {
+                icon.className = "fas fa-clock text-6xl text-amber-500 mb-4";
+                title.innerText = "Solicitação Enviada";
+                desc.innerText = "Sua mensagem foi enviada ao prestador. Aguarde o retorno.";
+            } else {
+                icon.className = "fas fa-times-circle text-6xl text-slate-400 mb-4";
+                title.innerText = "Orçamento Recusado";
+                desc.innerText = "Obrigado pelo retorno. O orçamento foi marcado como recusado.";
+            }
         }
 
         function openModal(type) {
             const modal = document.getElementById('interaction-modal');
             const title = document.getElementById('modal-title');
-            const desc = document.getElementById('modal-desc');
             const input = document.getElementById('modal-input');
             const btn = document.getElementById('modal-btn');
             
@@ -420,34 +416,27 @@
             
             if(type === 'approve') {
                 title.innerText = 'Confirmar Aprovação';
-                desc.innerText = 'Por segurança, informe seu CPF/CNPJ ou E-mail cadastrado para assinar digitalmente:';
-                btn.innerText = 'Confirmar Identidade e Aprovar';
+                input.style.display = 'none'; // Não precisa de texto pra aprovar
+                btn.innerText = 'Confirmar e Aprovar';
                 btn.className = "w-full py-3 bg-green-600 text-white rounded font-bold hover:bg-green-700";
-                btn.onclick = () => executeSecureAction('approve');
+                btn.onclick = () => executeAction('approve');
             } else if(type === 'change') {
-                title.innerText = 'Solicitar Alteração';
-                desc.innerText = 'Descreva o que deseja mudar (e confirme seu CPF/Email ao final):';
+                title.innerText = 'O que você gostaria de alterar?';
+                input.style.display = 'block';
                 btn.innerText = 'Enviar Solicitação';
                 btn.className = "w-full py-3 bg-amber-600 text-white rounded font-bold hover:bg-amber-700";
-                btn.onclick = () => executeSecureAction('change');
+                btn.onclick = () => executeAction('change');
             } else if(type === 'cancel') {
-                title.innerText = 'Recusar Orçamento';
-                desc.innerText = 'Motivo da recusa (e confirme seu CPF/Email):';
+                title.innerText = 'Motivo da recusa (Opcional)';
+                input.style.display = 'block';
                 btn.innerText = 'Confirmar Recusa';
                 btn.className = "w-full py-3 bg-red-600 text-white rounded font-bold hover:bg-red-700";
-                btn.onclick = () => executeSecureAction('cancel');
+                btn.onclick = () => executeAction('cancel');
             }
         }
 
-        async function executeSecureAction(type) {
+        async function executeAction(type) {
             const inputVal = document.getElementById('modal-input').value;
-            const secVal = document.getElementById('modal-security').value;
-            
-            if (!checkIdentity(secVal)) {
-                alert("Dados de identificação incorretos. Digite o CPF ou E-mail que consta neste orçamento.");
-                return;
-            }
-
             const btn = document.getElementById('modal-btn');
             btn.innerText = "Processando...";
             btn.disabled = true;
@@ -465,13 +454,13 @@
         async function sendLogic(action, newStatus, text) {
             logHistory(action, 'client', text);
             await db.from('versions').update({ status: newStatus, items: state.data }).eq('id', state.version.id);
-            alert("Enviado com sucesso!");
-            window.location.reload();
+            document.getElementById('interaction-modal').style.display = 'none';
+            showSuccessScreen(action);
         }
 
         async function approveLogic() {
             let ip = 'IP'; try { const r = await fetch('https://api.ipify.org?format=json'); const j = await r.json(); ip = j.ip; } catch(e){}
-            logHistory('approved', 'client', 'Aprovado via link seguro');
+            logHistory('approved', 'client', 'Aprovado via link');
             await db.from('versions').update({ status: 'approved', approved_at: new Date(), approved_by_ip: ip, items: state.data }).eq('id', state.version.id);
             
             const phone = state.data.settings?.myPhone;
@@ -479,20 +468,30 @@
                 const msg = `✅ O cliente APROVOU o orçamento ${state.version.projects.name}!`;
                 window.open(`https://wa.me/${phone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
             }
-            window.location.reload();
+            document.getElementById('interaction-modal').style.display = 'none';
+            showSuccessScreen('approved');
         }
 
         window.onload = init;
         window.onpopstate = init;
     </script>
 
+    <section id="view-success" class="hidden min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
+        <div class="max-w-md">
+            <i id="success-icon" class="fas fa-check-circle text-6xl text-green-500 mb-6 anim-entry"></i>
+            <h2 id="success-title" class="text-3xl font-bold text-slate-900 mb-4 anim-entry delay-100">Tudo Certo!</h2>
+            <p id="success-desc" class="text-slate-600 text-lg anim-entry delay-200">Sua resposta foi registrada com sucesso.</p>
+            <div class="mt-8 text-xs text-slate-400">Pode fechar esta janela.</div>
+        </div>
+    </section>
+
     <section id="view-login" class="hidden split-screen">
         <div class="left-area">
             <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
             <div class="relative z-10 anim-entry">
                 <div class="text-blue-300 font-bold tracking-widest text-xs uppercase mb-4">Aprovado.app</div>
-                <h1 class="text-5xl font-extrabold leading-tight mb-2 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">Garantem sua segurança</span></h1>
-                <div class="ideal-para-container"><span>Ideal para:</span><span id="rotator" class="rotating-wrapper"></span></div>
+                <h1 class="text-5xl font-extrabold leading-tight mb-2 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">Garantem seu</span></h1>
+                <h2 class="text-5xl font-extrabold leading-tight mb-8 font-heading flex gap-3"><span id="rotator" class="rotating-wrapper text-white"></span></h2>
                 <div class="space-y-4">
                     <div class="benefit-item delay-100"><div class="icon-circle bg-blue-600 text-white"><i class="fas fa-shield-alt"></i></div><div><h3 class="font-bold text-lg">Evite prejuízos</h3><p class="text-sm text-indigo-100 opacity-80">Registre mudanças de escopo.</p></div></div>
                     <div class="benefit-item delay-200"><div class="icon-circle bg-emerald-500 text-white"><i class="fas fa-check"></i></div><div><h3 class="font-bold text-lg">Aprovação</h3><p class="text-sm text-indigo-100 opacity-80">Link direto e histórico.</p></div></div>
@@ -513,69 +512,89 @@
 
     <section id="view-dashboard" class="hidden flex-1">
         <div class="app-header">
-            <div class="font-bold text-lg tracking-tight font-heading"><i class="fas fa-check-circle text-blue-600 mr-2"></i>Aprovado</div>
-            <div class="flex gap-2"><button onclick="createProject()" class="text-sm bg-slate-900 text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-800 shadow-lg transition-all">+ Novo Orçamento</button><button onclick="db.auth.signOut().then(()=>window.location.reload())" class="text-slate-400 hover:text-red-500 px-3"><i class="fas fa-power-off"></i></button></div>
+            <div class="font-bold text-lg text-white">Aprovado<span class="text-blue-400">APP</span></div>
+            <div class="flex gap-3">
+                <button onclick="createProject()" class="btn btn-primary bg-white text-slate-900 hover:bg-slate-100 text-xs border-white"><i class="fas fa-plus"></i> Novo Projeto</button>
+                <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="text-slate-400 hover:text-white px-2"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
         </div>
-        <div class="max-w-7xl mx-auto p-8">
-            <div class="kpi-grid">
-                <div class="kpi-card border-l-4 border-l-slate-800"><div class="kpi-label">Receita Estimada</div><div class="kpi-value" id="kpi-total-est">R$ 0,00</div></div>
-                <div class="kpi-card border-l-4 border-l-emerald-500"><div class="kpi-label">Receita Aprovada</div><div class="kpi-value text-emerald-600" id="kpi-total-apr">R$ 0,00</div></div>
-                <div class="kpi-card bg-amber-50 border-amber-200"><div class="kpi-label text-amber-700">Em Negociação</div><div class="kpi-value text-amber-700" id="kpi-count-neg">0</div></div>
-                <div class="kpi-card bg-emerald-50 border-emerald-200"><div class="kpi-label text-emerald-700">Aprovados</div><div class="kpi-value text-emerald-700" id="kpi-count-apr">0</div></div>
-                <div class="kpi-card"><div class="kpi-label">Cancelados</div><div class="kpi-value text-red-500" id="kpi-count-can">0</div></div>
+        <div class="max-w-6xl mx-auto p-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div class="kpi-card border-emerald-200"><div class="text-emerald-600 font-bold uppercase text-xs">Faturamento Aprovado</div><div class="text-3xl font-bold" id="kpi-revenue">R$ 0,00</div></div>
+                <div class="kpi-card border-amber-200"><div class="text-amber-600 font-bold uppercase text-xs">Pipeline</div><div class="text-3xl font-bold" id="kpi-pipeline">R$ 0,00</div></div>
             </div>
-            <div class="flex flex-col md:flex-row gap-4 mb-6 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <div class="flex-1 w-full relative"><i class="fas fa-search absolute left-3 top-3 text-slate-400"></i><input id="dash-search" onkeyup="renderDashboardList()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Buscar cliente ou projeto..."></div>
-                <select id="dash-filter" onchange="renderDashboardList()" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none"><option value="all">Todos os Status</option><option value="draft">Rascunhos</option><option value="sent">Enviados</option><option value="negotiating">Em Negociação</option><option value="approved">Aprovados</option><option value="canceled">Cancelados</option></select>
-            </div>
+            <h2 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6">Propostas Recentes</h2>
             <div id="project-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
     </section>
 
-    <section id="view-editor" class="hidden flex flex-col h-screen">
-        <div id="editor-loading" class="flex-1 flex items-center justify-center bg-slate-50"><div class="loader-spin"></div></div>
-        <div id="editor-content" class="hidden grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 w-full max-w-[1600px] mx-auto p-6 h-[calc(100vh-70px)]">
-            <div class="overflow-y-auto pr-2 pb-20">
-                <div class="flex justify-between items-end mb-6">
-                    <div><button onclick="goTo('dashboard')" class="text-xs font-bold text-slate-400 hover:text-slate-600 mb-1"><i class="fas fa-arrow-left"></i> VOLTAR</button><div class="flex items-center gap-3"><h2 id="ed-title" class="text-2xl font-bold font-heading text-slate-900">...</h2><span id="ed-ver" class="text-xs bg-slate-200 px-2 py-1 rounded font-bold text-slate-600">V1</span><span id="ed-status-badge"></span></div></div>
-                    <button onclick="share()" class="text-sm bg-white border border-blue-200 text-blue-600 px-4 py-2 rounded-lg font-bold hover:bg-blue-50 transition-all shadow-sm"><i class="fas fa-link mr-2"></i>Link Cliente</button>
+    <section id="view-editor" class="hidden flex-1 bg-slate-50 h-screen flex flex-col">
+        <div id="editor-loading" class="flex-1 flex items-center justify-center"><div class="spinner border-slate-900"></div></div>
+        <div id="editor-content" class="hidden flex flex-col h-full">
+            <div class="app-header justify-between">
+                <div class="flex items-center gap-4">
+                    <button onclick="goTo('dashboard')" class="text-slate-400 hover:text-white"><i class="fas fa-arrow-left"></i></button>
+                    <div><h2 id="ed-title" class="font-bold leading-none text-lg text-white">...</h2><span id="ed-ver" class="text-[10px] text-slate-400 uppercase font-bold">V1</span><span id="ed-status-badge" class="ml-2 text-[10px] uppercase font-bold bg-white text-slate-900 px-2 py-1 rounded"></span></div>
                 </div>
-                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden mb-6 shadow-sm"><div class="bg-slate-50 px-6 py-3 border-b border-slate-200 font-bold text-xs uppercase text-slate-500">Dados do Cliente</div><div class="p-6 grid gap-4"><input id="c-name" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Nome do Cliente / Empresa" onchange="upVal('c-name',this.value)"><div class="grid grid-cols-2 gap-4"><input id="c-doc" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="CPF/CNPJ (OBRIGATÓRIO PARA SEGURANÇA)" onchange="upVal('c-doc',this.value)"><input id="c-phone" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Telefone" onchange="upVal('c-phone',this.value)"></div><input id="c-email" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="E-mail (Alternativa de Segurança)" onchange="upVal('c-email',this.value)"><input id="c-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Endereço Completo" onchange="upVal('c-addr',this.value)"></div></div>
-                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm mb-6"><div class="bg-slate-50 px-6 py-3 border-b border-slate-200 font-bold text-xs uppercase text-slate-500 flex justify-between items-center"><span>Escopo do Serviço</span><button id="btn-add-item" onclick="addItem()" class="text-blue-600 hover:underline font-bold text-xs">+ Adicionar Item</button></div><div id="ed-items" class="p-6"></div></div>
-                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm p-6"><label class="block text-xs font-bold text-slate-500 mb-2">Categoria do Serviço</label><select id="s-type" onchange="upVal('s-type',this.value)" class="w-full border p-2 rounded mb-4 text-sm"><option>Outros</option><option>Eletricista</option><option>Encanador</option><option>Reforma Geral</option><option>Instalação de Ar</option><option>Pintura</option><option>Marcenaria</option></select><label class="block text-xs font-bold text-blue-600 mb-2">Seu WhatsApp (Para notificações)</label><input id="s-phone" class="w-full border border-blue-100 bg-blue-50 p-2 rounded text-sm" placeholder="Ex: 5511999999999" onchange="upVal('s-phone',this.value)"></div>
+                <button onclick="share()" class="btn btn-secondary bg-slate-800 border-slate-700 text-white hover:bg-slate-700 text-xs"><i class="fas fa-link"></i> Link Cliente</button>
             </div>
-            <div class="overflow-y-auto pb-20">
-                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-lg sticky top-0 mb-6"><div class="bg-slate-900 px-6 py-4 border-b border-slate-800 font-bold text-xs uppercase text-slate-400">Resumo Financeiro</div><div class="p-6"><div class="text-center mb-6"><div class="text-xs text-slate-400 uppercase tracking-widest mb-1">Total Global</div><div id="ed-total" class="text-4xl font-bold font-heading text-slate-900">R$ 0,00</div></div><div class="grid grid-cols-2 gap-4 mb-4"><input id="t-dead" class="border p-2 rounded text-sm" placeholder="Prazo" onchange="upVal('t-dead',this.value)"><input id="t-val" class="border p-2 rounded text-sm" placeholder="Validade" onchange="upVal('t-val',this.value)"></div><textarea id="t-obs" class="w-full border p-2 rounded text-sm h-20 mb-4 bg-slate-50" placeholder="Condições de pagamento..." onchange="upVal('t-obs',this.value)"></textarea><div id="ed-actions"></div></div></div>
-                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"><div class="bg-slate-50 px-6 py-3 border-b border-slate-200 font-bold text-xs uppercase text-slate-500">Linha do Tempo</div><div id="ed-history" class="p-6 space-y-4 text-sm"></div></div>
+            <div class="panel-grid overflow-hidden">
+                <div class="overflow-y-auto pr-2 pb-20 no-scrollbar">
+                    <div class="editor-section">
+                        <div class="editor-header"><i class="fas fa-user-tie"></i> Dados do Cliente</div>
+                        <div class="editor-body">
+                            <div class="input-group"><label class="input-label">Nome</label><input id="c-name" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Nome do Cliente / Empresa" onchange="upVal('c-name',this.value)"></div>
+                            <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Doc</label><input id="c-doc" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="CPF/CNPJ" onchange="upVal('c-doc',this.value)"></div><div class="input-group"><label class="input-label">Tel</label><input id="c-phone" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Telefone" onchange="upVal('c-phone',this.value)"></div></div>
+                            <div class="input-group"><label class="input-label">Email</label><input id="c-email" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="E-mail" onchange="upVal('c-email',this.value)"></div>
+                            <div class="input-group"><label class="input-label">Endereço</label><input id="c-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Endereço Completo" onchange="upVal('c-addr',this.value)"></div>
+                            <div class="mt-4 pt-4 border-t"><label class="input-label text-blue-600">Seu WhatsApp</label><input id="in-s-myphone" onchange="upSettings('myPhone', this.value)" class="input-field bg-blue-50 border-blue-200"></div>
+                        </div>
+                    </div>
+                    <div class="editor-section">
+                        <div class="editor-header justify-between"><span><i class="fas fa-list-ol"></i> Escopo</span><button id="btn-add-item" onclick="addItem()" class="btn btn-primary text-xs py-1 px-3 bg-slate-800 border-none">+ Item</button></div>
+                        <div class="editor-body bg-slate-50 min-h-[300px]"><div id="ed-list"></div></div>
+                    </div>
+                </div>
+                <div class="overflow-y-auto pb-20 no-scrollbar">
+                    <div class="editor-section sticky top-0 shadow-lg">
+                        <div class="editor-header"><i class="fas fa-coins"></i> Financeiro</div>
+                        <div class="editor-body">
+                            <div class="bg-slate-900 text-white p-6 rounded-lg text-center mb-6"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Global</div><div id="ed-total" class="text-3xl font-bold">R$ 0,00</div></div>
+                            <div class="input-group"><div class="flex gap-2 mb-2"><select id="pay-mode" class="input-field"><option value="entry_installments">Entrada + Parcelas</option><option value="single">Único</option></select><button onclick="generatePayment()" class="btn btn-secondary px-3"><i class="fas fa-calculator"></i></button></div><div id="payment-display" class="text-xs bg-slate-50 p-3 rounded border border-slate-200 text-slate-600 whitespace-pre-line min-h-[60px]">...</div></div>
+                            <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Entrega</label><input id="t-dead" class="border p-2 rounded text-sm" placeholder="Prazo" onchange="upVal('t-dead',this.value)"></div><div class="input-group"><label class="input-label">Validade</label><input id="t-val" class="border p-2 rounded text-sm" placeholder="Validade" onchange="upVal('t-val',this.value)"></div></div>
+                            <div class="input-group"><label class="input-label">Obs</label><textarea id="t-obs" class="w-full border p-2 rounded text-sm h-20 mb-4 bg-slate-50" placeholder="Condições de pagamento..." onchange="upVal('t-obs',this.value)"></textarea></div>
+                            <div id="ed-actions" class="mt-6"></div>
+                        </div>
+                    </div>
+                    <div class="editor-section"><div class="editor-header"><i class="fas fa-history"></i> Histórico</div><div id="ed-history" class="p-4 space-y-4"></div></div>
+                </div>
             </div>
         </div>
     </section>
 
-    <section id="view-public" class="hidden min-h-screen bg-slate-100 p-4 md:py-10 overflow-y-auto print:p-0">
+    <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10 overflow-y-auto print:p-0">
         <div id="public-loading" class="flex justify-center mt-20"><div class="spinner border-slate-900"></div></div>
-        <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col rounded-none md:rounded-xl overflow-hidden">
+        <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col">
             <div id="stamp-approved" class="hidden absolute top-10 right-10 border-4 border-emerald-600 text-emerald-600 font-bold text-3xl px-6 py-2 uppercase opacity-30 transform -rotate-12 z-20">APROVADO</div>
-            <div class="bg-slate-900 text-white p-12 print:bg-white print:text-black print:border-b-2"><div class="flex justify-between items-start"><div><h1 id="doc-title" class="text-3xl font-bold mb-2 font-heading">Projeto</h1><p class="text-xs uppercase tracking-widest text-slate-400">Proposta Comercial</p></div><div class="text-right"><div id="doc-id" class="font-bold text-lg">#REF</div><div id="doc-date" class="text-sm opacity-70">--/--/--</div></div></div></div>
+            <div class="bg-slate-900 text-white p-12 print:bg-white print:text-black print:border-b-2"><div class="flex justify-between items-start"><div><h1 id="doc-title" class="text-3xl font-bold mb-2">Projeto</h1><p class="text-xs uppercase tracking-widest text-slate-400">Proposta Técnica</p></div><div class="text-right"><div id="doc-id" class="font-bold text-lg">#REF</div><div id="doc-date" class="text-sm opacity-70">--/--/--</div></div></div></div>
             <div class="p-12 flex-1">
-                <div class="flex gap-12 mb-12 text-sm"><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Para</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div></div><div class="flex-1 text-right"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Investimento Total</h3><div class="font-bold text-3xl font-heading text-slate-900" id="doc-total">R$ 0,00</div></div></div>
-                <div class="mb-12"><h3 class="font-bold text-xs uppercase text-slate-400 mb-4 tracking-wider">Detalhamento</h3><table class="w-full text-sm"><tbody id="doc-items-body"></tbody></table></div>
-                <div class="bg-slate-50 p-6 rounded-lg text-sm text-slate-600 mb-8 border border-slate-100"><h4 class="font-bold text-xs uppercase text-slate-400 mb-2">Condições</h4><p id="doc-payment" class="mb-2 whitespace-pre-line"></p><div class="flex gap-4"><span><strong>Prazo:</strong> <span id="doc-deadline"></span></span><span><strong>Validade:</strong> <span id="doc-validity"></span></span></div><div id="doc-obs" class="mt-2 text-xs italic"></div></div>
+                <div class="flex gap-12 mb-12 text-sm"><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Contratante</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div><div id="doc-c-doc" class="text-slate-500"></div></div><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Local</h3><div id="doc-c-addr" class="text-slate-600"></div></div></div>
+                <div class="mb-12"><h3 class="font-bold text-xs uppercase text-slate-400 mb-4 tracking-wider">Escopo</h3><table class="w-full"><tbody id="doc-items-body"></tbody></table></div>
+                <div class="bg-slate-50 border border-slate-100 rounded-lg p-8 mb-12 flex gap-12">
+                    <div class="flex-1"><h4 class="font-bold text-xs uppercase text-slate-400 mb-2">Pagamento</h4><div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line"></div><div class="mt-4 flex gap-6 text-sm"><div><span class="font-bold text-xs uppercase text-slate-400 block">Entrega</span><span id="doc-deadline"></span></div><div><span class="font-bold text-xs uppercase text-slate-400 block">Validade</span><span id="doc-validity"></span></div></div></div>
+                    <div class="text-right"><h4 class="font-bold text-xs uppercase text-slate-400 mb-1">Total</h4><div id="doc-total" class="text-3xl font-bold text-slate-900">R$ 0,00</div></div>
+                </div>
+                <div id="doc-obs" class="text-xs text-slate-500 italic text-justify"></div>
                 <div id="doc-actions" class="no-print mt-12"></div>
             </div>
-            <div class="bg-slate-50 p-4 text-center border-t no-print text-xs text-slate-400">Gerado via <strong>Aprovado.app</strong></div>
+            <div class="bg-slate-50 p-4 text-center border-t no-print"><button onclick="window.print()" class="text-xs font-bold text-slate-400 uppercase hover:text-slate-600"><i class="fas fa-print"></i> PDF</button></div>
         </div>
     </section>
 
     <div id="interaction-modal" class="modal-overlay">
         <div class="modal-box">
             <h3 id="modal-title" class="text-xl font-bold mb-2 text-slate-800"></h3>
-            <p id="modal-desc" class="text-sm text-slate-500 mb-4"></p>
             <textarea id="modal-input" class="w-full border p-3 rounded-lg mb-4 h-24 text-sm bg-slate-50" placeholder="Digite aqui..."></textarea>
-            <div class="mb-6">
-                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Confirmação de Identidade</label>
-                <input id="modal-security" class="w-full border-2 border-blue-100 p-3 rounded-lg text-sm focus:border-blue-500 outline-none" placeholder="Digite seu CPF/CNPJ ou E-mail">
-                <p class="text-[10px] text-slate-400 mt-1">Dados devem ser iguais aos do orçamento.</p>
-            </div>
             <div class="flex gap-3"><button onclick="document.getElementById('interaction-modal').style.display='none'" class="flex-1 py-3 border rounded text-slate-500 font-bold hover:bg-slate-50">Cancelar</button><button id="modal-btn" class="flex-1 py-3 rounded text-white font-bold"></button></div>
         </div>
     </div>
