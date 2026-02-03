@@ -46,7 +46,7 @@
 
         @media (max-width: 1024px) { .split-screen { flex-direction: column; position: relative; height: auto; } .left-area { width: 100%; padding: 3rem 2rem; min-height: auto; text-align: center; } .ideal-para-container { justify-content: center; } .right-area { width: 100%; padding: 2rem; background: white; } .login-card { box-shadow: none; border: none; padding: 0; } .benefit-item { flex-direction: column; align-items: center; text-align: center; } .glow-orb { display: none; } }
 
-        /* DASHBOARD & EDITOR (Seu Layout Original) */
+        /* Dashboard & Editor */
         #system-loader { position: fixed; inset: 0; background: #0F172A; z-index: 9999; display: flex; flex-col: column; align-items: center; justify-content: center; color: white; transition: opacity 0.5s; }
         .loader-spin { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         .app-header { background: #fff; border-bottom: 1px solid #e2e8f0; height: 70px; display: flex; align-items: center; padding: 0 32px; justify-content: space-between; position: sticky; top: 0; z-index: 40; }
@@ -56,7 +56,6 @@
         .status-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.05em; }
         .st-draft { background: #f1f5f9; color: #64748b; } .st-sent { background: #dbeafe; color: #1e40af; } .st-negotiating { background: #ffedd5; color: #c2410c; } .st-approved { background: #dcfce7; color: #166534; } .st-canceled { background: #fee2e2; color: #991b1b; }
         
-        /* Timeline */
         .timeline-item { position: relative; padding-left: 2rem; border-left: 2px solid #e2e8f0; padding-bottom: 1.5rem; }
         .timeline-item::before { content: ''; position: absolute; left: -5px; top: 0; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
         .timeline-item:last-child { border-left: transparent; }
@@ -67,15 +66,6 @@
         .modal-box { background: white; width: 90%; max-width: 500px; padding: 2rem; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); animation: fadeInUp 0.3s ease-out; }
         #fatal-error { display: none; position: fixed; inset: 0; background: #FFF1F2; z-index: 10000; padding: 40px; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
         
-        /* EDITOR LAYOUT */
-        .panel-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; max-width: 1600px; margin: 24px auto; padding: 0 24px; height: calc(100vh - 112px); }
-        .editor-section { background: white; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
-        .editor-header { background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #475569; display: flex; align-items: center; gap: 8px; }
-        .editor-body { padding: 20px; }
-        .input-group { margin-bottom: 16px; }
-        .input-label { display: block; font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
-
-        @media (max-width: 1024px) { .panel-grid { grid-template-columns: 1fr; height: auto; } }
         @media print { .no-print { display: none !important; } body { background: white; } }
     </style>
 </head>
@@ -85,15 +75,16 @@
     <div id="fatal-error"><i class="fas fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i><h2 class="text-2xl font-bold text-slate-800">Ops! Algo deu errado.</h2><p id="error-msg" class="text-slate-600 mt-2 mb-6 max-w-md">...</p><button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button></div>
 
     <script>
-        // --- FUNÇÕES SEGURAS (CORRIGEM TELA BRANCA) ---
+        // --- FUNÇÕES SEGURAS (ANTI-CRASH) ---
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
         function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
         function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
 
+        // Tratamento de Erro Global (Ignora erros de 'null' para não travar tela)
         window.onerror = function(msg) {
             console.error("Erro detectado:", msg);
-            if (msg && (msg.includes('null') || msg.includes('undefined'))) return true; 
+            if (msg && (msg.includes('null') || msg.includes('undefined'))) return true;
             document.getElementById('system-loader').style.display = 'none';
             return false;
         };
@@ -105,22 +96,22 @@
 
         let state = { user: null, project: null, version: null, projectsCache: [], data: { client: {}, location: {}, items: [], terms: {}, settings: {}, history: [] } };
 
-        // --- CORREÇÃO DO LINK QUE NÃO ABRE ---
+        // --- NORMALIZAÇÃO ROBUSTA (CORREÇÃO DE DADOS QUEBRADOS) ---
         function normalizeData(dbData) {
             const schema = { client: { name: '', doc: '', email: '', phone: '', address: '' }, location: { address: '', sameAsClient: true }, items: [], terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, settings: { myPhone: '', serviceType: 'Outros' }, history: [] };
-            if (!dbData) return schema;
             
-            // Garante que items é um array, mesmo se vier null do banco
+            if (!dbData) return schema;
+
             let rawItems = [];
             if (Array.isArray(dbData.items)) { rawItems = dbData.items; }
             else if (dbData.scope && Array.isArray(dbData.scope)) { rawItems = dbData.scope; }
 
-            const items = rawItems.map(i => ({ name: i.name || '', description: i.description || '', qty: parseFloat(i.qty) || 1, price: parseFloat(i.price) || 0, type: i.type || 'original' }));
+            const cleanItems = rawItems.map(i => ({ name: i.name || '', description: i.description || '', qty: parseFloat(i.qty) || 1, price: parseFloat(i.price) || 0, type: i.type || 'original' }));
             
             return { 
                 client: { ...schema.client, ...(dbData.client || {}) }, 
                 location: { ...schema.location, ...(dbData.location || {}) }, 
-                items: items, 
+                items: cleanItems, 
                 terms: { ...schema.terms, ...(dbData.terms || {}) }, 
                 settings: { ...schema.settings, ...(dbData.settings || {}) }, 
                 history: Array.isArray(dbData.history) ? dbData.history : [] 
@@ -145,7 +136,7 @@
                 if (view === 'public') {
                     if(!id) throw new Error("Link inválido.");
                     await loadPublicProposal(id);
-                    // Public proposal carrega sua própria view
+                    // O loadPublicProposal já cuida de mostrar a div correta
                 } else if (!state.user && view !== 'login') {
                     window.history.replaceState(null, '', '?view=login');
                     document.getElementById('view-login').classList.remove('hidden');
@@ -158,11 +149,13 @@
                     if(view !== 'login') {
                         const el = document.getElementById(`view-${view}`); if(el) el.classList.remove('hidden');
                     } else { 
-                        document.getElementById('view-login').classList.remove('hidden'); initRotator(); 
+                        document.getElementById('view-login').classList.remove('hidden'); 
+                        initRotator(); 
                     }
                 }
                 setTimeout(() => { const l = document.getElementById('system-loader'); if(l) l.style.display = 'none'; }, 500);
             } catch (e) { 
+                console.error(e);
                 const l = document.getElementById('system-loader'); if(l) l.style.display = 'none';
                 const f = document.getElementById('fatal-error'); if(f) f.style.display = 'flex';
                 safeText('error-msg', e.message);
@@ -170,7 +163,7 @@
         }
 
         function initRotator() {
-            const words = ["Prestadores de Serviços", "Eletricistas", "Instaladores", "Manutenção", "Serviços Personalizados"];
+            const words = ["Eletricistas", "Instaladores", "Manutenção", "Técnicos", "Prestadores"];
             let idx = 0; const el = document.getElementById('rotator'); if(!el) return;
             el.innerHTML = '';
             words.forEach((w, i) => { const s = document.createElement('span'); s.className = `rotate-word ${i===0?'active':''}`; s.innerText = w; el.appendChild(s); });
@@ -253,7 +246,7 @@
                             <div class="text-xs text-slate-400">V${v.version_number} • ${new Date(p.created_at).toLocaleDateString()}</div>
                             <div class="flex items-center gap-3">
                                 <div class="text-lg font-bold text-slate-900">${val.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</div>
-                                <button onclick="deleteProject('${p.id}', event)" class="text-slate-300 hover:text-red-500 transition-colors p-1 opacity-0 group-hover:opacity-100" title="Excluir"><i class="fas fa-trash-alt"></i></button>
+                                <button onclick="deleteProject('${p.id}', event)" class="text-slate-300 hover:text-red-500 transition-colors p-1" title="Excluir"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>
                     </div>`;
@@ -310,7 +303,6 @@
             setVal('t-dead', d.terms.deadline); setVal('t-val', d.terms.validity); setVal('t-obs', d.terms.obs);
 
             let html = ''; let total = 0;
-            // CORREÇÃO: Garante que é array
             const items = Array.isArray(d.items) ? d.items : [];
             items.forEach((i,x) => {
                 const t = (i.qty||0)*(i.price||0); total+=t;
@@ -333,7 +325,7 @@
             setHTML('ed-history', histHtml);
 
             const actions = document.getElementById('ed-actions');
-            if(actions) {
+            if (actions) {
                 if (isLocked) { actions.innerHTML = `<button onclick="createAddon()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg mb-2 shadow-lg"><i class="fas fa-copy mr-2"></i> Duplicar / Aditivo</button>`; } 
                 else { actions.innerHTML = `<button onclick="save()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg mb-2 shadow-lg"><i class="fas fa-save mr-2"></i> Salvar</button><button onclick="changeStatus('canceled')" class="w-full py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-sm font-bold">Cancelar Orçamento</button>`; }
             }
@@ -344,7 +336,7 @@
         
         // --- CORREÇÃO DO ADICIONAR ITEM ---
         function addItem() { 
-            if(!state.data.items) state.data.items = []; // Proteção
+            if(!Array.isArray(state.data.items)) state.data.items = [];
             state.data.items.push({name:'',description:'',qty:1,price:0,type:state.version.version_number>1?'addon':'original'}); 
             renderEditor(); 
         }
@@ -402,7 +394,9 @@
         async function loadPublicProposal(id) {
             try {
                 const load = document.getElementById('public-loading'); if(load) load.classList.remove('hidden');
+                // maybeSingle is safer
                 const { data: v } = await db.from('versions').select('*, projects(name)').eq('id', id).maybeSingle();
+                
                 if (!v) throw new Error("Orçamento não encontrado.");
                 state.version = v; state.data = normalizeData(v.items);
                 const d = state.data;
@@ -469,6 +463,7 @@
             }
         }
 
+        // --- FLUXO RÁPIDO (SEM SENHA) ---
         function openModal(type) {
             const modal = document.getElementById('interaction-modal');
             const title = document.getElementById('modal-title');
@@ -550,6 +545,86 @@
             <h2 id="success-title" class="text-3xl font-bold text-slate-900 mb-4 anim-entry delay-100">Tudo Certo!</h2>
             <p id="success-desc" class="text-slate-600 text-lg anim-entry delay-200">Sua resposta foi registrada com sucesso.</p>
             <div class="mt-8 text-xs text-slate-400">Pode fechar esta janela.</div>
+        </div>
+    </section>
+
+    <section id="view-login" class="hidden split-screen">
+        <div class="left-area">
+            <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
+            <div class="relative z-10 anim-entry">
+                <div class="text-blue-300 font-bold tracking-widest text-xs uppercase mb-4">Aprovado.app</div>
+                <h1 class="text-5xl font-extrabold leading-tight mb-2 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">Garantem sua segurança</span></h1>
+                <div class="ideal-para-container"><span>Ideal para:</span><span id="rotator" class="rotating-wrapper"></span></div>
+                <div class="space-y-4">
+                    <div class="benefit-item delay-100"><div class="icon-circle bg-blue-600 text-white"><i class="fas fa-shield-alt"></i></div><div><h3 class="font-bold text-lg">Evite prejuízos</h3><p class="text-sm text-indigo-100 opacity-80">Registre mudanças de escopo.</p></div></div>
+                    <div class="benefit-item delay-200"><div class="icon-circle bg-emerald-500 text-white"><i class="fas fa-check"></i></div><div><h3 class="font-bold text-lg">Aprovação</h3><p class="text-sm text-indigo-100 opacity-80">Link direto e histórico.</p></div></div>
+                    <div class="benefit-item delay-300"><div class="icon-circle bg-purple-500 text-white"><i class="fas fa-file-contract"></i></div><div><h3 class="font-bold text-lg">Sem discussão</h3><p class="text-sm text-indigo-100 opacity-80">Tudo documentado.</p></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="right-area">
+            <div class="login-card anim-entry delay-300">
+                <div class="avatar-circle"><i class="fas fa-user"></i></div>
+                <h2 class="text-2xl font-bold text-slate-900 mb-2 font-heading">Acesse sua conta</h2>
+                <p class="text-slate-500 mb-8 text-sm">Digite seu e-mail para entrar.</p>
+                <input type="email" id="email" placeholder="E-mail" class="input-pro">
+                <button onclick="handleLogin()" id="btn-login" class="btn-pro">Enviar link de acesso</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-dashboard" class="hidden flex-1">
+        <div class="app-header">
+            <div class="font-bold text-lg tracking-tight font-heading"><i class="fas fa-check-circle text-blue-600 mr-2"></i>Aprovado</div>
+            <div class="flex gap-2"><button onclick="createProject()" class="text-sm bg-slate-900 text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-800 shadow-lg transition-all">+ Novo Orçamento</button><button onclick="db.auth.signOut().then(()=>window.location.reload())" class="text-slate-400 hover:text-red-500 px-3"><i class="fas fa-power-off"></i></button></div>
+        </div>
+        <div class="max-w-7xl mx-auto p-8">
+            <div class="kpi-grid">
+                <div class="kpi-card border-l-4 border-l-slate-800"><div class="kpi-label">Receita Estimada</div><div class="kpi-value" id="kpi-total-est">R$ 0,00</div></div>
+                <div class="kpi-card border-l-4 border-l-emerald-500"><div class="kpi-label">Receita Aprovada</div><div class="kpi-value text-emerald-600" id="kpi-total-apr">R$ 0,00</div></div>
+                <div class="kpi-card bg-amber-50 border-amber-200"><div class="kpi-label text-amber-700">Em Negociação</div><div class="kpi-value text-amber-700" id="kpi-count-neg">0</div></div>
+                <div class="kpi-card bg-emerald-50 border-emerald-200"><div class="kpi-label text-emerald-700">Aprovados</div><div class="kpi-value text-emerald-700" id="kpi-count-apr">0</div></div>
+                <div class="kpi-card"><div class="kpi-label">Cancelados</div><div class="kpi-value text-red-500" id="kpi-count-can">0</div></div>
+            </div>
+            <div class="flex flex-col md:flex-row gap-4 mb-6 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex-1 w-full relative"><i class="fas fa-search absolute left-3 top-3 text-slate-400"></i><input id="dash-search" onkeyup="renderDashboardList()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Buscar cliente ou projeto..."></div>
+                <select id="dash-filter" onchange="renderDashboardList()" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none"><option value="all">Todos os Status</option><option value="draft">Rascunhos</option><option value="sent">Enviados</option><option value="negotiating">Em Negociação</option><option value="approved">Aprovados</option><option value="canceled">Cancelados</option></select>
+            </div>
+            <div id="project-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+    </section>
+
+    <section id="view-editor" class="hidden flex flex-col h-screen">
+        <div id="editor-loading" class="flex-1 flex items-center justify-center bg-slate-50"><div class="loader-spin"></div></div>
+        <div id="editor-content" class="hidden grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 w-full max-w-[1600px] mx-auto p-6 h-[calc(100vh-70px)]">
+            <div class="overflow-y-auto pr-2 pb-20">
+                <div class="flex justify-between items-end mb-6">
+                    <div><button onclick="goTo('dashboard')" class="text-xs font-bold text-slate-400 hover:text-slate-600 mb-1"><i class="fas fa-arrow-left"></i> VOLTAR</button><div class="flex items-center gap-3"><h2 id="ed-title" class="text-2xl font-bold font-heading text-slate-900">...</h2><span id="ed-ver" class="text-xs bg-slate-200 px-2 py-1 rounded font-bold text-slate-600">V1</span><span id="ed-status-badge"></span></div></div>
+                    <button onclick="share()" class="text-sm bg-white border border-blue-200 text-blue-600 px-4 py-2 rounded-lg font-bold hover:bg-blue-50 transition-all shadow-sm"><i class="fas fa-link mr-2"></i>Link Cliente</button>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden mb-6 shadow-sm"><div class="bg-slate-50 px-6 py-3 border-b border-slate-200 font-bold text-xs uppercase text-slate-500">Dados do Cliente</div><div class="p-6 grid gap-4"><input id="c-name" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Nome do Cliente / Empresa" onchange="upVal('c-name',this.value)"><div class="grid grid-cols-2 gap-4"><input id="c-doc" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="CPF/CNPJ (OBRIGATÓRIO PARA SEGURANÇA)" onchange="upVal('c-doc',this.value)"><input id="c-phone" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Telefone" onchange="upVal('c-phone',this.value)"></div><input id="c-email" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="E-mail (Alternativa de Segurança)" onchange="upVal('c-email',this.value)"><input id="c-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Endereço Completo" onchange="upVal('c-addr',this.value)"></div></div>
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm mb-6"><div class="bg-slate-50 px-6 py-3 border-b border-slate-200 font-bold text-xs uppercase text-slate-500 flex justify-between items-center"><span>Escopo do Serviço</span><button id="btn-add-item" onclick="addItem()" class="text-blue-600 hover:underline font-bold text-xs">+ Adicionar Item</button></div><div id="ed-items" class="p-6"></div></div>
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm p-6"><label class="block text-xs font-bold text-slate-500 mb-2">Categoria do Serviço</label><select id="s-type" onchange="upVal('s-type',this.value)" class="w-full border p-2 rounded mb-4 text-sm"><option>Outros</option><option>Eletricista</option><option>Encanador</option><option>Reforma Geral</option><option>Instalação de Ar</option><option>Pintura</option><option>Marcenaria</option></select><label class="block text-xs font-bold text-blue-600 mb-2">Seu WhatsApp (Para notificações)</label><input id="s-phone" class="w-full border border-blue-100 bg-blue-50 p-2 rounded text-sm" placeholder="Ex: 5511999999999" onchange="upVal('s-phone',this.value)"></div>
+            </div>
+            <div class="overflow-y-auto pb-20">
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-lg sticky top-0 mb-6"><div class="bg-slate-900 px-6 py-4 border-b border-slate-800 font-bold text-xs uppercase text-slate-400">Resumo Financeiro</div><div class="p-6"><div class="text-center mb-6"><div class="text-xs text-slate-400 uppercase tracking-widest mb-1">Total Global</div><div id="ed-total" class="text-4xl font-bold font-heading text-slate-900">R$ 0,00</div></div><div class="grid grid-cols-2 gap-4 mb-4"><input id="t-dead" class="border p-2 rounded text-sm" placeholder="Prazo" onchange="upVal('t-dead',this.value)"><input id="t-val" class="border p-2 rounded text-sm" placeholder="Validade" onchange="upVal('t-val',this.value)"></div><textarea id="t-obs" class="w-full border p-2 rounded text-sm h-20 mb-4 bg-slate-50" placeholder="Condições de pagamento..." onchange="upVal('t-obs',this.value)"></textarea><div id="ed-actions"></div></div></div>
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm"><div class="bg-slate-50 px-6 py-3 border-b border-slate-200 font-bold text-xs uppercase text-slate-500">Linha do Tempo</div><div id="ed-history" class="p-6 space-y-4 text-sm"></div></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-public" class="hidden min-h-screen bg-slate-100 p-4 md:py-10 overflow-y-auto print:p-0">
+        <div id="public-loading" class="flex justify-center mt-20"><div class="spinner border-slate-900"></div></div>
+        <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col rounded-none md:rounded-xl overflow-hidden">
+            <div id="stamp-approved" class="hidden absolute top-10 right-10 border-4 border-emerald-600 text-emerald-600 font-bold text-3xl px-6 py-2 uppercase opacity-30 transform -rotate-12 z-20">APROVADO</div>
+            <div class="bg-slate-900 text-white p-12 print:bg-white print:text-black print:border-b-2"><div class="flex justify-between items-start"><div><h1 id="doc-title" class="text-3xl font-bold mb-2 font-heading">Projeto</h1><p class="text-xs uppercase tracking-widest text-slate-400">Proposta Comercial</p></div><div class="text-right"><div id="doc-id" class="font-bold text-lg">#REF</div><div id="doc-date" class="text-sm opacity-70">--/--/--</div></div></div></div>
+            <div class="p-12 flex-1">
+                <div class="flex gap-12 mb-12 text-sm"><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Para</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div></div><div class="flex-1 text-right"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Investimento Total</h3><div class="font-bold text-3xl font-heading text-slate-900" id="doc-total">R$ 0,00</div></div></div>
+                <div class="mb-12"><h3 class="font-bold text-xs uppercase text-slate-400 mb-4 tracking-wider">Detalhamento</h3><table class="w-full text-sm"><tbody id="doc-items-body"></tbody></table></div>
+                <div class="bg-slate-50 p-6 rounded-lg text-sm text-slate-600 mb-8 border border-slate-100"><h4 class="font-bold text-xs uppercase text-slate-400 mb-2">Condições</h4><p id="doc-payment" class="mb-2 whitespace-pre-line"></p><div class="flex gap-4"><span><strong>Prazo:</strong> <span id="doc-deadline"></span></span><span><strong>Validade:</strong> <span id="doc-validity"></span></span></div><div id="doc-obs" class="mt-2 text-xs italic"></div></div>
+                <div id="doc-actions" class="no-print mt-12"></div>
+            </div>
+            <div class="bg-slate-50 p-4 text-center border-t no-print text-xs text-slate-400">Gerado via <strong>Aprovado.app</strong></div>
         </div>
     </section>
 
