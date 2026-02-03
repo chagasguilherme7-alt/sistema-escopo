@@ -385,6 +385,8 @@ if (btnAddItem) {
             state.data.items.push({name:'',description:'',qty:1,price:0,type:state.version.version_number>1?'addon':'original'}); 
             renderEditor(); 
         }
+        window.addItem = addItem;
+
         function rmItem(i) { state.data.items.splice(i, 1); renderEditor(); }
         
         function generatePayment() {
@@ -753,6 +755,7 @@ setHTML('doc-items-body', html);
 
 </body>
 </html>
+
 
 
 
