@@ -15,18 +15,18 @@
         body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #334155; overflow-x: hidden; }
         .font-heading { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-        /* Animações */
+        /* --- ANIMAÇÕES --- */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .anim-entry { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
 
-        /* Login */
+        /* LOGIN: TEXTO ROTATIVO */
         .ideal-para-container { display: flex; align-items: center; justify-content: center; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.25rem; color: #94a3b8; margin-bottom: 3rem; margin-top: 1rem; }
         @media (min-width: 1024px) { .ideal-para-container { justify-content: flex-start; } }
         .rotating-wrapper { position: relative; height: 1.5em; width: 350px; overflow: hidden; margin-left: 0.5rem; display: inline-block; vertical-align: middle; text-align: left; }
         .rotate-word { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; font-weight: 700; color: #ffffff; opacity: 0; transform: translateY(100%); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
         .rotate-word.active { opacity: 1; transform: translateY(0); } .rotate-word.exit { opacity: 0; transform: translateY(-100%); }
 
-        /* Layout */
+        /* LAYOUT GERAL & LOGIN */
         .split-screen { display: flex; min-height: 100vh; width: 100%; position: absolute; top: 0; left: 0; z-index: 50; background: white; }
         .left-area { width: 60%; background: radial-gradient(circle at top left, #1e1b4b, #0f172a), linear-gradient(135deg, #172554 0%, #1e3a8a 100%); color: white; display: flex; flex-direction: column; justify-content: center; padding: 5rem 6rem; position: relative; overflow: hidden; }
         .glow-orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.35; }
@@ -46,26 +46,37 @@
 
         @media (max-width: 1024px) { .split-screen { flex-direction: column; position: relative; height: auto; } .left-area { width: 100%; padding: 3rem 2rem; min-height: auto; text-align: center; } .ideal-para-container { justify-content: center; } .right-area { width: 100%; padding: 2rem; background: white; } .login-card { box-shadow: none; border: none; padding: 0; } .benefit-item { flex-direction: column; align-items: center; text-align: center; } .glow-orb { display: none; } }
 
-        /* Dashboard/Editor */
-        #system-loader { position: fixed; inset: 0; background: #0F172A; z-index: 9999; display: flex; flex-col: column; align-items: center; justify-content: center; color: white; transition: opacity 0.5s; }
-        .loader-spin { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        .app-header { background: #fff; border-bottom: 1px solid #e2e8f0; height: 70px; display: flex; align-items: center; padding: 0 32px; justify-content: space-between; position: sticky; top: 0; z-index: 40; }
+        /* --- LAYOUT GRID (ESTRUTURA V29) --- */
+        .app-header { background: #0F172A; color: white; height: 64px; display: flex; align-items: center; padding: 0 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); justify-content: space-between; position: sticky; top: 0; z-index: 40; }
+        .panel-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; max-width: 1600px; margin: 24px auto; padding: 0 24px; height: calc(100vh - 112px); }
+        
+        /* Dashboard Cards */
         .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .kpi-card { background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.02); display: flex; flex-col; justify-content: space-between; transition: transform 0.2s; }
-        .kpi-card:hover { transform: translateY(-2px); }
+        .kpi-card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-col; justify-content: space-between; }
         .status-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.05em; }
         .st-draft { background: #f1f5f9; color: #64748b; } .st-sent { background: #dbeafe; color: #1e40af; } .st-negotiating { background: #ffedd5; color: #c2410c; } .st-approved { background: #dcfce7; color: #166534; } .st-canceled { background: #fee2e2; color: #991b1b; }
+
+        /* Editor Section Styles */
+        .editor-section { background: white; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
+        .editor-header { background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #475569; display: flex; align-items: center; gap: 8px; }
+        .editor-body { padding: 20px; }
+        .input-group { margin-bottom: 16px; }
+        .input-label { display: block; font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
         
+        /* Timeline */
         .timeline-item { position: relative; padding-left: 2rem; border-left: 2px solid #e2e8f0; padding-bottom: 1.5rem; }
         .timeline-item::before { content: ''; position: absolute; left: -5px; top: 0; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
         .timeline-item:last-child { border-left: transparent; }
         .timeline-desc { font-size: 0.85rem; color: #334155; margin-top: 6px; background: #fff7ed; padding: 12px; border-radius: 8px; border: 1px solid #fed7aa; font-style: italic; }
-        .timeline-desc.system { background: #f8fafc; border-color: #f1f5f9; font-style: normal; }
         
+        @media (max-width: 1024px) { .panel-grid { grid-template-columns: 1fr; height: auto; } }
+
+        /* UI Elements */
+        #system-loader { position: fixed; inset: 0; background: #0F172A; z-index: 9999; display: flex; flex-col: column; align-items: center; justify-content: center; color: white; transition: opacity 0.5s; }
+        .loader-spin { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); z-index: 60; display: none; align-items: center; justify-content: center; }
         .modal-box { background: white; width: 90%; max-width: 500px; padding: 2rem; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); animation: fadeInUp 0.3s ease-out; }
         #fatal-error { display: none; position: fixed; inset: 0; background: #FFF1F2; z-index: 10000; padding: 40px; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
-        
         @media print { .no-print { display: none !important; } body { background: white; } }
     </style>
 </head>
@@ -75,16 +86,16 @@
     <div id="fatal-error"><i class="fas fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i><h2 class="text-2xl font-bold text-slate-800">Ops! Algo deu errado.</h2><p id="error-msg" class="text-slate-600 mt-2 mb-6 max-w-md">...</p><button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button></div>
 
     <script>
-        // --- BLINDAGEM CONTRA ERROS DE NULL ---
+        // --- BLINDAGEM CONTRA ERROS (FUNÇÕES SEGURAS) ---
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
         function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
         function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
 
         window.onerror = function(msg) {
-            console.error("Erro detectado:", msg);
-            // Se for erro de null (elemento não encontrado), ignora para não travar
-            if (msg && (msg.includes('null') || msg.includes('undefined'))) return true;
+            console.error("Erro capturado:", msg);
+            if (msg && (msg.includes('null') || msg.includes('undefined'))) return true; // Ignora erros de null
+            document.getElementById('system-loader').style.display = 'none';
             return false;
         };
 
@@ -99,14 +110,7 @@
             const schema = { client: { name: '', doc: '', email: '', phone: '', address: '' }, location: { address: '', sameAsClient: true }, items: [], terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, settings: { myPhone: '', serviceType: 'Outros' }, history: [] };
             if (!dbData) return schema;
             const items = (Array.isArray(dbData.items) ? dbData.items : (dbData.scope || [])).map(i => ({ name: i.name || '', description: i.description || '', qty: parseFloat(i.qty) || 1, price: parseFloat(i.price) || 0, type: i.type || 'original' }));
-            return { 
-                client: { ...schema.client, ...(dbData.client || {}) }, 
-                location: { ...schema.location, ...(dbData.location || {}) }, 
-                items: items, 
-                terms: { ...schema.terms, ...(dbData.terms || {}) }, 
-                settings: { ...schema.settings, ...(dbData.settings || {}) }, 
-                history: Array.isArray(dbData.history) ? dbData.history : [] 
-            };
+            return { client: { ...schema.client, ...(dbData.client || {}) }, location: { ...schema.location, ...(dbData.location || {}) }, items: items, terms: { ...schema.terms, ...(dbData.terms || {}) }, settings: { ...schema.settings, ...(dbData.settings || {}) }, history: Array.isArray(dbData.history) ? dbData.history : [] };
         }
 
         function logHistory(action, user, detail) {
@@ -138,16 +142,13 @@
                     if(view === 'dashboard') await loadDashboard();
                     if(view === 'editor' && id) await loadEditor(id);
                     if(view !== 'login') {
-                        const el = document.getElementById(`view-${view}`);
-                        if(el) el.classList.remove('hidden');
-                    } else {
-                        document.getElementById('view-login').classList.remove('hidden'); 
-                        initRotator(); 
+                        const el = document.getElementById(`view-${view}`); if(el) el.classList.remove('hidden');
+                    } else { 
+                        document.getElementById('view-login').classList.remove('hidden'); initRotator(); 
                     }
                 }
                 setTimeout(() => { const l = document.getElementById('system-loader'); if(l) l.style.display = 'none'; }, 500);
             } catch (e) { 
-                console.error(e);
                 const l = document.getElementById('system-loader'); if(l) l.style.display = 'none';
                 const f = document.getElementById('fatal-error'); if(f) f.style.display = 'flex';
                 safeText('error-msg', e.message);
@@ -155,7 +156,7 @@
         }
 
         function initRotator() {
-            const words = ["Eletricistas", "Instaladores", "Manutenção", "Técnicos", "Prestadores"];
+            const words = ["Prestadores de Serviços", "Eletricistas", "Instaladores", "Manutenção", "Serviços Personalizados"];
             let idx = 0; const el = document.getElementById('rotator'); if(!el) return;
             el.innerHTML = '';
             words.forEach((w, i) => { const s = document.createElement('span'); s.className = `rotate-word ${i===0?'active':''}`; s.innerText = w; el.appendChild(s); });
@@ -238,7 +239,7 @@
                             <div class="text-xs text-slate-400">V${v.version_number} • ${new Date(p.created_at).toLocaleDateString()}</div>
                             <div class="flex items-center gap-3">
                                 <div class="text-lg font-bold text-slate-900">${val.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</div>
-                                <button onclick="deleteProject('${p.id}', event)" class="text-slate-300 hover:text-red-500 transition-colors p-1 opacity-0 group-hover:opacity-100" title="Excluir"><i class="fas fa-trash-alt"></i></button>
+                                <button onclick="deleteProject('${p.id}', event)" class="text-slate-300 hover:text-red-500 transition-colors p-1" title="Excluir"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>
                     </div>`;
@@ -265,8 +266,9 @@
         }
 
         async function loadEditor(id) {
-            const ed = document.getElementById('editor-content'); if(ed) ed.classList.add('hidden');
-            const load = document.getElementById('editor-loading'); if(load) load.classList.remove('hidden');
+            const edContent = document.getElementById('editor-content'); if(edContent) edContent.classList.add('hidden');
+            const edLoad = document.getElementById('editor-loading'); if(edLoad) edLoad.classList.remove('hidden');
+            
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
             state.project = proj;
             const { data: vers } = await db.from('versions').select('*').eq('project_id', id).order('version_number', { ascending: true });
@@ -274,9 +276,10 @@
             state.data = normalizeData(state.version.items);
             if(state.version.notes && !state.data.terms.obs) state.data.terms.obs = state.version.notes;
             if(!state.data.settings.myPhone) state.data.settings.myPhone = localStorage.getItem('escopo_phone') || '';
+            
             renderEditor();
-            if(load) load.classList.add('hidden');
-            if(ed) ed.classList.remove('hidden');
+            if(edLoad) edLoad.classList.add('hidden');
+            if(edContent) edContent.classList.remove('hidden');
         }
 
         function renderEditor() {
@@ -316,7 +319,7 @@
             setHTML('ed-history', histHtml);
 
             const actions = document.getElementById('ed-actions');
-            if(actions) {
+            if (actions) {
                 if (isLocked) { actions.innerHTML = `<button onclick="createAddon()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg mb-2 shadow-lg"><i class="fas fa-copy mr-2"></i> Duplicar / Aditivo</button>`; } 
                 else { actions.innerHTML = `<button onclick="save()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg mb-2 shadow-lg"><i class="fas fa-save mr-2"></i> Salvar</button><button onclick="changeStatus('canceled')" class="w-full py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-sm font-bold">Cancelar Orçamento</button>`; }
             }
@@ -380,9 +383,10 @@
             try {
                 const load = document.getElementById('public-loading'); if(load) load.classList.remove('hidden');
                 const { data: v } = await db.from('versions').select('*, projects(name)').eq('id', id).maybeSingle();
+                
                 if (!v) throw new Error("Orçamento não encontrado.");
                 state.version = v; state.data = normalizeData(v.items);
-                const d = state.data; // CORREÇÃO DA VARIÁVEL D
+                const d = state.data;
                 
                 safeText('doc-title', v.projects?.name);
                 safeText('doc-id', `#${v.project_id.substr(0,4).toUpperCase()}-${v.version_number}`);
@@ -414,7 +418,6 @@
                 }
                 const content = document.getElementById('public-content'); if(content) content.classList.remove('hidden');
             } catch(e) { 
-                console.error(e);
                 const load = document.getElementById('public-loading'); if(load) load.classList.add('hidden');
                 const fatal = document.getElementById('fatal-error'); if(fatal) fatal.style.display = 'flex';
                 safeText('error-msg', "Link inválido ou expirado.");
@@ -446,7 +449,7 @@
             }
         }
 
-        // --- FLUXO RÁPIDO (SEM SENHA) ---
+        // --- FLUXO RÁPIDO ---
         function openModal(type) {
             const modal = document.getElementById('interaction-modal');
             const title = document.getElementById('modal-title');
@@ -533,8 +536,7 @@
 
     <section id="view-login" class="hidden split-screen">
         <div class="left-area">
-            <div class="glow-orb orb-1"></div>
-            <div class="glow-orb orb-2"></div>
+            <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
             <div class="relative z-10 anim-entry">
                 <div class="text-blue-300 font-bold tracking-widest text-xs uppercase mb-4">Aprovado.app</div>
                 <h1 class="text-5xl font-extrabold leading-tight mb-2 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">Garantem seu</span></h1>
