@@ -76,10 +76,17 @@
     <div id="fatal-error"><i class="fas fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i><h2 class="text-2xl font-bold text-slate-800">Ops! Algo deu errado.</h2><p id="error-msg" class="text-slate-600 mt-2 mb-6 max-w-md">...</p><button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button></div>
 
     <script>
-        // --- FUNÇÃO SEGURA PARA PEGAR VALORES (EVITA ERRO DE NULL) ---
+        // --- FUNÇÕES DE SEGURANÇA (ANTI-CRASH) ---
+        // Lê valor de um input sem quebrar se ele não existir
         function safeVal(id) {
             const el = document.getElementById(id);
             return el ? el.value : '';
+        }
+        
+        // Escreve texto em um elemento sem quebrar se ele não existir
+        function safeText(id, text) {
+            const el = document.getElementById(id);
+            if (el) el.innerText = text || '';
         }
 
         window.onerror = function(msg) {
@@ -205,11 +212,12 @@
                 if(v.status === 'canceled') countCancel++;
             });
 
-            document.getElementById('kpi-total-est').innerText = totalRev.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-            document.getElementById('kpi-total-apr').innerText = totalAprov.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-            document.getElementById('kpi-count-neg').innerText = countNegoc;
-            document.getElementById('kpi-count-apr').innerText = countAprov;
-            document.getElementById('kpi-count-can').innerText = countCancel;
+            // Usando safeText para evitar erro de null
+            safeText('kpi-total-est', totalRev.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
+            safeText('kpi-total-apr', totalAprov.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
+            safeText('kpi-count-neg', countNegoc);
+            safeText('kpi-count-apr', countAprov);
+            safeText('kpi-count-can', countCancel);
 
             list.innerHTML = '';
             if(filtered.length === 0) { list.innerHTML = '<div class="col-span-full text-center py-20 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Nenhum orçamento encontrado.</div>'; return; }
@@ -277,10 +285,14 @@
 
         function renderEditor() {
             const d = state.data; const isLocked = state.version.status === 'approved' || state.version.status === 'canceled';
-            document.getElementById('ed-title').innerText = state.project.name;
-            document.getElementById('ed-ver').innerText = `V${state.version.version_number}`;
-            document.getElementById('ed-status-badge').className = `status-badge ml-2 ${state.version.status === 'approved' ? 'st-approved' : state.version.status === 'canceled' ? 'st-canceled' : 'st-draft'}`;
-            document.getElementById('ed-status-badge').innerText = state.version.status.toUpperCase();
+            safeText('ed-title', state.project.name);
+            safeText('ed-ver', `V${state.version.version_number}`);
+            
+            const badge = document.getElementById('ed-status-badge');
+            if(badge) {
+                badge.className = `status-badge ml-2 ${state.version.status === 'approved' ? 'st-approved' : state.version.status === 'canceled' ? 'st-canceled' : 'st-draft'}`;
+                badge.innerText = state.version.status.toUpperCase();
+            }
             
             const setVal = (id, v) => { const el = document.getElementById(id); if(el) el.value = v || ''; };
             setVal('c-name', d.client.name); setVal('c-doc', d.client.doc); setVal('c-phone', d.client.phone); setVal('c-email', d.client.email); setVal('c-addr', d.client.address); setVal('in-s-myphone', d.settings.myPhone);
@@ -292,7 +304,7 @@
                 const t = (i.qty||0)*(i.price||0); total+=t;
                 list.innerHTML += `<div class="bg-white border p-4 rounded-lg mb-2 relative group">${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}<div class="grid grid-cols-12 gap-2 mb-2"><div class="col-span-8"><label class="text-[10px] uppercase font-bold text-slate-400">Item</label><input class="w-full font-bold bg-transparent outline-none" value="${i.name}" onchange="upItem(${x},'name',this.value)" ${isLocked?'disabled':''}></div><div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-400 text-center block">Qtd</label><input type="number" class="w-full text-center bg-slate-50 rounded" value="${i.qty}" onchange="upItem(${x},'qty',this.value)" ${isLocked?'disabled':''}></div><div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-400 text-right block">$$</label><input type="number" class="w-full text-right bg-slate-50 rounded" value="${i.price}" onchange="upItem(${x},'price',this.value)" ${isLocked?'disabled':''}></div></div><textarea class="w-full text-xs text-slate-500 bg-transparent outline-none resize-none" rows="1" onchange="upItem(${x},'description',this.value)" placeholder="Descrição técnica..." ${isLocked?'disabled':''}>${i.description||''}</textarea></div>`;
             });
-            document.getElementById('ed-total').innerText = total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+            safeText('ed-total', total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
 
             const histList = document.getElementById('ed-history'); histList.innerHTML = '';
             if(d.history && d.history.length > 0) {
@@ -358,26 +370,35 @@
                 if (!v) throw new Error("Orçamento não encontrado.");
                 state.version = v; state.data = normalizeData(v.items);
                 
-                const setText = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val || '-'; };
-                setText('doc-title', v.projects?.name); setText('doc-id', `#${v.project_id.substr(0,4).toUpperCase()}-${v.version_number}`);
-                setText('doc-c-name', d.client.name);
+                safeText('doc-title', v.projects?.name);
+                safeText('doc-id', `#${v.project_id.substr(0,4).toUpperCase()}-${v.version_number}`);
+                safeText('doc-c-name', d.client.name);
                 
-                const list = document.getElementById('doc-items-body'); list.innerHTML = '';
-                state.data.items.forEach(i => { list.innerHTML += `<tr class="border-b border-slate-100"><td class="py-4 pl-4"><div class="font-bold text-slate-800">${i.name}<br><span class="font-normal text-xs text-slate-500">${i.description}</span></td><td class="text-center">${i.qty}</td><td class="text-right pr-4 font-bold">R$ ${(i.qty*i.price).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`; });
-                setText('doc-total', parseFloat(v.total_value).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}));
-                setText('doc-payment', d.terms.paymentText); setText('doc-deadline', d.terms.deadline); setText('doc-validity', d.terms.validity); setText('doc-obs', d.terms.obs);
+                const list = document.getElementById('doc-items-body'); 
+                if(list) {
+                    list.innerHTML = '';
+                    state.data.items.forEach(i => { list.innerHTML += `<tr class="border-b border-slate-100"><td class="py-4 pl-4"><div class="font-bold text-slate-800">${i.name}<br><span class="font-normal text-xs text-slate-500">${i.description}</span></td><td class="text-center">${i.qty}</td><td class="text-right pr-4 font-bold">R$ ${(i.qty*i.price).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`; });
+                }
+                
+                safeText('doc-total', parseFloat(v.total_value).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}));
+                safeText('doc-payment', d.terms.paymentText); 
+                safeText('doc-deadline', d.terms.deadline); 
+                safeText('doc-validity', d.terms.validity); 
+                safeText('doc-obs', d.terms.obs);
 
                 const actions = document.getElementById('doc-actions');
-                if(v.status === 'approved' || v.status === 'canceled') {
-                    showSuccessScreen(v.status);
-                } else {
-                    actions.innerHTML = `
-                        <button onclick="openModal('approve')" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 mb-3 transition-transform hover:scale-[1.01]">APROVAR PROPOSTA</button>
-                        <div class="grid grid-cols-2 gap-3">
-                            <button onclick="openModal('change')" class="bg-amber-100 text-amber-700 font-bold py-3 rounded-xl hover:bg-amber-200">Solicitar Alteração</button>
-                            <button onclick="openModal('cancel')" class="bg-red-50 text-red-600 font-bold py-3 rounded-xl hover:bg-red-100">Recusar</button>
-                        </div>
-                    `;
+                if(actions) {
+                    if(v.status === 'approved' || v.status === 'canceled') {
+                        showSuccessScreen(v.status);
+                    } else {
+                        actions.innerHTML = `
+                            <button onclick="openModal('approve')" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 mb-3 transition-transform hover:scale-[1.01]">APROVAR PROPOSTA</button>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="openModal('change')" class="bg-amber-100 text-amber-700 font-bold py-3 rounded-xl hover:bg-amber-200">Solicitar Alteração</button>
+                                <button onclick="openModal('cancel')" class="bg-red-50 text-red-600 font-bold py-3 rounded-xl hover:bg-red-100">Recusar</button>
+                            </div>
+                        `;
+                    }
                 }
                 document.getElementById('public-content').classList.remove('hidden');
             } catch(e) { 
@@ -387,7 +408,7 @@
             } finally { document.getElementById('public-loading').classList.add('hidden'); }
         }
 
-        // --- TELA DE SUCESSO (Feedback Visual) ---
+        // --- TELA DE SUCESSO ---
         function showSuccessScreen(type) {
             const screen = document.getElementById('view-success');
             const icon = document.getElementById('success-icon');
@@ -426,7 +447,7 @@
             if(type === 'approve') {
                 title.innerText = 'Confirmar Aprovação?';
                 desc.innerText = 'Ao confirmar, você aprova este orçamento.';
-                input.style.display = 'none'; // Não precisa de texto pra aprovar
+                input.style.display = 'none';
                 btn.innerText = 'Sim, Aprovar';
                 btn.className = "w-full py-3 bg-green-600 text-white rounded font-bold hover:bg-green-700";
                 btn.onclick = () => executeAction('approve');
@@ -538,9 +559,16 @@
         </div>
         <div class="max-w-6xl mx-auto p-8">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                <div class="kpi-card border-emerald-200"><div class="text-emerald-600 font-bold uppercase text-xs">Faturamento Aprovado</div><div class="text-3xl font-bold" id="kpi-revenue">R$ 0,00</div></div>
-                <div class="kpi-card border-amber-200"><div class="text-amber-600 font-bold uppercase text-xs">Pipeline</div><div class="text-3xl font-bold" id="kpi-pipeline">R$ 0,00</div></div>
+                <div class="kpi-card border-emerald-200"><div class="text-emerald-600 font-bold uppercase text-xs">Faturamento Aprovado</div><div class="text-3xl font-bold" id="kpi-total-apr">R$ 0,00</div></div>
+                <div class="kpi-card border-amber-200"><div class="text-amber-600 font-bold uppercase text-xs">Pipeline</div><div class="text-3xl font-bold" id="kpi-total-est">R$ 0,00</div></div>
             </div>
+            
+            <div class="flex gap-4 mb-4">
+                <div class="kpi-card bg-amber-50 border-amber-200 flex-1"><div class="kpi-label text-amber-700">Em Negociação</div><div class="kpi-value text-amber-700" id="kpi-count-neg">0</div></div>
+                <div class="kpi-card bg-emerald-50 border-emerald-200 flex-1"><div class="kpi-label text-emerald-700">Aprovados</div><div class="kpi-value text-emerald-700" id="kpi-count-apr">0</div></div>
+                <div class="kpi-card flex-1"><div class="kpi-label">Cancelados</div><div class="kpi-value text-red-500" id="kpi-count-can">0</div></div>
+            </div>
+
             <div class="flex flex-col md:flex-row gap-4 mb-6 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                 <div class="flex-1 w-full relative"><i class="fas fa-search absolute left-3 top-3 text-slate-400"></i><input id="dash-search" onkeyup="renderDashboardList()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Buscar cliente ou projeto..."></div>
                 <select id="dash-filter" onchange="renderDashboardList()" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none"><option value="all">Todos os Status</option><option value="draft">Rascunhos</option><option value="sent">Enviados</option><option value="negotiating">Em Negociação</option><option value="approved">Aprovados</option><option value="canceled">Cancelados</option></select>
