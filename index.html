@@ -46,26 +46,37 @@
 
         @media (max-width: 1024px) { .split-screen { flex-direction: column; position: relative; height: auto; } .left-area { width: 100%; padding: 3rem 2rem; min-height: auto; text-align: center; } .ideal-para-container { justify-content: center; } .right-area { width: 100%; padding: 2rem; background: white; } .login-card { box-shadow: none; border: none; padding: 0; } .benefit-item { flex-direction: column; align-items: center; text-align: center; } .glow-orb { display: none; } }
 
-        /* Dashboard & Editor (V29 Layout) */
-        #system-loader { position: fixed; inset: 0; background: #0F172A; z-index: 9999; display: flex; flex-col: column; align-items: center; justify-content: center; color: white; transition: opacity 0.5s; }
-        .loader-spin { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        .app-header { background: #fff; border-bottom: 1px solid #e2e8f0; height: 70px; display: flex; align-items: center; padding: 0 32px; justify-content: space-between; position: sticky; top: 0; z-index: 40; }
+        /* LAYOUT GRID (ESTRUTURA V29 - MANTIDA) */
+        .app-header { background: #0F172A; color: white; height: 64px; display: flex; align-items: center; padding: 0 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); justify-content: space-between; position: sticky; top: 0; z-index: 40; }
+        .panel-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; max-width: 1600px; margin: 24px auto; padding: 0 24px; height: calc(100vh - 112px); }
+        
+        /* Dashboard Cards */
         .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .kpi-card { background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.02); display: flex; flex-col; justify-content: space-between; transition: transform 0.2s; }
-        .kpi-card:hover { transform: translateY(-2px); }
+        .kpi-card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-col; justify-content: space-between; }
         .status-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.05em; }
         .st-draft { background: #f1f5f9; color: #64748b; } .st-sent { background: #dbeafe; color: #1e40af; } .st-negotiating { background: #ffedd5; color: #c2410c; } .st-approved { background: #dcfce7; color: #166534; } .st-canceled { background: #fee2e2; color: #991b1b; }
+
+        /* Editor Section Styles */
+        .editor-section { background: white; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
+        .editor-header { background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #475569; display: flex; align-items: center; gap: 8px; }
+        .editor-body { padding: 20px; }
+        .input-group { margin-bottom: 16px; }
+        .input-label { display: block; font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
         
+        /* Timeline */
         .timeline-item { position: relative; padding-left: 2rem; border-left: 2px solid #e2e8f0; padding-bottom: 1.5rem; }
         .timeline-item::before { content: ''; position: absolute; left: -5px; top: 0; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
         .timeline-item:last-child { border-left: transparent; }
         .timeline-desc { font-size: 0.85rem; color: #334155; margin-top: 6px; background: #fff7ed; padding: 12px; border-radius: 8px; border: 1px solid #fed7aa; font-style: italic; }
-        .timeline-desc.system { background: #f8fafc; border-color: #f1f5f9; font-style: normal; }
         
+        @media (max-width: 1024px) { .panel-grid { grid-template-columns: 1fr; height: auto; } }
+
+        /* UI Elements & Modal */
+        #system-loader { position: fixed; inset: 0; background: #0F172A; z-index: 9999; display: flex; flex-col: column; align-items: center; justify-content: center; color: white; transition: opacity 0.5s; }
+        .loader-spin { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); z-index: 60; display: none; align-items: center; justify-content: center; }
         .modal-box { background: white; width: 90%; max-width: 500px; padding: 2rem; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); animation: fadeInUp 0.3s ease-out; }
         #fatal-error { display: none; position: fixed; inset: 0; background: #FFF1F2; z-index: 10000; padding: 40px; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
-        
         @media print { .no-print { display: none !important; } body { background: white; } }
     </style>
 </head>
@@ -75,7 +86,7 @@
     <div id="fatal-error"><i class="fas fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i><h2 class="text-2xl font-bold text-slate-800">Ops! Algo deu errado.</h2><p id="error-msg" class="text-slate-600 mt-2 mb-6 max-w-md">...</p><button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button></div>
 
     <script>
-        // --- FUNÇÕES DE SEGURANÇA (ANTI-CRASH) ---
+        // --- HELPERS SEGUROS ---
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
         function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
@@ -95,42 +106,14 @@
 
         let state = { user: null, project: null, version: null, projectsCache: [], data: { client: {}, location: {}, items: [], terms: {}, settings: {}, history: [] } };
 
-        // --- NORMALIZAÇÃO ROBUSTA (CORREÇÃO DE DADOS QUEBRADOS) ---
         function normalizeData(dbData) {
-            // Estrutura padrão garantida
-            const schema = { 
-                client: { name: '', doc: '', email: '', phone: '', address: '' }, 
-                location: { address: '', sameAsClient: true }, 
-                items: [], // Garante que items é um array vazio inicialmente
-                terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, 
-                settings: { myPhone: '', serviceType: 'Outros' }, 
-                history: [] 
-            };
-
+            const schema = { client: { name: '', doc: '', email: '', phone: '', address: '' }, location: { address: '', sameAsClient: true }, items: [], terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, settings: { myPhone: '', serviceType: 'Outros' }, history: [] };
             if (!dbData) return schema;
-
-            // Verificação Defensiva de Itens
-            let rawItems = [];
-            if (Array.isArray(dbData.items)) {
-                rawItems = dbData.items;
-            } else if (dbData.scope && Array.isArray(dbData.scope)) {
-                rawItems = dbData.scope; // Fallback para versões antigas
-            }
-
-            // Mapeamento seguro de cada item
-            const cleanItems = rawItems.map(i => ({ 
-                name: i.name || '', 
-                description: i.description || '', 
-                qty: parseFloat(i.qty) || 1, 
-                price: parseFloat(i.price) || 0, 
-                type: i.type || 'original' 
-            }));
-
-            // Mesclagem segura
+            const items = (Array.isArray(dbData.items) ? dbData.items : (dbData.scope || [])).map(i => ({ name: i.name || '', description: i.description || '', qty: parseFloat(i.qty) || 1, price: parseFloat(i.price) || 0, type: i.type || 'original' }));
             return { 
                 client: { ...schema.client, ...(dbData.client || {}) }, 
                 location: { ...schema.location, ...(dbData.location || {}) }, 
-                items: cleanItems, // Agora é garantido ser um array
+                items: items, 
                 terms: { ...schema.terms, ...(dbData.terms || {}) }, 
                 settings: { ...schema.settings, ...(dbData.settings || {}) }, 
                 history: Array.isArray(dbData.history) ? dbData.history : [] 
@@ -264,7 +247,7 @@
                             <div class="text-xs text-slate-400">V${v.version_number} • ${new Date(p.created_at).toLocaleDateString()}</div>
                             <div class="flex items-center gap-3">
                                 <div class="text-lg font-bold text-slate-900">${val.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</div>
-                                <button onclick="deleteProject('${p.id}', event)" class="text-slate-300 hover:text-red-500 transition-colors p-1 opacity-0 group-hover:opacity-100" title="Excluir"><i class="fas fa-trash-alt"></i></button>
+                                <button onclick="deleteProject('${p.id}', event)" class="text-slate-300 hover:text-red-500 transition-colors p-1" title="Excluir"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>
                     </div>`;
@@ -323,10 +306,7 @@
             setVal('t-dead', d.terms.deadline); setVal('t-val', d.terms.validity); setVal('t-obs', d.terms.obs);
 
             let html = ''; let total = 0;
-            // GARANTIA: Se items for indefinido, trata como array vazio (Proteção contra crash)
-            const safeItems = Array.isArray(d.items) ? d.items : [];
-            
-            safeItems.forEach((i,x) => {
+            d.items.forEach((i,x) => {
                 const t = (i.qty||0)*(i.price||0); total+=t;
                 html += `<div class="bg-white border p-4 rounded-lg mb-2 relative group">${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}<div class="grid grid-cols-12 gap-2 mb-2"><div class="col-span-8"><label class="text-[10px] uppercase font-bold text-slate-400">Item</label><input class="w-full font-bold bg-transparent outline-none" value="${i.name}" onchange="upItem(${x},'name',this.value)" ${isLocked?'disabled':''}></div><div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-400 text-center block">Qtd</label><input type="number" class="w-full text-center bg-slate-50 rounded" value="${i.qty}" onchange="upItem(${x},'qty',this.value)" ${isLocked?'disabled':''}></div><div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-400 text-right block">$$</label><input type="number" class="w-full text-right bg-slate-50 rounded" value="${i.price}" onchange="upItem(${x},'price',this.value)" ${isLocked?'disabled':''}></div></div><textarea class="w-full text-xs text-slate-500 bg-transparent outline-none resize-none" rows="1" onchange="upItem(${x},'description',this.value)" placeholder="Descrição técnica..." ${isLocked?'disabled':''}>${i.description||''}</textarea></div>`;
             });
@@ -355,16 +335,7 @@
 
         function upVal(k,v) { if(k.startsWith('c-')) state.data.client[k.substring(2)] = v; else if(k.startsWith('t-')) state.data.terms[k.substring(2)] = v; else if(k==='s-phone') { state.data.settings.myPhone=v; localStorage.setItem('escopo_phone',v); } else if(k==='s-type') { state.data.settings.serviceType = v; } }
         function upItem(i,f,v) { const it=state.data.items[i]; if(f==='qty'||f==='price') it[f]=parseFloat(v)||0; else it[f]=v; renderEditor(); }
-        
-        // --- FUNÇÃO ADICIONAR ITEM (CORRIGIDA) ---
-        function addItem() { 
-            // Garante que o array items existe antes de dar push
-            if(!Array.isArray(state.data.items)) state.data.items = [];
-            
-            state.data.items.push({name:'',description:'',qty:1,price:0,type:state.version.version_number>1?'addon':'original'}); 
-            renderEditor(); 
-        }
-        
+        function addItem() { state.data.items.push({name:'',description:'',qty:1,price:0,type:state.version.version_number>1?'addon':'original'}); renderEditor(); }
         function rmItem(i) { state.data.items.splice(i, 1); renderEditor(); }
         
         function generatePayment() {
@@ -419,21 +390,17 @@
         async function loadPublicProposal(id) {
             try {
                 const load = document.getElementById('public-loading'); if(load) load.classList.remove('hidden');
-                // maybeSingle is safer
                 const { data: v } = await db.from('versions').select('*, projects(name)').eq('id', id).maybeSingle();
-                
                 if (!v) throw new Error("Orçamento não encontrado.");
                 state.version = v; state.data = normalizeData(v.items);
-                const d = state.data;
+                const d = state.data; // CORREÇÃO DA VARIÁVEL D (Isso arruma o erro do link!)
                 
                 safeText('doc-title', v.projects?.name);
                 safeText('doc-id', `#${v.project_id.substr(0,4).toUpperCase()}-${v.version_number}`);
                 safeText('doc-c-name', d.client.name);
                 
                 let html = '';
-                // Proteção para o loop
-                const safeItems = Array.isArray(state.data.items) ? state.data.items : [];
-                safeItems.forEach(i => { html += `<tr class="border-b border-slate-100"><td class="py-4 pl-4"><div class="font-bold text-slate-800">${i.name}<br><span class="font-normal text-xs text-slate-500">${i.description}</span></td><td class="text-center">${i.qty}</td><td class="text-right pr-4 font-bold">R$ ${(i.qty*i.price).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`; });
+                state.data.items.forEach(i => { html += `<tr class="border-b border-slate-100"><td class="py-4 pl-4"><div class="font-bold text-slate-800">${i.name}<br><span class="font-normal text-xs text-slate-500">${i.description}</span></td><td class="text-center">${i.qty}</td><td class="text-right pr-4 font-bold">R$ ${(i.qty*i.price).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`; });
                 setHTML('doc-items-body', html);
                 
                 safeText('doc-total', parseFloat(v.total_value).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}));
@@ -445,7 +412,7 @@
                 const actions = document.getElementById('doc-actions');
                 if(actions) {
                     if(v.status === 'approved' || v.status === 'canceled') {
-                        showSuccessScreen(v.status);
+                        showSuccessScreen(v.status); // <--- JÁ CARREGA A TELA DE SUCESSO SE RESPONDIDO
                     } else {
                         actions.innerHTML = `
                             <button onclick="openModal('approve')" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 mb-3 transition-transform hover:scale-[1.01]">APROVAR PROPOSTA</button>
@@ -458,13 +425,14 @@
                 }
                 const content = document.getElementById('public-content'); if(content) content.classList.remove('hidden');
             } catch(e) { 
+                console.error(e);
                 const load = document.getElementById('public-loading'); if(load) load.classList.add('hidden');
                 const fatal = document.getElementById('fatal-error'); if(fatal) fatal.style.display = 'flex';
                 safeText('error-msg', "Link inválido ou expirado.");
             } finally { const load = document.getElementById('public-loading'); if(load) load.classList.add('hidden'); }
         }
 
-        // --- TELA DE SUCESSO ---
+        // --- TELA DE SUCESSO (Obrigado!) ---
         function showSuccessScreen(type) {
             const screen = document.getElementById('view-success');
             const icon = document.getElementById('success-icon');
@@ -544,7 +512,7 @@
             logHistory(action, 'client', text);
             await db.from('versions').update({ status: newStatus, items: state.data }).eq('id', state.version.id);
             const modal = document.getElementById('interaction-modal'); if(modal) modal.style.display = 'none';
-            showSuccessScreen(action);
+            showSuccessScreen(action); // CHAMA TELA DE SUCESSO
         }
 
         async function approveLogic() {
@@ -558,7 +526,7 @@
                 window.open(`https://wa.me/${phone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
             }
             const modal = document.getElementById('interaction-modal'); if(modal) modal.style.display = 'none';
-            showSuccessScreen('approved');
+            showSuccessScreen('approved'); // CHAMA TELA DE SUCESSO
         }
 
         window.onload = init;
