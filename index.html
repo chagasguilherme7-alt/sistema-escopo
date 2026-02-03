@@ -57,16 +57,18 @@
         .kpi-card:hover { transform: translateY(-2px); }
         .status-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.05em; }
         .st-draft { background: #f1f5f9; color: #64748b; } .st-sent { background: #dbeafe; color: #1e40af; } .st-negotiating { background: #ffedd5; color: #c2410c; } .st-approved { background: #dcfce7; color: #166534; } .st-canceled { background: #fee2e2; color: #991b1b; }
-        
-        /* Timeline Fixes */
         .timeline-item { position: relative; padding-left: 2rem; border-left: 2px solid #e2e8f0; padding-bottom: 1.5rem; }
         .timeline-item::before { content: ''; position: absolute; left: -5px; top: 0; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
         .timeline-item:last-child { border-left: transparent; }
         .timeline-desc { font-size: 0.85rem; color: #334155; margin-top: 6px; background: #fff7ed; padding: 12px; border-radius: 8px; border: 1px solid #fed7aa; font-style: italic; }
         .timeline-desc.system { background: #f8fafc; border-color: #f1f5f9; font-style: normal; }
-
+        
         .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); z-index: 60; display: none; align-items: center; justify-content: center; }
         .modal-box { background: white; width: 90%; max-width: 500px; padding: 2rem; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); animation: fadeInUp 0.3s ease-out; }
+        
+        /* TELA DE ERRO (Recuperada) */
+        #fatal-error { display: none; position: fixed; inset: 0; background: #FFF1F2; z-index: 10000; padding: 40px; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
+        
         @media print { .no-print { display: none !important; } body { background: white; } }
     </style>
 </head>
@@ -78,7 +80,21 @@
         <p class="text-xs text-slate-400 mt-2">Carregando CRM...</p>
     </div>
 
+    <div id="fatal-error">
+        <i class="fas fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i>
+        <h2 class="text-2xl font-bold text-slate-800">Ops! Algo deu errado.</h2>
+        <p id="error-msg" class="text-slate-600 mt-2 mb-6 max-w-md">...</p>
+        <button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button>
+    </div>
+
     <script>
+        // TRATAMENTO DE ERROS GLOBAL
+        window.onerror = function(msg) {
+            document.getElementById('system-loader').style.display = 'none';
+            document.getElementById('fatal-error').style.display = 'flex';
+            document.getElementById('error-msg').innerText = msg;
+        };
+
         const SUPABASE_URL = 'https://outasfgohiiyndsjciau.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91dGFzZmdvaGlpeW5kc2pjaWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4MTk4ODIsImV4cCI6MjA4NTM5NTg4Mn0.4yvGfYbQYf806FJcs34yPGkuU_kVTYHW8mBtbU3JD80';
         const { createClient } = supabase;
@@ -100,15 +116,9 @@
             };
         }
 
-        // --- FUNÇÃO CRÍTICA DE HISTÓRICO ---
         function logHistory(action, user, detail) {
             if (!state.data.history) state.data.history = [];
-            state.data.history.push({ 
-                date: new Date().toISOString(), 
-                action: action, 
-                user: user, 
-                detail: detail || '' 
-            });
+            state.data.history.push({ date: new Date().toISOString(), action: action, user: user, detail: detail || '' });
         }
 
         async function init() {
@@ -117,6 +127,7 @@
                 const view = params.get('view') || 'login';
                 const id = params.get('id');
                 document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
+                
                 const { data: { session } } = await db.auth.getSession();
                 state.user = session?.user;
 
@@ -137,11 +148,15 @@
                     else { document.getElementById('view-login').classList.remove('hidden'); initRotator(); }
                 }
                 setTimeout(() => { document.getElementById('system-loader').style.display = 'none'; }, 500);
-            } catch (e) { document.getElementById('system-loader').style.display = 'none'; console.error(e); }
+            } catch (e) { 
+                document.getElementById('system-loader').style.display = 'none';
+                document.getElementById('fatal-error').style.display = 'flex';
+                document.getElementById('error-msg').innerText = e.message;
+            }
         }
 
         function initRotator() {
-            const words = ["Eletricistas", "Instaladores", "Manutenção", "Técnicos", "Prestadores"];
+            const words = ["Prestadores de Serviços", "Eletricistas", "Instaladores", "Manutenção", "Serviços Personalizados"];
             let idx = 0;
             const el = document.getElementById('rotator');
             if(!el) return;
@@ -289,7 +304,7 @@
         function upVal(k,v) { if(k.startsWith('c-')) state.data.client[k.substring(2)] = v; else if(k.startsWith('t-')) state.data.terms[k.substring(2)] = v; else if(k==='s-phone') { state.data.settings.myPhone=v; localStorage.setItem('escopo_phone',v); } else if(k==='s-type') { state.data.settings.serviceType = v; } }
         function upItem(i,f,v) { const it=state.data.items[i]; if(f==='qty'||f==='price') it[f]=parseFloat(v)||0; else it[f]=v; renderEditor(); }
         function addItem() { state.data.items.push({name:'',description:'',qty:1,price:0,type:state.version.version_number>1?'addon':'original'}); renderEditor(); }
-        function rmItem(i) { state.data.items.splice(i,1); renderEditor(); }
+        function rmItem(i) { state.data.items.splice(i, 1); renderEditor(); }
         
         async function save() {
             const t = state.data.items.reduce((a,b)=>a+(b.qty*b.price),0);
@@ -323,17 +338,24 @@
         async function loadPublicProposal(id) {
             try {
                 document.getElementById('public-loading').classList.remove('hidden');
+                // Use maybeSingle to prevent crashing if not found
                 const { data: v } = await db.from('versions').select('*, projects(name)').eq('id', id).maybeSingle();
-                if (!v) throw new Error("Orçamento não encontrado.");
-                state.version = v; state.data = normalizeData(v.items);
+                
+                if (!v) {
+                    throw new Error("Orçamento não encontrado ou link expirado.");
+                }
+                
+                state.version = v; 
+                state.data = normalizeData(v.items);
                 
                 const setText = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val || '-'; };
                 setText('doc-title', v.projects?.name); setText('doc-id', `#${v.project_id.substr(0,4).toUpperCase()}-${v.version_number}`);
                 setText('doc-c-name', d.client.name);
                 
                 const list = document.getElementById('doc-items-body'); list.innerHTML = '';
-                state.data.items.forEach(i => { list.innerHTML += `<tr class="border-b"><td class="py-2 font-bold">${i.name}<br><span class="font-normal text-xs text-slate-500">${i.description}</span></td><td class="text-right">R$ ${(i.qty*i.price).toLocaleString('pt-BR')}</td></tr>`; });
-                setText('doc-total', parseFloat(v.total_value).toLocaleString('pt-BR', {style:'currency',currency:'BRL'}));
+                state.data.items.forEach(i => { list.innerHTML += `<tr class="border-b border-slate-100"><td class="py-4 pl-4"><div class="font-bold text-slate-800">${i.type === 'addon' ? '[EXTRA] ' : ''}${i.name}</div>${i.description ? `<div class="text-xs text-slate-500">${i.description}</div>` : ''}</td><td class="text-center">${i.qty}</td><td class="text-right pr-4 font-bold">R$ ${(i.qty*i.price).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`; });
+                setText('doc-total', parseFloat(v.total_value).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}));
+                setText('doc-payment', d.terms.paymentText); setText('doc-deadline', d.terms.deadline); setText('doc-validity', d.terms.validity); setText('doc-obs', d.terms.obs);
 
                 const actions = document.getElementById('doc-actions');
                 if(v.status === 'approved') {
@@ -352,6 +374,12 @@
                 }
                 
                 document.getElementById('public-content').classList.remove('hidden');
+            } catch(e) {
+                // ERRO VISÍVEL PARA O CLIENTE
+                document.getElementById('public-loading').classList.add('hidden');
+                document.getElementById('fatal-error').style.display = 'flex';
+                document.getElementById('error-msg').innerText = "Não foi possível carregar o orçamento. Verifique se o link está correto.";
+                console.error(e);
             } finally { document.getElementById('public-loading').classList.add('hidden'); }
         }
 
@@ -384,14 +412,20 @@
             btnElement.innerText = "Enviando...";
             btnElement.disabled = true;
 
-            // GRAVA HISTÓRICO GARANTIDO
+            // Log no histórico
             logHistory(action, 'client', text);
             
-            // UPDATE NO DB (NÃO DUPLICA)
-            await db.from('versions').update({ 
+            // ATUALIZAR (UPDATE) sem criar novo
+            const { error } = await db.from('versions').update({ 
                 status: newStatus, 
                 items: state.data 
             }).eq('id', state.version.id);
+
+            if(error) {
+                alert("Erro ao enviar: " + error.message);
+                btnElement.disabled = false;
+                return;
+            }
 
             alert("Enviado com sucesso!");
             window.location.reload();
@@ -417,7 +451,12 @@
             <div class="relative z-10 anim-entry">
                 <div class="text-blue-300 font-bold tracking-widest text-xs uppercase mb-4">Aprovado.app</div>
                 <h1 class="text-5xl font-extrabold leading-tight mb-2 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">Garantem sua segurança</span></h1>
-                <div class="ideal-para-container"><span>Ideal para:</span><span id="rotator" class="rotating-wrapper"></span></div>
+                
+                <div class="ideal-para-container">
+                    <span>Ideal para:</span>
+                    <span id="rotator" class="rotating-wrapper"></span>
+                </div>
+
                 <div class="space-y-4">
                     <div class="benefit-item delay-100"><div class="icon-circle bg-blue-600 text-white"><i class="fas fa-shield-alt"></i></div><div><h3 class="font-bold text-lg">Evite prejuízos</h3><p class="text-sm text-indigo-100 opacity-80">Registre mudanças de escopo.</p></div></div>
                     <div class="benefit-item delay-200"><div class="icon-circle bg-emerald-500 text-white"><i class="fas fa-check"></i></div><div><h3 class="font-bold text-lg">Aprovação</h3><p class="text-sm text-indigo-100 opacity-80">Link direto e histórico.</p></div></div>
