@@ -345,15 +345,6 @@
             });
 
             setHTML('ed-items', html);
-        const btnAddItem = document.getElementById('btn-add-item');
-if (btnAddItem) {
-    btnAddItem.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        addItem();
-    });
-}
-
             safeText('ed-total', total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
 
             let histHtml = '';
@@ -756,6 +747,7 @@ setHTML('doc-items-body', html);
 
 </body>
 </html>
+
 
 
 
