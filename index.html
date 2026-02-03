@@ -345,6 +345,15 @@
 }
 
             setHTML('ed-items', html);
+        const btnAddItem = document.getElementById('btn-add-item');
+if (btnAddItem) {
+    btnAddItem.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        addItem();
+    });
+}
+
             safeText('ed-total', total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
 
             let histHtml = '';
@@ -684,7 +693,16 @@ setHTML('doc-items-body', html);
                         </div>
                     </div>
                     <div class="editor-section">
-                        <div class="editor-header justify-between"><span><i class="fas fa-list-ol"></i> Escopo</span><button id="btn-add-item" onclick="addItem()" class="btn btn-primary text-xs py-1 px-3 bg-slate-800 border-none">+ Item</button></div>
+                        <div class="editor-header justify-between">
+  <span><i class="fas fa-list-ol"></i> Escopo</span>
+  <button
+    id="btn-add-item"
+    type="button"
+    class="btn btn-primary text-xs py-1 px-3 bg-slate-800 border-none">
+    + Item
+  </button>
+</div>
+
                         <div class="editor-body bg-slate-50 min-h-[300px]"><div id="ed-list"></div></div>
                     </div>
                 </div>
@@ -735,5 +753,6 @@ setHTML('doc-items-body', html);
 
 </body>
 </html>
+
 
 
