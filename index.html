@@ -329,6 +329,16 @@
 
             let html = ''; let total = 0;
             const items = Array.isArray(d.items) ? d.items : [];
+            if (!isLocked) {
+    html += `
+        <button
+            type="button"
+            onclick="addItem()"
+            class="w-full mb-4 py-2 border-2 border-dashed border-slate-300 text-slate-500 rounded-lg hover:bg-slate-50 font-bold">
+            <i class="fas fa-plus mr-2"></i> Adicionar item ao escopo
+        </button>
+    `;
+}
             items.forEach((i,x) => {
                 const t = (i.qty||0)*(i.price||0); total+=t;
                 html += `<div class="bg-white border p-4 rounded-lg mb-2 relative group">${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}<div class="grid grid-cols-12 gap-2 mb-2"><div class="col-span-8"><label class="text-[10px] uppercase font-bold text-slate-400">Item</label><input class="w-full font-bold bg-transparent outline-none" value="${i.name}" onchange="upItem(${x},'name',this.value)" ${isLocked?'disabled':''}></div><div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-400 text-center block">Qtd</label><input type="number" class="w-full text-center bg-slate-50 rounded" value="${i.qty}" onchange="upItem(${x},'qty',this.value)" ${isLocked?'disabled':''}></div><div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-400 text-right block">$$</label><input type="number" class="w-full text-right bg-slate-50 rounded" value="${i.price}" onchange="upItem(${x},'price',this.value)" ${isLocked?'disabled':''}></div></div><textarea class="w-full text-xs text-slate-500 bg-transparent outline-none resize-none" rows="1" onchange="upItem(${x},'description',this.value)" placeholder="Descrição técnica..." ${isLocked?'disabled':''}>${i.description||''}</textarea></div>`;
@@ -756,6 +766,7 @@ setHTML('doc-items-body', html);
 
 </body>
 </html>
+
 
 
 
