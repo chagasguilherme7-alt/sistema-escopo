@@ -99,13 +99,11 @@
         function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
         function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
         
-        // Novo Helper: Mostra elemento sem erro se ele não existir
         function safeShow(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
         function safeHide(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
 
         window.onerror = function(msg) {
             console.error("Erro detectado:", msg);
-            // Ignora erros de null para não travar
             if (msg && (msg.includes('null') || msg.includes('undefined'))) return true;
             document.getElementById('system-loader').style.display = 'none';
             return false;
@@ -118,18 +116,13 @@
 
         let state = { user: null, project: null, version: null, projectsCache: [], data: { client: {}, location: {}, items: [], terms: {}, settings: {}, history: [] } };
 
-        // --- NORMALIZAÇÃO ROBUSTA (CORREÇÃO DE DADOS QUEBRADOS) ---
         function normalizeData(dbData) {
             const schema = { client: { name: '', doc: '', email: '', phone: '', address: '' }, location: { address: '', sameAsClient: true }, items: [], terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, settings: { myPhone: '', serviceType: 'Outros' }, history: [] };
-            
             if (!dbData) return schema;
-
             let rawItems = [];
             if (Array.isArray(dbData.items)) { rawItems = dbData.items; }
             else if (dbData.scope && Array.isArray(dbData.scope)) { rawItems = dbData.scope; }
-
             const cleanItems = rawItems.map(i => ({ name: i.name || '', description: i.description || '', qty: parseFloat(i.qty) || 1, price: parseFloat(i.price) || 0, type: i.type || 'original' }));
-            
             return { 
                 client: { ...schema.client, ...(dbData.client || {}) }, 
                 location: { ...schema.location, ...(dbData.location || {}) }, 
@@ -150,8 +143,6 @@
                 const params = new URLSearchParams(window.location.search);
                 const view = params.get('view') || 'login';
                 const id = params.get('id');
-                
-                // Reset de Telas (Seguro)
                 document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
                 
                 const { data: { session } } = await db.auth.getSession();
@@ -170,13 +161,8 @@
                 } else {
                     if(view === 'dashboard') await loadDashboard();
                     if(view === 'editor' && id) await loadEditor(id);
-                    
-                    if(view !== 'login') {
-                        safeShow(`view-${view}`);
-                    } else { 
-                        safeShow('view-login'); 
-                        initRotator(); 
-                    }
+                    if(view !== 'login') { safeShow(`view-${view}`); } 
+                    else { safeShow('view-login'); initRotator(); }
                 }
                 setTimeout(() => { const l = document.getElementById('system-loader'); if(l) l.style.display = 'none'; }, 500);
             } catch (e) { 
@@ -271,7 +257,7 @@
                             <div class="text-xs text-slate-400">V${v.version_number} • ${new Date(p.created_at).toLocaleDateString()}</div>
                             <div class="flex items-center gap-3">
                                 <div class="text-lg font-bold text-slate-900">${val.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</div>
-                                <button onclick="deleteProject('${p.id}', event)" class="text-slate-300 hover:text-red-500 transition-colors p-1 opacity-0 group-hover:opacity-100" title="Excluir"><i class="fas fa-trash-alt"></i></button>
+                                <button onclick="deleteProject('${p.id}', event)" class="text-slate-300 hover:text-red-500 transition-colors p-1" title="Excluir"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>
                     </div>`;
@@ -359,12 +345,14 @@
         function upVal(k,v) { if(k.startsWith('c-')) state.data.client[k.substring(2)] = v; else if(k.startsWith('t-')) state.data.terms[k.substring(2)] = v; else if(k==='s-phone') { state.data.settings.myPhone=v; localStorage.setItem('escopo_phone',v); } else if(k==='s-type') { state.data.settings.serviceType = v; } }
         function upItem(i,f,v) { const it=state.data.items[i]; if(f==='qty'||f==='price') it[f]=parseFloat(v)||0; else it[f]=v; renderEditor(); }
         
-        // --- CORREÇÃO DO ADICIONAR ITEM ---
+        // --- FUNÇÃO ADICIONAR ITEM (CORRIGIDA) ---
         function addItem() { 
             if(!Array.isArray(state.data.items)) state.data.items = [];
-            state.data.items.push({name:'',description:'',qty:1,price:0,type:state.version.version_number>1?'addon':'original'}); 
+            // Adiciona item genérico simples e seguro
+            state.data.items.push({name:'',description:'',qty:1,price:0,type:'original'}); 
             renderEditor(); 
         }
+
         function rmItem(i) { state.data.items.splice(i, 1); renderEditor(); }
         
         function generatePayment() {
@@ -629,7 +617,7 @@
     </section>
 
     <section id="view-editor" class="hidden flex-1 bg-slate-50 h-screen flex flex-col">
-        <div id="editor-loading" class="flex-1 flex items-center justify-center bg-slate-50"><div class="loader-spin"></div></div>
+        <div id="editor-loading" class="flex-1 flex items-center justify-center"><div class="spinner border-slate-900"></div></div>
         <div id="editor-content" class="hidden flex flex-col h-full">
             <div class="app-header justify-between">
                 <div class="flex items-center gap-4">
@@ -652,7 +640,7 @@
                     </div>
                     <div class="editor-section">
                         <div class="editor-header justify-between"><span><i class="fas fa-list-ol"></i> Escopo</span><button id="btn-add-item" onclick="addItem()" class="btn btn-primary text-xs py-1 px-3 bg-slate-800 border-none">+ Item</button></div>
-                        <div class="editor-body bg-slate-50 min-h-[300px]"><div id="ed-list"></div></div>
+                        <div class="editor-body bg-slate-50 min-h-[300px]"><div id="ed-items"></div></div>
                     </div>
                 </div>
                 <div class="overflow-y-auto pb-20 no-scrollbar">
