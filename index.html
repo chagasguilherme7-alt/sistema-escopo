@@ -19,7 +19,7 @@
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .anim-entry { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
 
-        /* Login */
+        /* Login Rotativo */
         .ideal-para-container { display: flex; align-items: center; justify-content: center; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.25rem; color: #94a3b8; margin-bottom: 3rem; margin-top: 1rem; }
         @media (min-width: 1024px) { .ideal-para-container { justify-content: flex-start; } }
         .rotating-wrapper { position: relative; height: 1.5em; width: 350px; overflow: hidden; margin-left: 0.5rem; display: inline-block; vertical-align: middle; text-align: left; }
@@ -66,7 +66,7 @@
         .modal-box { background: white; width: 90%; max-width: 500px; padding: 2rem; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); animation: fadeInUp 0.3s ease-out; }
         #fatal-error { display: none; position: fixed; inset: 0; background: #FFF1F2; z-index: 10000; padding: 40px; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
         
-        /* EDITOR LAYOUT (V29 RESTAURADO) */
+        /* EDITOR LAYOUT */
         .panel-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; max-width: 1600px; margin: 24px auto; padding: 0 24px; height: calc(100vh - 112px); }
         .editor-section { background: white; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
         .editor-header { background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #475569; display: flex; align-items: center; gap: 8px; }
@@ -93,7 +93,7 @@
     <div id="fatal-error"><i class="fas fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i><h2 class="text-2xl font-bold text-slate-800">Ops! Algo deu errado.</h2><p id="error-msg" class="text-slate-600 mt-2 mb-6 max-w-md">...</p><button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button></div>
 
     <script>
-        // --- HELPERS (EVITA TELA BRANCA) ---
+        // --- FUNÇÕES DE SEGURANÇA (ANTI-CRASH) ---
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
         function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
@@ -102,10 +102,11 @@
         function safeHide(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
 
         window.onerror = function(msg) {
-            console.error(msg);
-            if (msg && (msg.includes('null') || msg.includes('undefined'))) return true; 
+            console.error("Erro detectado:", msg);
+            // Ignora erros de null para não travar
+            if (msg && (msg.includes('null') || msg.includes('undefined'))) return true;
             document.getElementById('system-loader').style.display = 'none';
-            return false; 
+            return false;
         };
 
         const SUPABASE_URL = 'https://outasfgohiiyndsjciau.supabase.co'; 
@@ -115,20 +116,22 @@
 
         let state = { user: null, project: null, version: null, projectsCache: [], data: { client: {}, location: {}, items: [], terms: {}, settings: {}, history: [] } };
 
-        // --- NORMALIZAÇÃO ROBUSTA ---
+        // --- NORMALIZAÇÃO ROBUSTA (CORREÇÃO DE DADOS QUEBRADOS) ---
         function normalizeData(dbData) {
             const schema = { client: { name: '', doc: '', email: '', phone: '', address: '' }, location: { address: '', sameAsClient: true }, items: [], terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, settings: { myPhone: '', serviceType: 'Outros' }, history: [] };
-            if (!dbData) return schema;
             
+            if (!dbData) return schema;
+
             let rawItems = [];
             if (Array.isArray(dbData.items)) { rawItems = dbData.items; }
             else if (dbData.scope && Array.isArray(dbData.scope)) { rawItems = dbData.scope; }
 
-            const items = rawItems.map(i => ({ name: i.name || '', description: i.description || '', qty: parseFloat(i.qty) || 1, price: parseFloat(i.price) || 0, type: i.type || 'original' }));
+            const cleanItems = rawItems.map(i => ({ name: i.name || '', description: i.description || '', qty: parseFloat(i.qty) || 1, price: parseFloat(i.price) || 0, type: i.type || 'original' }));
+            
             return { 
                 client: { ...schema.client, ...(dbData.client || {}) }, 
                 location: { ...schema.location, ...(dbData.location || {}) }, 
-                items: items, 
+                items: cleanItems, 
                 terms: { ...schema.terms, ...(dbData.terms || {}) }, 
                 settings: { ...schema.settings, ...(dbData.settings || {}) }, 
                 history: Array.isArray(dbData.history) ? dbData.history : [] 
@@ -152,8 +155,7 @@
 
                 if (view === 'public') {
                     if(!id) throw new Error("Link inválido.");
-                    // PRIMEIRO MOSTRA A TELA, DEPOIS CARREGA DADOS (CORREÇÃO DA TELA BRANCA)
-                    safeShow('view-public'); 
+                    safeShow('view-public'); // MOSTRA A TELA PRIMEIRO
                     await loadPublicProposal(id);
                 } else if (!state.user && view !== 'login') {
                     window.history.replaceState(null, '', '?view=login');
@@ -350,13 +352,8 @@
         
         // --- FUNÇÃO ADICIONAR ITEM (CORRIGIDA) ---
         function addItem() { 
-            // Se a lista não existir, cria uma nova
             if(!Array.isArray(state.data.items)) state.data.items = [];
-            
-            // Adiciona item vazio
-            state.data.items.push({name:'',description:'',qty:1,price:0,type:'original'}); 
-            
-            // Força atualização da tela
+            state.data.items.push({name:'',description:'',qty:1,price:0,type:state.version.version_number>1?'addon':'original'}); 
             renderEditor(); 
         }
         function rmItem(i) { state.data.items.splice(i, 1); renderEditor(); }
@@ -447,7 +444,8 @@
                         `;
                     }
                 }
-                safeShow('view-public');
+                // --- AQUI ESTÁ A CORREÇÃO PRINCIPAL: REMOVE O HIDDEN DO CONTEUDO ---
+                const content = document.getElementById('public-content'); if(content) content.classList.remove('hidden');
             } catch(e) { 
                 safeHide('public-loading');
                 const f = document.getElementById('fatal-error'); if(f) f.style.display = 'flex';
@@ -561,127 +559,6 @@
             <h2 id="success-title" class="text-3xl font-bold text-slate-900 mb-4 anim-entry delay-100">Tudo Certo!</h2>
             <p id="success-desc" class="text-slate-600 text-lg anim-entry delay-200">Sua resposta foi registrada com sucesso.</p>
             <div class="mt-8 text-xs text-slate-400">Pode fechar esta janela.</div>
-        </div>
-    </section>
-
-    <section id="view-login" class="hidden split-screen">
-        <div class="left-area">
-            <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
-            <div class="relative z-10 anim-entry">
-                <div class="text-blue-300 font-bold tracking-widest text-xs uppercase mb-4">Aprovado.app</div>
-                <h1 class="text-5xl font-extrabold leading-tight mb-2 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">Garantem seu</span></h1>
-                
-                <div class="ideal-para-container">
-                    <span>Ideal para:</span>
-                    <span id="rotator" class="rotating-wrapper"></span>
-                </div>
-
-                <div class="space-y-4">
-                    <div class="benefit-item delay-100"><div class="icon-circle bg-blue-600 text-white"><i class="fas fa-shield-alt"></i></div><div><h3 class="font-bold text-lg">Evite prejuízos</h3><p class="text-sm text-indigo-100 opacity-80">Registre mudanças de escopo.</p></div></div>
-                    <div class="benefit-item delay-200"><div class="icon-circle bg-emerald-500 text-white"><i class="fas fa-check"></i></div><div><h3 class="font-bold text-lg">Aprovação</h3><p class="text-sm text-indigo-100 opacity-80">Link direto e histórico.</p></div></div>
-                    <div class="benefit-item delay-300"><div class="icon-circle bg-purple-500 text-white"><i class="fas fa-file-contract"></i></div><div><h3 class="font-bold text-lg">Sem discussão</h3><p class="text-sm text-indigo-100 opacity-80">Tudo documentado.</p></div></div>
-                </div>
-            </div>
-        </div>
-        <div class="right-area">
-            <div class="login-card anim-entry delay-300">
-                <div class="avatar-circle"><i class="fas fa-user"></i></div>
-                <h2 class="text-2xl font-bold text-slate-900 mb-2 font-heading">Acesse sua conta</h2>
-                <p class="text-slate-500 mb-8 text-sm">Digite seu e-mail para entrar.</p>
-                <input type="email" id="email" placeholder="E-mail" class="input-pro">
-                <button onclick="handleLogin()" id="btn-login" class="btn-pro">Enviar link de acesso</button>
-            </div>
-        </div>
-    </section>
-
-    <section id="view-dashboard" class="hidden flex-1">
-        <div class="app-header">
-            <div class="font-bold text-lg text-white">Aprovado<span class="text-blue-400">APP</span></div>
-            <div class="flex gap-3">
-                <button onclick="createProject()" class="btn btn-primary bg-white text-slate-900 hover:bg-slate-100 text-xs border-white"><i class="fas fa-plus"></i> Novo Projeto</button>
-                <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="text-slate-400 hover:text-white px-2"><i class="fas fa-sign-out-alt"></i></button>
-            </div>
-        </div>
-        <div class="max-w-6xl mx-auto p-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                <div class="kpi-card border-emerald-200"><div class="text-emerald-600 font-bold uppercase text-xs">Faturamento Aprovado</div><div class="text-3xl font-bold" id="kpi-total-apr">R$ 0,00</div></div>
-                <div class="kpi-card border-amber-200"><div class="text-amber-600 font-bold uppercase text-xs">Pipeline</div><div class="text-3xl font-bold" id="kpi-total-est">R$ 0,00</div></div>
-            </div>
-            
-            <div class="flex gap-4 mb-4">
-                <div class="kpi-card bg-amber-50 border-amber-200 flex-1"><div class="kpi-label text-amber-700">Em Negociação</div><div class="kpi-value text-amber-700" id="kpi-count-neg">0</div></div>
-                <div class="kpi-card bg-emerald-50 border-emerald-200 flex-1"><div class="kpi-label text-emerald-700">Aprovados</div><div class="kpi-value text-emerald-700" id="kpi-count-apr">0</div></div>
-                <div class="kpi-card flex-1"><div class="kpi-label">Cancelados</div><div class="kpi-value text-red-500" id="kpi-count-can">0</div></div>
-            </div>
-
-            <div class="flex flex-col md:flex-row gap-4 mb-6 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <div class="flex-1 w-full relative"><i class="fas fa-search absolute left-3 top-3 text-slate-400"></i><input id="dash-search" onkeyup="renderDashboardList()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Buscar cliente ou projeto..."></div>
-                <select id="dash-filter" onchange="renderDashboardList()" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none"><option value="all">Todos os Status</option><option value="draft">Rascunhos</option><option value="sent">Enviados</option><option value="negotiating">Em Negociação</option><option value="approved">Aprovados</option><option value="canceled">Cancelados</option></select>
-            </div>
-            <div id="project-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-        </div>
-    </section>
-
-    <section id="view-editor" class="hidden flex-1 bg-slate-50 h-screen flex flex-col">
-        <div id="editor-loading" class="flex-1 flex items-center justify-center bg-slate-50"><div class="loader-spin"></div></div>
-        <div id="editor-content" class="hidden flex flex-col h-full">
-            <div class="app-header justify-between">
-                <div class="flex items-center gap-4">
-                    <button onclick="goTo('dashboard')" class="text-slate-400 hover:text-white"><i class="fas fa-arrow-left"></i></button>
-                    <div><h2 id="ed-title" class="font-bold leading-none text-lg text-white">...</h2><span id="ed-ver" class="text-[10px] text-slate-400 uppercase font-bold">V1</span><span id="ed-status-badge" class="ml-2 text-[10px] uppercase font-bold bg-white text-slate-900 px-2 py-1 rounded"></span></div>
-                </div>
-                <button onclick="share()" class="btn btn-secondary bg-slate-800 border-slate-700 text-white hover:bg-slate-700 text-xs"><i class="fas fa-link"></i> Link Cliente</button>
-            </div>
-            <div class="panel-grid overflow-hidden">
-                <div class="overflow-y-auto pr-2 pb-20 no-scrollbar">
-                    <div class="editor-section">
-                        <div class="editor-header"><i class="fas fa-user-tie"></i> Dados do Cliente</div>
-                        <div class="editor-body">
-                            <div class="input-group"><label class="input-label">Nome</label><input id="c-name" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Nome do Cliente / Empresa" onchange="upVal('c-name',this.value)"></div>
-                            <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Doc</label><input id="c-doc" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="CPF/CNPJ" onchange="upVal('c-doc',this.value)"></div><div class="input-group"><label class="input-label">Tel</label><input id="c-phone" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Telefone" onchange="upVal('c-phone',this.value)"></div></div>
-                            <div class="input-group"><label class="input-label">Email</label><input id="c-email" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="E-mail" onchange="upVal('c-email',this.value)"></div>
-                            <div class="input-group"><label class="input-label">Endereço</label><input id="c-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Endereço Completo" onchange="upVal('c-addr',this.value)"></div>
-                            <div class="mt-4 pt-4 border-t"><label class="input-label text-blue-600">Seu WhatsApp</label><input id="in-s-myphone" onchange="upSettings('myPhone', this.value)" class="input-field bg-blue-50 border-blue-200"></div>
-                        </div>
-                    </div>
-                    <div class="editor-section">
-                        <div class="editor-header justify-between"><span><i class="fas fa-list-ol"></i> Escopo</span><button id="btn-add-item" onclick="addItem()" class="btn btn-primary text-xs py-1 px-3 bg-slate-800 border-none">+ Item</button></div>
-                        <div class="editor-body bg-slate-50 min-h-[300px]"><div id="ed-items"></div></div>
-                    </div>
-                </div>
-                <div class="overflow-y-auto pb-20 no-scrollbar">
-                    <div class="editor-section sticky top-0 shadow-lg">
-                        <div class="editor-header"><i class="fas fa-coins"></i> Financeiro</div>
-                        <div class="editor-body">
-                            <div class="bg-slate-900 text-white p-6 rounded-lg text-center mb-6"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Global</div><div id="ed-total" class="text-3xl font-bold">R$ 0,00</div></div>
-                            <div class="input-group"><div class="flex gap-2 mb-2"><select id="pay-mode" class="input-field"><option value="entry_installments">Entrada + Parcelas</option><option value="single">Único</option></select><button onclick="generatePayment()" class="btn btn-secondary px-3"><i class="fas fa-calculator"></i></button></div><div id="payment-display" class="text-xs bg-slate-50 p-3 rounded border border-slate-200 text-slate-600 whitespace-pre-line min-h-[60px]">...</div></div>
-                            <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Entrega</label><input id="t-dead" class="border p-2 rounded text-sm" placeholder="Prazo" onchange="upVal('t-dead',this.value)"></div><div class="input-group"><label class="input-label">Validade</label><input id="t-val" class="border p-2 rounded text-sm" placeholder="Validade" onchange="upVal('t-val',this.value)"></div></div>
-                            <div class="input-group"><label class="input-label">Obs</label><textarea id="t-obs" class="w-full border p-2 rounded text-sm h-20 mb-4 bg-slate-50" placeholder="Condições de pagamento..." onchange="upVal('t-obs',this.value)"></textarea></div>
-                            <div id="ed-actions" class="mt-6"></div>
-                        </div>
-                    </div>
-                    <div class="editor-section"><div class="editor-header"><i class="fas fa-history"></i> Histórico</div><div id="ed-history" class="p-4 space-y-4"></div></div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10 overflow-y-auto print:p-0">
-        <div id="public-loading" class="flex justify-center mt-20"><div class="spinner border-slate-900"></div></div>
-        <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col">
-            <div id="stamp-approved" class="hidden absolute top-10 right-10 border-4 border-emerald-600 text-emerald-600 font-bold text-3xl px-6 py-2 uppercase opacity-30 transform -rotate-12 z-20">APROVADO</div>
-            <div class="bg-slate-900 text-white p-12 print:bg-white print:text-black print:border-b-2"><div class="flex justify-between items-start"><div><h1 id="doc-title" class="text-3xl font-bold mb-2">Projeto</h1><p class="text-xs uppercase tracking-widest text-slate-400">Proposta Técnica</p></div><div class="text-right"><div id="doc-id" class="font-bold text-lg">#REF</div><div id="doc-date" class="text-sm opacity-70">--/--/--</div></div></div></div>
-            <div class="p-12 flex-1">
-                <div class="flex gap-12 mb-12 text-sm"><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Contratante</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div><div id="doc-c-doc" class="text-slate-500"></div></div><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Local</h3><div id="doc-c-addr" class="text-slate-600"></div></div></div>
-                <div class="mb-12"><h3 class="font-bold text-xs uppercase text-slate-400 mb-4 tracking-wider">Escopo</h3><table class="w-full"><tbody id="doc-items-body"></tbody></table></div>
-                <div class="bg-slate-50 border border-slate-100 rounded-lg p-8 mb-12 flex gap-12">
-                    <div class="flex-1"><h4 class="font-bold text-xs uppercase text-slate-400 mb-2">Pagamento</h4><div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line"></div><div class="mt-4 flex gap-6 text-sm"><div><span class="font-bold text-xs uppercase text-slate-400 block">Entrega</span><span id="doc-deadline"></span></div><div><span class="font-bold text-xs uppercase text-slate-400 block">Validade</span><span id="doc-validity"></span></div></div></div>
-                    <div class="text-right"><h4 class="font-bold text-xs uppercase text-slate-400 mb-1">Total</h4><div id="doc-total" class="text-3xl font-bold text-slate-900">R$ 0,00</div></div>
-                </div>
-                <div id="doc-obs" class="text-xs text-slate-500 italic text-justify"></div>
-                <div id="doc-actions" class="no-print mt-12"></div>
-            </div>
-            <div class="bg-slate-50 p-4 text-center border-t no-print"><button onclick="window.print()" class="text-xs font-bold text-slate-400 uppercase hover:text-slate-600"><i class="fas fa-print"></i> PDF</button></div>
         </div>
     </section>
 
