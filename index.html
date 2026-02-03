@@ -85,453 +85,207 @@
     <div id="system-loader"><div class="loader-spin"></div><h2 class="text-xl font-bold tracking-widest">APROVADO</h2><p class="text-xs text-slate-400 mt-2">Carregando CRM...</p></div>
     <div id="fatal-error"><i class="fas fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i><h2 class="text-2xl font-bold text-slate-800">Ops! Algo deu errado.</h2><p id="error-msg" class="text-slate-600 mt-2 mb-6 max-w-md">...</p><button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button></div>
 
-    <script>
-        // --- HELPERS SEGUROS ---
-        function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
-        function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
-        function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
-        function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
+   <script>
+/* ================= HELPERS ================= */
+function safeVal(id){const e=document.getElementById(id);return e?e.value:''}
+function safeText(id,v){const e=document.getElementById(id);if(e)e.innerText=v||''}
+function setHTML(id,v){const e=document.getElementById(id);if(e)e.innerHTML=v||''}
+function setVal(id,v){const e=document.getElementById(id);if(e)e.value=v||''}
 
-        window.onerror = function(msg) {
-            console.error("Erro capturado:", msg);
-            if (msg && (msg.includes('null') || msg.includes('undefined'))) return true; 
-            document.getElementById('system-loader').style.display = 'none';
-            return false;
-        };
+/* ================= SUPABASE ================= */
+const SUPABASE_URL = 'https://outasfgohiiyndsjciau.supabase.co'
+const SUPABASE_KEY = 'SUA_KEY_AQUI'
+const { createClient } = supabase
+const db = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-        const SUPABASE_URL = 'https://outasfgohiiyndsjciau.supabase.co'; 
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91dGFzZmdvaGlpeW5kc2pjaWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4MTk4ODIsImV4cCI6MjA4NTM5NTg4Mn0.4yvGfYbQYf806FJcs34yPGkuU_kVTYHW8mBtbU3JD80';
-        const { createClient } = supabase;
-        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+/* ================= STATE ================= */
+let state={
+  user:null,
+  project:null,
+  version:null,
+  projectsCache:[],
+  data:{
+    client:{},
+    location:{},
+    items:[],
+    terms:{},
+    settings:{},
+    history:[]
+  }
+}
 
-        let state = { user: null, project: null, version: null, projectsCache: [], data: { client: {}, location: {}, items: [], terms: {}, settings: {}, history: [] } };
+/* ================= NORMALIZER (FIX LINK) ================= */
+function normalizeData(dbData){
+  const schema={
+    client:{name:'',doc:'',email:'',phone:'',address:''},
+    location:{address:'',sameAsClient:true},
+    items:[],
+    terms:{paymentMode:'custom',paymentText:'',deadline:'',validity:'10 dias',obs:''},
+    settings:{myPhone:'',serviceType:'Outros'},
+    history:[]
+  }
+  if(!dbData) return structuredClone(schema)
 
-        function normalizeData(dbData) {
-            const schema = { client: { name: '', doc: '', email: '', phone: '', address: '' }, location: { address: '', sameAsClient: true }, items: [], terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, settings: { myPhone: '', serviceType: 'Outros' }, history: [] };
-            if (!dbData) return schema;
-            const items = (Array.isArray(dbData.items) ? dbData.items : (dbData.scope || [])).map(i => ({ name: i.name || '', description: i.description || '', qty: parseFloat(i.qty) || 1, price: parseFloat(i.price) || 0, type: i.type || 'original' }));
-            return { 
-                client: { ...schema.client, ...(dbData.client || {}) }, 
-                location: { ...schema.location, ...(dbData.location || {}) }, 
-                items: items, 
-                terms: { ...schema.terms, ...(dbData.terms || {}) }, 
-                settings: { ...schema.settings, ...(dbData.settings || {}) }, 
-                history: Array.isArray(dbData.history) ? dbData.history : [] 
-            };
-        }
+  const items = Array.isArray(dbData.items)
+    ? dbData.items
+    : Array.isArray(dbData.scope)
+      ? dbData.scope
+      : []
 
-        function logHistory(action, user, detail) {
-            if (!state.data.history) state.data.history = [];
-            state.data.history.push({ date: new Date().toISOString(), action: action, user: user, detail: detail || '' });
-        }
+  return {
+    client:{...schema.client,...(dbData.client||{})},
+    location:{...schema.location,...(dbData.location||{})},
+    items:items.map(i=>({
+      name:i.name||'',
+      description:i.description||'',
+      qty:Number(i.qty)||1,
+      price:Number(i.price)||0,
+      type:i.type||'original'
+    })),
+    terms:{...schema.terms,...(dbData.terms||{})},
+    settings:{...schema.settings,...(dbData.settings||{})},
+    history:Array.isArray(dbData.history)?dbData.history:[]
+  }
+}
 
-        async function init() {
-            try {
-                const params = new URLSearchParams(window.location.search);
-                const view = params.get('view') || 'login';
-                const id = params.get('id');
-                document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
-                
-                const { data: { session } } = await db.auth.getSession();
-                state.user = session?.user;
+/* ================= INIT ================= */
+async function init(){
+  const p=new URLSearchParams(location.search)
+  const view=p.get('view')||'login'
+  const id=p.get('id')
 
-                if (view === 'public') {
-                    if(!id) throw new Error("Link inválido.");
-                    await loadPublicProposal(id);
-                    // O loadPublicProposal já cuida de mostrar a div correta
-                } else if (!state.user && view !== 'login') {
-                    window.history.replaceState(null, '', '?view=login');
-                    document.getElementById('view-login').classList.remove('hidden');
-                    initRotator();
-                } else if (state.user && view === 'login') {
-                    goTo('dashboard');
-                } else {
-                    if(view === 'dashboard') await loadDashboard();
-                    if(view === 'editor' && id) await loadEditor(id);
-                    if(view !== 'login') {
-                        const el = document.getElementById(`view-${view}`); if(el) el.classList.remove('hidden');
-                    } else { 
-                        document.getElementById('view-login').classList.remove('hidden'); initRotator(); 
-                    }
-                }
-                setTimeout(() => { const l = document.getElementById('system-loader'); if(l) l.style.display = 'none'; }, 500);
-            } catch (e) { 
-                console.error(e);
-                const l = document.getElementById('system-loader'); if(l) l.style.display = 'none';
-                const f = document.getElementById('fatal-error'); if(f) f.style.display = 'flex';
-                safeText('error-msg', e.message);
-            }
-        }
+  document.querySelectorAll('section').forEach(s=>s.classList.add('hidden'))
 
-        function initRotator() {
-            const words = ["Eletricistas", "Instaladores", "Manutenção", "Técnicos", "Prestadores"];
-            let idx = 0; const el = document.getElementById('rotator'); if(!el) return;
-            el.innerHTML = '';
-            words.forEach((w, i) => { const s = document.createElement('span'); s.className = `rotate-word ${i===0?'active':''}`; s.innerText = w; el.appendChild(s); });
-            setInterval(() => {
-                const spans = el.querySelectorAll('.rotate-word');
-                if(!spans.length) return;
-                spans[idx].classList.remove('active'); spans[idx].classList.add('exit');
-                idx = (idx + 1) % words.length;
-                spans[idx].classList.remove('exit'); spans[idx].classList.add('active');
-            }, 3000);
-        }
+  const {data:{session}}=await db.auth.getSession()
+  state.user=session?.user
 
-        async function handleLogin() {
-            const email = safeVal('email');
-            const btn = document.getElementById('btn-login');
-            if(!email) return alert("Digite o e-mail");
-            if(btn) { btn.innerHTML = 'Enviando...'; btn.disabled = true; }
-            const { error } = await db.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href }});
-            if(error) { alert(error.message); if(btn) { btn.innerText = 'Tentar Novamente'; btn.disabled = false; } }
-            else { if(btn) btn.innerText = 'Enviado!'; alert('Verifique seu e-mail.'); }
-        }
+  if(view==='public'){
+    await loadPublicProposal(id)
+    return
+  }
 
-        function goTo(view, id = null) { window.history.pushState(null, '', id ? `?view=${view}&id=${id}` : `?view=${view}`); init(); }
+  if(!state.user){
+    document.getElementById('view-login')?.classList.remove('hidden')
+    return
+  }
 
-        async function loadDashboard() {
-            setHTML('project-list', '<div class="col-span-full text-center py-10 text-slate-400">Carregando dados...</div>');
-            const { data: projects, error } = await db.from('projects').select('*, versions(status, total_value, version_number)').eq('user_id', state.user.id).order('created_at', { ascending: false });
-            if(error) return setHTML('project-list', 'Erro ao carregar.');
-            state.projectsCache = projects || [];
-            renderDashboardList();
-        }
+  if(view==='dashboard') await loadDashboard()
+  if(view==='editor' && id) await loadEditor(id)
 
-        function renderDashboardList() {
-            const list = document.getElementById('project-list');
-            if(!list) return;
-            const search = safeVal('dash-search').toLowerCase();
-            const filterStatus = safeVal('dash-filter');
-            let totalRev = 0, totalAprov = 0, countAprov = 0, countNegoc = 0, countCancel = 0;
+  document.getElementById(`view-${view}`)?.classList.remove('hidden')
+  document.getElementById('system-loader')?.style.display='none'
+}
 
-            const filtered = state.projectsCache.filter(p => {
-                const v = p.versions?.[0] || { status: 'draft', total_value: 0 };
-                const matchSearch = p.name.toLowerCase().includes(search) || (p.client_name||'').toLowerCase().includes(search);
-                const matchStatus = filterStatus === 'all' || !filterStatus || v.status === filterStatus;
-                return matchSearch && matchStatus;
-            });
+/* ================= DASHBOARD ================= */
+async function loadDashboard(){
+  const {data}=await db
+    .from('projects')
+    .select('*,versions(status,total_value,version_number)')
+    .eq('user_id',state.user.id)
+    .order('created_at',{ascending:false})
 
-            state.projectsCache.forEach(p => {
-                const v = p.versions?.[0] || { status: 'draft', total_value: 0 };
-                const val = parseFloat(v.total_value) || 0;
-                totalRev += val; 
-                if(v.status === 'approved') { totalAprov += val; countAprov++; }
-                if(v.status === 'negotiating' || v.status === 'sent') countNegoc++;
-                if(v.status === 'canceled') countCancel++;
-            });
+  state.projectsCache=data||[]
+  renderDashboardList()
+}
 
-            safeText('kpi-total-est', totalRev.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
-            safeText('kpi-total-apr', totalAprov.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
-            safeText('kpi-count-neg', countNegoc);
-            safeText('kpi-count-apr', countAprov);
-            safeText('kpi-count-can', countCancel);
+/* ================= EDITOR ================= */
+async function loadEditor(id){
+  const {data:proj}=await db.from('projects').select('*').eq('id',id).single()
+  const {data:vers}=await db.from('versions').select('*').eq('project_id',id).order('version_number')
 
-            let html = '';
-            if(filtered.length === 0) html = '<div class="col-span-full text-center py-20 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Nenhum orçamento encontrado.</div>';
-            else {
-                filtered.forEach(p => {
-                    const v = p.versions?.[0] || { total_value: 0, status: 'draft', version_number: 1 };
-                    const val = parseFloat(v.total_value) || 0;
-                    let badgeClass = 'st-draft'; let statusLabel = 'Rascunho';
-                    if(v.status === 'sent') { badgeClass = 'st-sent'; statusLabel = 'Enviado'; }
-                    if(v.status === 'negotiating') { badgeClass = 'st-negotiating'; statusLabel = 'Em Negociação'; }
-                    if(v.status === 'approved') { badgeClass = 'st-approved'; statusLabel = 'Aprovado'; }
-                    if(v.status === 'canceled') { badgeClass = 'st-canceled'; statusLabel = 'Cancelado'; }
+  state.project=proj
+  state.version=vers.at(-1)
+  state.data=normalizeData(state.version.items||{})
 
-                    html += `<div onclick="goTo('editor', '${p.id}')" class="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group relative">
-                        <div class="flex justify-between items-start mb-3">
-                            <div><h3 class="font-bold text-slate-800 group-hover:text-blue-600 transition-colors">${p.name}</h3><p class="text-xs text-slate-500 mt-1"><i class="far fa-user mr-1"></i> ${p.client_name || 'Novo Cliente'}</p></div>
-                            <span class="status-badge ${badgeClass}">${statusLabel}</span>
-                        </div>
-                        <div class="border-t border-slate-100 pt-3 flex justify-between items-end">
-                            <div class="text-xs text-slate-400">V${v.version_number} • ${new Date(p.created_at).toLocaleDateString()}</div>
-                            <div class="flex items-center gap-3">
-                                <div class="text-lg font-bold text-slate-900">${val.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</div>
-                                <button onclick="deleteProject('${p.id}', event)" class="text-slate-300 hover:text-red-500 transition-colors p-1" title="Excluir"><i class="fas fa-trash-alt"></i></button>
-                            </div>
-                        </div>
-                    </div>`;
-                });
-            }
-            setHTML('project-list', html);
-        }
+  renderEditor()
+}
 
-        async function deleteProject(id, event) {
-            event.stopPropagation(); 
-            if(!confirm("Tem certeza que deseja EXCLUIR este orçamento permanentemente?")) return;
-            const { error } = await db.from('projects').delete().eq('id', id);
-            if(error) alert("Erro ao excluir: " + error.message);
-            else { state.projectsCache = state.projectsCache.filter(p => p.id !== id); renderDashboardList(); }
-        }
+function renderEditor(){
+  const d=state.data
+  const locked=['approved','canceled'].includes(state.version.status)
 
-        async function createProject() {
-            const name = prompt("Nome do Orçamento:"); if(!name) return;
-            const { data: p, error } = await db.from('projects').insert({ name, user_id: state.user.id, client_name: 'Novo Cliente' }).select().single();
-            const d = normalizeData(null); d.settings.myPhone = localStorage.getItem('escopo_phone') || '';
-            logHistory('created', 'provider', 'Orçamento criado via painel.', d); 
-            await db.from('versions').insert({ project_id: p.id, version_number: 1, items: d, total_value: 0, status: 'draft' });
-            goTo('editor', p.id);
-        }
+  safeText('ed-title',state.project.name)
+  safeText('ed-ver','V'+state.version.version_number)
 
-        async function loadEditor(id) {
-            const edContent = document.getElementById('editor-content'); if(edContent) edContent.classList.add('hidden');
-            const edLoad = document.getElementById('editor-loading'); if(edLoad) edLoad.classList.remove('hidden');
-            
-            const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
-            state.project = proj;
-            const { data: vers } = await db.from('versions').select('*').eq('project_id', id).order('version_number', { ascending: true });
-            state.version = vers[vers.length - 1];
-            state.data = normalizeData(state.version.items);
-            if(state.version.notes && !state.data.terms.obs) state.data.terms.obs = state.version.notes;
-            if(!state.data.settings.myPhone) state.data.settings.myPhone = localStorage.getItem('escopo_phone') || '';
-            
-            renderEditor();
-            if(edLoad) edLoad.classList.add('hidden');
-            if(edContent) edContent.classList.remove('hidden');
-        }
+  let html=''
+  let total=0
 
-        function renderEditor() {
-            const d = state.data; const isLocked = state.version.status === 'approved' || state.version.status === 'canceled';
-            safeText('ed-title', state.project.name);
-            safeText('ed-ver', `V${state.version.version_number}`);
-            
-            const badge = document.getElementById('ed-status-badge');
-            if(badge) {
-                badge.className = `status-badge ml-2 ${state.version.status === 'approved' ? 'st-approved' : state.version.status === 'canceled' ? 'st-canceled' : 'st-draft'}`;
-                badge.innerText = state.version.status.toUpperCase();
-            }
-            
-            setVal('c-name', d.client.name); setVal('c-doc', d.client.doc); setVal('c-phone', d.client.phone); setVal('c-email', d.client.email); setVal('c-addr', d.client.address); setVal('in-s-myphone', d.settings.myPhone);
-            const svc = document.getElementById('s-type'); if(svc) svc.value = d.settings.serviceType || 'Outros';
-            setVal('t-dead', d.terms.deadline); setVal('t-val', d.terms.validity); setVal('t-obs', d.terms.obs);
+  d.items.forEach((i,x)=>{
+    const t=i.qty*i.price
+    total+=t
+    html+=`
+    <div class="border p-4 rounded mb-2 relative">
+      ${!locked?`<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400"><i class="fas fa-trash"></i></button>`:''}
+      <input value="${i.name}" onchange="upItem(${x},'name',this.value)" ${locked?'disabled':''} class="w-full font-bold mb-1">
+      <textarea onchange="upItem(${x},'description',this.value)" ${locked?'disabled':''} class="w-full text-xs">${i.description}</textarea>
+      <div class="grid grid-cols-2 gap-2 mt-2">
+        <input type="number" value="${i.qty}" onchange="upItem(${x},'qty',this.value)" ${locked?'disabled':''}>
+        <input type="number" value="${i.price}" onchange="upItem(${x},'price',this.value)" ${locked?'disabled':''}>
+      </div>
+    </div>`
+  })
 
-            let html = ''; let total = 0;
-            d.items.forEach((i,x) => {
-                const t = (i.qty||0)*(i.price||0); total+=t;
-                html += `<div class="bg-white border p-4 rounded-lg mb-2 relative group">${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}<div class="grid grid-cols-12 gap-2 mb-2"><div class="col-span-8"><label class="text-[10px] uppercase font-bold text-slate-400">Item</label><input class="w-full font-bold bg-transparent outline-none" value="${i.name}" onchange="upItem(${x},'name',this.value)" ${isLocked?'disabled':''}></div><div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-400 text-center block">Qtd</label><input type="number" class="w-full text-center bg-slate-50 rounded" value="${i.qty}" onchange="upItem(${x},'qty',this.value)" ${isLocked?'disabled':''}></div><div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-400 text-right block">$$</label><input type="number" class="w-full text-right bg-slate-50 rounded" value="${i.price}" onchange="upItem(${x},'price',this.value)" ${isLocked?'disabled':''}></div></div><textarea class="w-full text-xs text-slate-500 bg-transparent outline-none resize-none" rows="1" onchange="upItem(${x},'description',this.value)" placeholder="Descrição técnica..." ${isLocked?'disabled':''}>${i.description||''}</textarea></div>`;
-            });
-            setHTML('ed-items', html);
-            safeText('ed-total', total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
+  if(!locked){
+    html+=`
+    <button onclick="addItem()" class="w-full mt-3 py-3 border-2 border-dashed rounded text-slate-500 hover:border-blue-500">
+      <i class="fas fa-plus mr-2"></i> Adicionar item ao escopo
+    </button>`
+  }
 
-            let histHtml = '';
-            if(d.history && d.history.length > 0) {
-                d.history.slice().reverse().forEach(h => {
-                    const date = new Date(h.date).toLocaleString('pt-BR');
-                    let icon = h.action === 'approved' ? 'check text-green-500' : h.action === 'change_request' ? 'comment-dots text-amber-500' : h.action === 'canceled' ? 'times text-red-500' : 'info-circle text-blue-400';
-                    let userLabel = h.user === 'provider' ? 'Você' : 'Cliente';
-                    let cssClass = h.action === 'change_request' || h.action === 'canceled' ? 'timeline-desc' : 'timeline-desc system';
-                    let actionLabel = h.action === 'created' ? 'Criou o orçamento' : h.action === 'change_request' ? 'Solicitou alteração' : h.action === 'approved' ? 'Aprovou' : h.action === 'canceled' ? 'Recusou/Cancelou' : 'Visualizou';
-                    histHtml += `<div class="timeline-item"><div class="timeline-date">${date} • ${userLabel}</div><div class="timeline-title flex items-center gap-2"><i class="fas fa-${icon}"></i> ${actionLabel}</div>${h.detail ? `<div class="${cssClass}">${h.detail}</div>` : ''}</div>`;
-                });
-            } else { histHtml = '<div class="text-xs text-slate-400 italic">Sem histórico registrado.</div>'; }
-            setHTML('ed-history', histHtml);
+  setHTML('ed-items',html)
+  safeText('ed-total',total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}))
+}
 
-            const actions = document.getElementById('ed-actions');
-            if (actions) {
-                if (isLocked) { actions.innerHTML = `<button onclick="createAddon()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg mb-2 shadow-lg"><i class="fas fa-copy mr-2"></i> Duplicar / Aditivo</button>`; } 
-                else { actions.innerHTML = `<button onclick="save()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg mb-2 shadow-lg"><i class="fas fa-save mr-2"></i> Salvar</button><button onclick="changeStatus('canceled')" class="w-full py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-sm font-bold">Cancelar Orçamento</button>`; }
-            }
-        }
+function upItem(i,f,v){
+  if(!state.data.items[i]) return
+  if(f==='qty'||f==='price') state.data.items[i][f]=Number(v)||0
+  else state.data.items[i][f]=v
+  renderEditor()
+}
 
-        function upVal(k,v) { if(k.startsWith('c-')) state.data.client[k.substring(2)] = v; else if(k.startsWith('t-')) state.data.terms[k.substring(2)] = v; else if(k==='s-phone') { state.data.settings.myPhone=v; localStorage.setItem('escopo_phone',v); } else if(k==='s-type') { state.data.settings.serviceType = v; } }
-        function upItem(i,f,v) { const it=state.data.items[i]; if(f==='qty'||f==='price') it[f]=parseFloat(v)||0; else it[f]=v; renderEditor(); }
-        function addItem() { state.data.items.push({name:'',description:'',qty:1,price:0,type:state.version.version_number>1?'addon':'original'}); renderEditor(); }
-        function rmItem(i) { state.data.items.splice(i, 1); renderEditor(); }
-        
-        function generatePayment() {
-            const total = state.data.items.reduce((acc, i) => acc + (i.qty * i.price), 0);
-            if(total === 0) return alert("Adicione valores primeiro.");
-            const mode = document.getElementById('pay-mode').value;
-            let text = "";
-            if(mode === 'entry_installments') {
-                const entryP = prompt("Porcentagem de Entrada? (Ex: 30)", "30");
-                const inst = prompt("Restante em quantas vezes?", "2");
-                if(!entryP || !inst) return;
-                const entryVal = total * (parseInt(entryP)/100);
-                const restVal = (total - entryVal) / parseInt(inst);
-                text = `CRONOGRAMA:\n1. Entrada: ${entryVal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}\n`;
-                for(let i=1; i<=parseInt(inst); i++) text += `${i+1}. Parcela (30d): ${restVal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}\n`;
-            } else text = `Pagamento Único: ${total.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}`;
-            
-            state.data.terms.paymentText = text;
-            renderEditor(); 
-            setVal('t-obs', text);
-        }
+function addItem(){
+  state.data.items.push({name:'',description:'',qty:1,price:0,type:'original'})
+  renderEditor()
+}
 
-        async function save() {
-            const t = state.data.items.reduce((a,b)=>a+(b.qty*b.price),0);
-            if(state.data.client.name) await db.from('projects').update({client_name:state.data.client.name}).eq('id',state.project.id);
-            await db.from('versions').update({items:state.data, total_value:t, notes:state.data.terms.obs}).eq('id',state.version.id);
-            alert("Salvo com sucesso!");
-        }
+function rmItem(i){
+  state.data.items.splice(i,1)
+  renderEditor()
+}
 
-        async function createAddon() {
-            if(!confirm("Criar nova versão (Aditivo)?")) return;
-            const t = state.data.items.reduce((a,b)=>a+(b.qty*b.price),0);
-            logHistory('created', 'provider', 'Criou nova versão/aditivo.'); 
-            await db.from('versions').insert({project_id:state.project.id, version_number:state.version.version_number+1, items:state.data, total_value:t, status:'draft'});
-            loadEditor(state.project.id);
-        }
+/* ================= LINK PÚBLICO (FIX) ================= */
+async function loadPublicProposal(id){
+  const {data:v}=await db
+    .from('versions')
+    .select('*,projects(name)')
+    .eq('id',id)
+    .maybeSingle()
 
-        async function changeStatus(newStatus) {
-            if(!confirm(`Mudar status para ${newStatus}?`)) return;
-            await db.from('versions').update({status: newStatus}).eq('id',state.version.id);
-            logHistory(newStatus, 'provider', 'Alteração manual de status.');
-            save(); loadEditor(state.project.id);
-        }
+  if(!v) throw 'Link inválido'
 
-        async function share() {
-            await save();
-            const url = `${window.location.origin}${window.location.pathname}?view=public&id=${state.version.id}`;
-            navigator.clipboard.writeText(url); alert("Link copiado! Envie para o cliente.");
-        }
+  state.version=v
+  state.data=normalizeData(v.items||{})
 
-        // --- PUBLIC INTERACTION FLOW ---
-        async function loadPublicProposal(id) {
-            try {
-                const load = document.getElementById('public-loading'); if(load) load.classList.remove('hidden');
-                const { data: v } = await db.from('versions').select('*, projects(name)').eq('id', id).maybeSingle();
-                if (!v) throw new Error("Orçamento não encontrado.");
-                state.version = v; state.data = normalizeData(v.items);
-                const d = state.data; // CORREÇÃO DA VARIÁVEL D (Isso arruma o erro do link!)
-                
-                safeText('doc-title', v.projects?.name);
-                safeText('doc-id', `#${v.project_id.substr(0,4).toUpperCase()}-${v.version_number}`);
-                safeText('doc-c-name', d.client.name);
-                
-                let html = '';
-                state.data.items.forEach(i => { html += `<tr class="border-b border-slate-100"><td class="py-4 pl-4"><div class="font-bold text-slate-800">${i.name}<br><span class="font-normal text-xs text-slate-500">${i.description}</span></td><td class="text-center">${i.qty}</td><td class="text-right pr-4 font-bold">R$ ${(i.qty*i.price).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`; });
-                setHTML('doc-items-body', html);
-                
-                safeText('doc-total', parseFloat(v.total_value).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}));
-                safeText('doc-payment', d.terms.paymentText); 
-                safeText('doc-deadline', d.terms.deadline); 
-                safeText('doc-validity', d.terms.validity); 
-                safeText('doc-obs', d.terms.obs);
+  safeText('doc-title',v.projects?.name)
+  safeText('doc-total',Number(v.total_value).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}))
 
-                const actions = document.getElementById('doc-actions');
-                if(actions) {
-                    if(v.status === 'approved' || v.status === 'canceled') {
-                        showSuccessScreen(v.status); // <--- JÁ CARREGA A TELA DE SUCESSO SE RESPONDIDO
-                    } else {
-                        actions.innerHTML = `
-                            <button onclick="openModal('approve')" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 mb-3 transition-transform hover:scale-[1.01]">APROVAR PROPOSTA</button>
-                            <div class="grid grid-cols-2 gap-3">
-                                <button onclick="openModal('change')" class="bg-amber-100 text-amber-700 font-bold py-3 rounded-xl hover:bg-amber-200">Solicitar Alteração</button>
-                                <button onclick="openModal('cancel')" class="bg-red-50 text-red-600 font-bold py-3 rounded-xl hover:bg-red-100">Recusar</button>
-                            </div>
-                        `;
-                    }
-                }
-                const content = document.getElementById('public-content'); if(content) content.classList.remove('hidden');
-            } catch(e) { 
-                console.error(e);
-                const load = document.getElementById('public-loading'); if(load) load.classList.add('hidden');
-                const fatal = document.getElementById('fatal-error'); if(fatal) fatal.style.display = 'flex';
-                safeText('error-msg', "Link inválido ou expirado.");
-            } finally { const load = document.getElementById('public-loading'); if(load) load.classList.add('hidden'); }
-        }
+  let html=''
+  state.data.items.forEach(i=>{
+    html+=`<tr>
+      <td>${i.name}<br><small>${i.description}</small></td>
+      <td>${i.qty}</td>
+      <td>${(i.qty*i.price).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
+    </tr>`
+  })
+  setHTML('doc-items-body',html)
 
-        // --- TELA DE SUCESSO (Obrigado!) ---
-        function showSuccessScreen(type) {
-            const screen = document.getElementById('view-success');
-            const icon = document.getElementById('success-icon');
-            const title = document.getElementById('success-title');
-            const desc = document.getElementById('success-desc');
-            
-            const content = document.getElementById('public-content'); if(content) content.classList.add('hidden');
-            if(screen) screen.classList.remove('hidden');
+  document.getElementById('public-content')?.classList.remove('hidden')
+}
 
-            if(type === 'approved' || type === 'approve') {
-                if(icon) icon.className = "fas fa-check-circle text-6xl text-green-500 mb-4";
-                if(title) title.innerText = "Orçamento Aprovado!";
-                if(desc) desc.innerText = "Obrigado pela confiança. O prestador já foi notificado.";
-            } else if (type === 'negotiating' || type === 'change_request') {
-                if(icon) icon.className = "fas fa-clock text-6xl text-amber-500 mb-4";
-                if(title) title.innerText = "Solicitação Enviada";
-                if(desc) desc.innerText = "Sua mensagem foi enviada ao prestador. Aguarde o retorno.";
-            } else {
-                if(icon) icon.className = "fas fa-times-circle text-6xl text-slate-400 mb-4";
-                if(title) title.innerText = "Orçamento Recusado";
-                if(desc) desc.innerText = "Obrigado pelo retorno. O orçamento foi marcado como recusado.";
-            }
-        }
+/* ================= START ================= */
+window.onload=init
+</script>
 
-        // --- FLUXO RÁPIDO (SEM SENHA) ---
-        function openModal(type) {
-            const modal = document.getElementById('interaction-modal');
-            const title = document.getElementById('modal-title');
-            const desc = document.getElementById('modal-desc');
-            const input = document.getElementById('modal-input');
-            const btn = document.getElementById('modal-btn');
-            
-            modal.style.display = 'flex';
-            input.value = '';
-            
-            if(type === 'approve') {
-                title.innerText = 'Confirmar Aprovação?';
-                desc.innerText = 'Ao confirmar, você aprova este orçamento.';
-                input.style.display = 'none';
-                btn.innerText = 'Sim, Aprovar';
-                btn.className = "w-full py-3 bg-green-600 text-white rounded font-bold hover:bg-green-700";
-                btn.onclick = () => executeAction('approve');
-            } else if(type === 'change') {
-                title.innerText = 'O que você gostaria de alterar?';
-                desc.innerText = 'Descreva abaixo as mudanças desejadas:';
-                input.style.display = 'block';
-                btn.innerText = 'Enviar Solicitação';
-                btn.className = "w-full py-3 bg-amber-600 text-white rounded font-bold hover:bg-amber-700";
-                btn.onclick = () => executeAction('change');
-            } else if(type === 'cancel') {
-                title.innerText = 'Recusar Orçamento';
-                desc.innerText = 'Gostaria de informar o motivo? (Opcional)';
-                input.style.display = 'block';
-                btn.innerText = 'Confirmar Recusa';
-                btn.className = "w-full py-3 bg-red-600 text-white rounded font-bold hover:bg-red-700";
-                btn.onclick = () => executeAction('cancel');
-            }
-        }
-
-        async function executeAction(type) {
-            const inputVal = safeVal('modal-input');
-            const btn = document.getElementById('modal-btn');
-            btn.innerText = "Processando...";
-            btn.disabled = true;
-
-            if (type === 'approve') {
-                await approveLogic();
-            } else if (type === 'change') {
-                if(!inputVal) { alert("Escreva o que deseja alterar."); btn.disabled = false; btn.innerText = "Enviar"; return; }
-                await sendLogic('change_request', 'negotiating', inputVal);
-            } else if (type === 'cancel') {
-                await sendLogic('canceled', 'canceled', inputVal || 'Recusado pelo cliente');
-            }
-        }
-
-        async function sendLogic(action, newStatus, text) {
-            logHistory(action, 'client', text);
-            await db.from('versions').update({ status: newStatus, items: state.data }).eq('id', state.version.id);
-            const modal = document.getElementById('interaction-modal'); if(modal) modal.style.display = 'none';
-            showSuccessScreen(action); // CHAMA TELA DE SUCESSO
-        }
-
-        async function approveLogic() {
-            let ip = 'IP'; try { const r = await fetch('https://api.ipify.org?format=json'); const j = await r.json(); ip = j.ip; } catch(e){}
-            logHistory('approved', 'client', 'Aprovado via link');
-            await db.from('versions').update({ status: 'approved', approved_at: new Date(), approved_by_ip: ip, items: state.data }).eq('id', state.version.id);
-            
-            const phone = state.data.settings?.myPhone;
-            if(phone) {
-                const msg = `✅ O cliente APROVOU o orçamento ${state.version.projects.name}!`;
-                window.open(`https://wa.me/${phone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
-            }
-            const modal = document.getElementById('interaction-modal'); if(modal) modal.style.display = 'none';
-            showSuccessScreen('approved'); // CHAMA TELA DE SUCESSO
-        }
-
-        window.onload = init;
-        window.onpopstate = init;
-    </script>
 
     <section id="view-success" class="hidden min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
         <div class="max-w-md">
@@ -674,3 +428,4 @@
 
 </body>
 </html>
+
