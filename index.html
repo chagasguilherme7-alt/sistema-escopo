@@ -95,11 +95,11 @@
         function normalizeData(dbData) {
             const schema = { client: { name: '', doc: '', email: '', phone: '', address: '' }, location: { address: '', sameAsClient: true }, items: [], terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, settings: { myPhone: '', serviceType: 'Outros' }, history: [] };
             if (!dbData) return schema;
-            const items = (Array.isArray(dbData.items) ? dbData.items : (dbData.scope || [])).map(i => ({ name: i.name || '', description: i.description || '', qty: parseFloat(i.qty) || 1, price: parseFloat(i.price) || 0, type: i.type || 'original' }));
+            const cleanItems = (Array.isArray(dbData.items) ? dbData.items : (dbData.scope || [])).map(i => ({ name: i.name || '', description: i.description || '', qty: parseFloat(i.qty) || 1, price: parseFloat(i.price) || 0, type: i.type || 'original' }));
             return { 
                 client: { ...schema.client, ...(dbData.client || {}) }, 
                 location: { ...schema.location, ...(dbData.location || {}) }, 
-                items: items, 
+                items: cleanItems, 
                 terms: { ...schema.terms, ...(dbData.terms || {}) }, 
                 settings: { ...schema.settings, ...(dbData.settings || {}) }, 
                 history: Array.isArray(dbData.history) ? dbData.history : [] 
@@ -138,13 +138,20 @@
                     else { document.getElementById('view-login').classList.remove('hidden'); initRotator(); }
                 }
                 setTimeout(() => { document.getElementById('system-loader').style.display = 'none'; }, 500);
-            } catch (e) { document.getElementById('system-loader').style.display = 'none'; document.getElementById('fatal-error').style.display = 'flex'; document.getElementById('error-msg').innerText = e.message; }
+            } catch (e) { 
+                document.getElementById('system-loader').style.display = 'none';
+                document.getElementById('fatal-error').style.display = 'flex';
+                document.getElementById('error-msg').innerText = e.message;
+            }
         }
 
         function initRotator() {
             const words = ["Prestadores de Serviços", "Eletricistas", "Instaladores", "Manutenção", "Serviços Personalizados"];
-            let idx = 0; const el = document.getElementById('rotator'); if(!el) return;
-            el.innerHTML = ''; words.forEach((w, i) => { const s = document.createElement('span'); s.className = `rotate-word ${i===0?'active':''}`; s.innerText = w; el.appendChild(s); });
+            let idx = 0;
+            const el = document.getElementById('rotator');
+            if(!el) return;
+            el.innerHTML = '';
+            words.forEach((w, i) => { const s = document.createElement('span'); s.className = `rotate-word ${i===0?'active':''}`; s.innerText = w; el.appendChild(s); });
             setInterval(() => {
                 const spans = el.querySelectorAll('.rotate-word');
                 spans[idx].classList.remove('active'); spans[idx].classList.add('exit');
@@ -154,7 +161,8 @@
         }
 
         async function handleLogin() {
-            const email = document.getElementById('email').value; const btn = document.getElementById('btn-login');
+            const email = document.getElementById('email').value;
+            const btn = document.getElementById('btn-login');
             if(!email) return alert("Digite o e-mail");
             btn.innerHTML = 'Enviando...'; btn.disabled = true;
             const { error } = await db.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href }});
@@ -213,6 +221,7 @@
                 if(v.status === 'approved') { badgeClass = 'st-approved'; statusLabel = 'Aprovado'; }
                 if(v.status === 'canceled') { badgeClass = 'st-canceled'; statusLabel = 'Cancelado'; }
 
+                // --- BOTÃO DE EXCLUIR ADICIONADO AQUI ---
                 list.innerHTML += `
                     <div onclick="goTo('editor', '${p.id}')" class="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group relative">
                         <button onclick="deleteProject('${p.id}', event)" class="absolute top-4 right-4 text-slate-300 hover:text-red-500 z-10 p-2 transition-colors" title="Excluir Orçamento"><i class="fas fa-trash-alt"></i></button>
@@ -225,12 +234,21 @@
             });
         }
 
+        // --- FUNÇÃO DE DELETAR ---
         async function deleteProject(id, event) {
-            event.stopPropagation(); 
+            event.stopPropagation(); // Impede de abrir o editor ao clicar na lixeira
             if(!confirm("Tem certeza que deseja EXCLUIR este orçamento permanentemente? Essa ação não pode ser desfeita.")) return;
+            
+            // Deleta projeto (o Supabase deleta versões em cascata se configurado, senão deleta projeto)
             const { error } = await db.from('projects').delete().eq('id', id);
-            if(error) alert("Erro ao excluir: " + error.message);
-            else { state.projectsCache = state.projectsCache.filter(p => p.id !== id); renderDashboardList(); }
+            
+            if(error) {
+                alert("Erro ao excluir: " + error.message);
+            } else {
+                // Atualiza lista localmente para não precisar recarregar tudo
+                state.projectsCache = state.projectsCache.filter(p => p.id !== id);
+                renderDashboardList();
+            }
         }
 
         async function createProject() {
@@ -284,7 +302,13 @@
                     let userLabel = h.user === 'provider' ? 'Você' : 'Cliente';
                     let cssClass = h.action === 'change_request' || h.action === 'canceled' ? 'timeline-desc' : 'timeline-desc system';
                     let actionLabel = h.action === 'created' ? 'Criou o orçamento' : h.action === 'change_request' ? 'Solicitou alteração' : h.action === 'approved' ? 'Aprovou' : h.action === 'canceled' ? 'Recusou/Cancelou' : 'Visualizou';
-                    histList.innerHTML += `<div class="timeline-item"><div class="timeline-date">${date} • ${userLabel}</div><div class="timeline-title flex items-center gap-2"><i class="fas fa-${icon}"></i> ${actionLabel}</div>${h.detail ? `<div class="${cssClass}">${h.detail}</div>` : ''}</div>`;
+                    
+                    histList.innerHTML += `
+                        <div class="timeline-item">
+                            <div class="timeline-date">${date} • ${userLabel}</div>
+                            <div class="timeline-title flex items-center gap-2"><i class="fas fa-${icon}"></i> ${actionLabel}</div>
+                            ${h.detail ? `<div class="${cssClass}">${h.detail}</div>` : ''}
+                        </div>`;
                 });
             } else { histList.innerHTML = '<div class="text-xs text-slate-400 italic">Sem histórico registrado.</div>'; }
 
@@ -330,9 +354,15 @@
         async function loadPublicProposal(id) {
             try {
                 document.getElementById('public-loading').classList.remove('hidden');
+                // Use maybeSingle to prevent crashing if not found
                 const { data: v } = await db.from('versions').select('*, projects(name)').eq('id', id).maybeSingle();
-                if (!v) throw new Error("Orçamento não encontrado.");
-                state.version = v; state.data = normalizeData(v.items);
+                
+                if (!v) {
+                    throw new Error("Orçamento não encontrado ou link expirado.");
+                }
+                
+                state.version = v; 
+                state.data = normalizeData(v.items);
                 
                 const setText = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val || '-'; };
                 setText('doc-title', v.projects?.name); setText('doc-id', `#${v.project_id.substr(0,4).toUpperCase()}-${v.version_number}`);
@@ -344,8 +374,11 @@
                 setText('doc-payment', d.terms.paymentText); setText('doc-deadline', d.terms.deadline); setText('doc-validity', d.terms.validity); setText('doc-obs', d.terms.obs);
 
                 const actions = document.getElementById('doc-actions');
-                if(v.status === 'approved' || v.status === 'canceled') {
-                    showSuccessScreen(v.status);
+                if(v.status === 'approved') {
+                    document.getElementById('stamp-approved').classList.remove('hidden');
+                    actions.innerHTML = `<div class="bg-green-100 text-green-800 p-4 rounded text-center font-bold">PROPOSTA APROVADA</div>`;
+                } else if (v.status === 'canceled') {
+                    actions.innerHTML = `<div class="bg-red-100 text-red-800 p-4 rounded text-center font-bold">PROPOSTA CANCELADA</div>`;
                 } else {
                     actions.innerHTML = `
                         <button onclick="openModal('approve')" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 mb-3 transition-transform hover:scale-[1.01]">APROVAR PROPOSTA</button>
@@ -355,45 +388,23 @@
                         </div>
                     `;
                 }
+                
                 document.getElementById('public-content').classList.remove('hidden');
-            } catch(e) { 
-                document.getElementById('public-loading').classList.add('hidden'); 
-                document.getElementById('fatal-error').style.display = 'flex'; 
-                document.getElementById('error-msg').innerText = "Link inválido ou expirado."; 
+            } catch(e) {
+                document.getElementById('public-loading').classList.add('hidden');
+                document.getElementById('fatal-error').style.display = 'flex';
+                document.getElementById('error-msg').innerText = "Não foi possível carregar o orçamento. Verifique se o link está correto.";
             } finally { document.getElementById('public-loading').classList.add('hidden'); }
         }
 
-        // --- TELA DE SUCESSO (Obrigado!) ---
-        function showSuccessScreen(type) {
-            const screen = document.getElementById('view-success');
-            const icon = document.getElementById('success-icon');
-            const title = document.getElementById('success-title');
-            const desc = document.getElementById('success-desc');
-            
-            document.getElementById('public-content').classList.add('hidden');
-            screen.classList.remove('hidden');
-
-            if(type === 'approved' || type === 'approve') {
-                icon.className = "fas fa-check-circle text-6xl text-green-500 mb-4";
-                title.innerText = "Orçamento Aprovado!";
-                desc.innerText = "Obrigado pela confiança. O prestador já foi notificado.";
-            } else if (type === 'negotiating' || type === 'change_request') {
-                icon.className = "fas fa-clock text-6xl text-amber-500 mb-4";
-                title.innerText = "Solicitação Enviada";
-                desc.innerText = "Sua mensagem foi enviada ao prestador. Aguarde o retorno.";
-            } else {
-                icon.className = "fas fa-times-circle text-6xl text-slate-400 mb-4";
-                title.innerText = "Orçamento Recusado";
-                desc.innerText = "Obrigado pelo retorno. O orçamento foi marcado como recusado.";
-            }
-        }
-
+        // --- SEGURANÇA: VALIDAR IDENTIDADE ---
         function cleanText(t) { return t.replace(/[^a-zA-Z0-9]/g, '').toLowerCase(); }
+
         function checkIdentity(input) {
             const cleanInput = cleanText(input);
             const doc = cleanText(state.data.client.doc || '');
             const email = cleanText(state.data.client.email || '');
-            if(!doc && !email) return true; 
+            if(!doc && !email) return true; // Se não configurou, libera (mas avisa)
             return (doc && cleanInput.includes(doc)) || (email && cleanInput === email);
         }
 
@@ -409,19 +420,19 @@
             
             if(type === 'approve') {
                 title.innerText = 'Confirmar Aprovação';
-                desc.innerText = 'Informe seu CPF/CNPJ ou E-mail para assinar:';
+                desc.innerText = 'Por segurança, informe seu CPF/CNPJ ou E-mail cadastrado para assinar digitalmente:';
                 btn.innerText = 'Confirmar Identidade e Aprovar';
                 btn.className = "w-full py-3 bg-green-600 text-white rounded font-bold hover:bg-green-700";
                 btn.onclick = () => executeSecureAction('approve');
             } else if(type === 'change') {
                 title.innerText = 'Solicitar Alteração';
-                desc.innerText = 'O que deseja mudar? (Confirme seu CPF/Email ao final):';
+                desc.innerText = 'Descreva o que deseja mudar (e confirme seu CPF/Email ao final):';
                 btn.innerText = 'Enviar Solicitação';
                 btn.className = "w-full py-3 bg-amber-600 text-white rounded font-bold hover:bg-amber-700";
                 btn.onclick = () => executeSecureAction('change');
             } else if(type === 'cancel') {
                 title.innerText = 'Recusar Orçamento';
-                desc.innerText = 'Motivo (e confirme seu CPF/Email):';
+                desc.innerText = 'Motivo da recusa (e confirme seu CPF/Email):';
                 btn.innerText = 'Confirmar Recusa';
                 btn.className = "w-full py-3 bg-red-600 text-white rounded font-bold hover:bg-red-700";
                 btn.onclick = () => executeSecureAction('cancel');
@@ -433,7 +444,7 @@
             const secVal = document.getElementById('modal-security').value;
             
             if (!checkIdentity(secVal)) {
-                alert("Dados incorretos. Use o CPF ou E-mail do orçamento.");
+                alert("Dados de identificação incorretos. Digite o CPF ou E-mail que consta neste orçamento.");
                 return;
             }
 
@@ -454,8 +465,8 @@
         async function sendLogic(action, newStatus, text) {
             logHistory(action, 'client', text);
             await db.from('versions').update({ status: newStatus, items: state.data }).eq('id', state.version.id);
-            document.getElementById('interaction-modal').style.display = 'none';
-            showSuccessScreen(action); // <--- AQUI CHAMA A TELA DE OBRIGADO
+            alert("Enviado com sucesso!");
+            window.location.reload();
         }
 
         async function approveLogic() {
@@ -468,22 +479,12 @@
                 const msg = `✅ O cliente APROVOU o orçamento ${state.version.projects.name}!`;
                 window.open(`https://wa.me/${phone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
             }
-            document.getElementById('interaction-modal').style.display = 'none';
-            showSuccessScreen('approved'); // <--- AQUI CHAMA A TELA DE OBRIGADO
+            window.location.reload();
         }
 
         window.onload = init;
         window.onpopstate = init;
     </script>
-
-    <section id="view-success" class="hidden min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
-        <div class="max-w-md">
-            <i id="success-icon" class="fas fa-check-circle text-6xl text-green-500 mb-6 anim-entry"></i>
-            <h2 id="success-title" class="text-3xl font-bold text-slate-900 mb-4 anim-entry delay-100">Tudo Certo!</h2>
-            <p id="success-desc" class="text-slate-600 text-lg anim-entry delay-200">Sua resposta foi registrada com sucesso.</p>
-            <div class="mt-8 text-xs text-slate-400">Pode fechar esta janela.</div>
-        </div>
-    </section>
 
     <section id="view-login" class="hidden split-screen">
         <div class="left-area">
