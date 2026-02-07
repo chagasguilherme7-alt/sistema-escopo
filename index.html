@@ -93,6 +93,8 @@
     <div id="fatal-error"><i class="fas fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i><h2 class="text-2xl font-bold text-slate-800">Ops! Algo deu errado.</h2><p id="error-msg" class="text-slate-600 mt-2 mb-6 max-w-md">...</p><button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button></div>
 
     <script>
+        console.log("Aprovado.app iniciando...");
+
         // --- FUNÇÕES DE SEGURANÇA (ANTI-CRASH) ---
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
@@ -147,18 +149,23 @@
 
         async function init() {
             try {
+                console.log("Inicializando sistema...");
                 const params = new URLSearchParams(window.location.search);
                 const view = params.get('view') || 'login';
                 const id = params.get('id');
+                
+                console.log("View:", view, "ID:", id);
                 
                 // Reset de Telas (Seguro)
                 document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
                 
                 const { data: { session } } = await db.auth.getSession();
                 state.user = session?.user;
+                console.log("Usuário:", state.user ? "Autenticado" : "Não autenticado");
 
                 if (view === 'public') {
-                    if(!id) throw new Error("Link inválido.");
+                    if(!id) throw new Error("Link inválido - ID não fornecido.");
+                    console.log("Carregando visualização pública para ID:", id);
                     await loadPublicProposal(id);
                     safeShow('view-public');
                 } else if (!state.user && view !== 'login') {
@@ -180,7 +187,7 @@
                 }
                 setTimeout(() => { const l = document.getElementById('system-loader'); if(l) l.style.display = 'none'; }, 500);
             } catch (e) { 
-                console.error(e);
+                console.error("Erro no init:", e);
                 const l = document.getElementById('system-loader'); if(l) l.style.display = 'none';
                 const f = document.getElementById('fatal-error'); if(f) f.style.display = 'flex';
                 safeText('error-msg', e.message);
@@ -298,6 +305,7 @@
         }
 
         async function loadEditor(id) {
+            console.log("Carregando editor para ID:", id);
             safeHide('editor-content');
             safeShow('editor-loading');
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
@@ -329,10 +337,13 @@
 
             let html = ''; let total = 0;
             const items = Array.isArray(d.items) ? d.items : [];
+            console.log("Itens para renderizar:", items.length);
+            
             items.forEach((i,x) => {
                 const t = (i.qty||0)*(i.price||0); total+=t;
                 html += `<div class="bg-white border p-4 rounded-lg mb-2 relative group">${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}<div class="grid grid-cols-12 gap-2 mb-2"><div class="col-span-8"><label class="text-[10px] uppercase font-bold text-slate-400">Item</label><input class="w-full font-bold bg-transparent outline-none" value="${i.name}" onchange="upItem(${x},'name',this.value)" ${isLocked?'disabled':''}></div><div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-400 text-center block">Qtd</label><input type="number" class="w-full text-center bg-slate-50 rounded" value="${i.qty}" onchange="upItem(${x},'qty',this.value)" ${isLocked?'disabled':''}></div><div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-400 text-right block">$$</label><input type="number" class="w-full text-right bg-slate-50 rounded" value="${i.price}" onchange="upItem(${x},'price',this.value)" ${isLocked?'disabled':''}></div></div><textarea class="w-full text-xs text-slate-500 bg-transparent outline-none resize-none" rows="1" onchange="upItem(${x},'description',this.value)" placeholder="Descrição técnica..." ${isLocked?'disabled':''}>${i.description||''}</textarea></div>`;
             });
+            
             setHTML('ed-items', html);
             safeText('ed-total', total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
 
@@ -359,13 +370,26 @@
         function upVal(k,v) { if(k.startsWith('c-')) state.data.client[k.substring(2)] = v; else if(k.startsWith('t-')) state.data.terms[k.substring(2)] = v; else if(k==='s-phone') { state.data.settings.myPhone=v; localStorage.setItem('escopo_phone',v); } else if(k==='s-type') { state.data.settings.serviceType = v; } }
         function upItem(i,f,v) { const it=state.data.items[i]; if(f==='qty'||f==='price') it[f]=parseFloat(v)||0; else it[f]=v; renderEditor(); }
         
-        // --- CORREÇÃO DO ADICIONAR ITEM ---
         function addItem() { 
+            console.log("Adicionando item...");
             if(!Array.isArray(state.data.items)) state.data.items = [];
-            state.data.items.push({name:'',description:'',qty:1,price:0,type:state.version.version_number>1?'addon':'original'}); 
+            state.data.items.push({
+                name: 'Novo Item',
+                description: '',
+                qty: 1,
+                price: 0,
+                type: state.version?.version_number > 1 ? 'addon' : 'original'
+            }); 
+            console.log("Itens após adicionar:", state.data.items.length);
             renderEditor(); 
         }
-        function rmItem(i) { state.data.items.splice(i, 1); renderEditor(); }
+        
+        function rmItem(i) { 
+            if(confirm("Remover este item?")) {
+                state.data.items.splice(i, 1); 
+                renderEditor(); 
+            }
+        }
         
         function generatePayment() {
             const total = state.data.items.reduce((acc, i) => acc + (i.qty * i.price), 0);
@@ -410,27 +434,74 @@
         }
 
         async function share() {
+            console.log("Gerando link para compartilhar...");
+            
+            // Primeiro salva
             await save();
+            
+            // Garante que temos o ID da versão
+            if (!state.version?.id) {
+                alert("Erro: Não foi possível gerar o link. Tente salvar novamente.");
+                return;
+            }
+            
+            // Gera URL correta
             const url = `${window.location.origin}${window.location.pathname}?view=public&id=${state.version.id}`;
-            navigator.clipboard.writeText(url); alert("Link copiado! Envie para o cliente.");
+            
+            console.log("URL para compartilhar:", url);
+            
+            // Copia para área de transferência
+            try {
+                await navigator.clipboard.writeText(url);
+                alert("✅ Link copiado para a área de transferência!\n\nEnvie este link para seu cliente:\n" + url);
+            } catch (err) {
+                console.error("Erro ao copiar:", err);
+                // Fallback manual
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert("✅ Link copiado! Envie para o cliente.");
+            }
         }
 
         // --- PUBLIC INTERACTION FLOW ---
         async function loadPublicProposal(id) {
             try {
+                console.log("Carregando proposta pública com ID:", id);
                 safeShow('public-loading');
-                const { data: v } = await db.from('versions').select('*, projects(name)').eq('id', id).maybeSingle();
-                if (!v) throw new Error("Orçamento não encontrado.");
-                state.version = v; state.data = normalizeData(v.items);
+                
+                const { data: v, error } = await db.from('versions')
+                    .select('*, projects(name)')
+                    .eq('id', id)
+                    .maybeSingle();
+                    
+                if (error) {
+                    console.error("Erro Supabase:", error);
+                    throw error;
+                }
+                
+                if (!v) {
+                    console.error("Nenhum dado retornado para ID:", id);
+                    throw new Error("Orçamento não encontrado.");
+                }
+                
+                console.log("Dados carregados:", v);
+                state.version = v; 
+                state.data = normalizeData(v.items);
                 const d = state.data;
                 
                 safeText('doc-title', v.projects?.name);
-                safeText('doc-id', `#${v.project_id.substr(0,4).toUpperCase()}-${v.version_number}`);
+                safeText('doc-id', `#${v.project_id ? v.project_id.substr(0,4).toUpperCase() : 'XXXX'}-${v.version_number}`);
                 safeText('doc-c-name', d.client.name);
                 
                 let html = '';
                 const items = Array.isArray(state.data.items) ? state.data.items : [];
-                items.forEach(i => { html += `<tr class="border-b border-slate-100"><td class="py-4 pl-4"><div class="font-bold text-slate-800">${i.name}<br><span class="font-normal text-xs text-slate-500">${i.description}</span></td><td class="text-center">${i.qty}</td><td class="text-right pr-4 font-bold">R$ ${(i.qty*i.price).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`; });
+                items.forEach(i => { 
+                    html += `<tr class="border-b border-slate-100"><td class="py-4 pl-4"><div class="font-bold text-slate-800">${i.name}<br><span class="font-normal text-xs text-slate-500">${i.description}</span></td><td class="text-center">${i.qty}</td><td class="text-right pr-4 font-bold">R$ ${(i.qty*i.price).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`; 
+                });
                 setHTML('doc-items-body', html);
                 
                 safeText('doc-total', parseFloat(v.total_value).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}));
@@ -453,12 +524,16 @@
                         `;
                     }
                 }
-                safeShow('view-public');
-            } catch(e) { 
+                
                 safeHide('public-loading');
-                const f = document.getElementById('fatal-error'); if(f) f.style.display = 'flex';
-                safeText('error-msg', "Link inválido ou expirado.");
-            } finally { safeHide('public-loading'); }
+                safeShow('view-public');
+                safeShow('public-content');
+            } catch(e) { 
+                console.error("Erro completo no loadPublicProposal:", e);
+                safeHide('public-loading');
+                safeText('error-msg', `Erro: ${e.message || "Link inválido ou expirado."}`);
+                safeShow('fatal-error');
+            }
         }
 
         // --- TELA DE SUCESSO ---
@@ -652,7 +727,7 @@
                     </div>
                     <div class="editor-section">
                         <div class="editor-header justify-between"><span><i class="fas fa-list-ol"></i> Escopo</span><button id="btn-add-item" onclick="addItem()" class="btn btn-primary text-xs py-1 px-3 bg-slate-800 border-none">+ Item</button></div>
-                        <div class="editor-body bg-slate-50 min-h-[300px]"><div id="ed-list"></div></div>
+                        <div class="editor-body bg-slate-50 min-h-[300px]"><div id="ed-items"></div></div>
                     </div>
                 </div>
                 <div class="overflow-y-auto pb-20 no-scrollbar">
