@@ -148,12 +148,78 @@
             } 
         };
 
-        // --- FUNÇÕES DO SISTEMA DE ALTERAÇÕES ---
+        // --- FUNÇÕES BÁSICAS (PRIMEIRO) ---
         
         // Criar ID único para item
         function generateItemId() {
             return 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         }
+        
+        function getFieldLabel(field) {
+            const labels = {
+                'name': 'Nome',
+                'description': 'Descrição',
+                'qty': 'Quantidade',
+                'price': 'Preço',
+                'type': 'Tipo'
+            };
+            return labels[field] || field;
+        }
+
+        // --- NORMALIZAÇÃO ROBUSTA (CORREÇÃO DE DADOS QUEBRADOS) ---
+        function normalizeData(dbData) {
+            const schema = { 
+                client: { name: '', doc: '', email: '', phone: '', address: '' }, 
+                location: { address: '', sameAsClient: true }, 
+                items: [], 
+                terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, 
+                settings: { myPhone: '', serviceType: 'Outros' }, 
+                history: [],
+                originalItems: [],
+                itemChanges: [],
+                pendingReview: false
+            };
+            
+            if (!dbData) return schema;
+
+            let rawItems = [];
+            if (Array.isArray(dbData.items)) { rawItems = dbData.items; }
+            else if (dbData.scope && Array.isArray(dbData.scope)) { rawItems = dbData.scope; }
+
+            const cleanItems = rawItems.map((i, index) => ({
+                ...i,
+                id: i.id || generateItemId(),
+                name: i.name || '',
+                description: i.description || '',
+                qty: parseFloat(i.qty) || 1,
+                price: parseFloat(i.price) || 0,
+                type: i.type || 'original'
+            }));
+            
+            return { 
+                client: { ...schema.client, ...(dbData.client || {}) }, 
+                location: { ...schema.location, ...(dbData.location || {}) }, 
+                items: cleanItems, 
+                terms: { ...schema.terms, ...(dbData.terms || {}) }, 
+                settings: { ...schema.settings, ...(dbData.settings || {}) }, 
+                history: Array.isArray(dbData.history) ? dbData.history : [],
+                originalItems: Array.isArray(dbData.originalItems) ? dbData.originalItems : JSON.parse(JSON.stringify(cleanItems)),
+                itemChanges: Array.isArray(dbData.itemChanges) ? dbData.itemChanges : [],
+                pendingReview: dbData.pendingReview || false
+            };
+        }
+
+        function logHistory(action, user, detail) {
+            if (!state.data.history) state.data.history = [];
+            state.data.history.push({ 
+                date: new Date().toISOString(), 
+                action: action, 
+                user: user, 
+                detail: detail || '' 
+            });
+        }
+
+        // --- FUNÇÕES DO SISTEMA DE ALTERAÇÕES (AGORA DEFINIDAS ANTES DE SEREM USADAS) ---
         
         // Registrar alteração em um item
         function logItemChange(itemId, action, field, oldValue, newValue, reason = '') {
@@ -183,7 +249,8 @@
         
         // Verificar se há alterações pendentes
         function hasPendingChanges() {
-            return state.data.itemChanges?.some(change => !change.reviewed && change.user === 'client') || false;
+            if (!state.data.itemChanges) return false;
+            return state.data.itemChanges.some(change => !change.reviewed && change.user === 'client');
         }
         
         // Obter alterações de um item específico
@@ -261,7 +328,7 @@
             
             Object.keys(changesByItem).forEach(itemId => {
                 const item = state.data.items.find(i => i.id === itemId) || { name: 'Item removido' };
-                const changes = changesByItem[itemId];
+                const changes = changesByItem[change.itemId];
                 
                 html += `<div class="mb-6 p-4 border rounded-lg bg-white">
                     <div class="font-bold text-slate-800 mb-2 flex items-center">
@@ -343,70 +410,6 @@
             oldContent.innerHTML = oldHtml;
             newContent.innerHTML = newHtml;
             modal.style.display = 'flex';
-        }
-        
-        function getFieldLabel(field) {
-            const labels = {
-                'name': 'Nome',
-                'description': 'Descrição',
-                'qty': 'Quantidade',
-                'price': 'Preço',
-                'type': 'Tipo'
-            };
-            return labels[field] || field;
-        }
-
-        // --- NORMALIZAÇÃO ROBUSTA (CORREÇÃO DE DADOS QUEBRADOS) ---
-        function normalizeData(dbData) {
-            const schema = { 
-                client: { name: '', doc: '', email: '', phone: '', address: '' }, 
-                location: { address: '', sameAsClient: true }, 
-                items: [], 
-                terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, 
-                settings: { myPhone: '', serviceType: 'Outros' }, 
-                history: [],
-                originalItems: [],
-                itemChanges: [],
-                pendingReview: false
-            };
-            
-            if (!dbData) return schema;
-
-            let rawItems = [];
-            if (Array.isArray(dbData.items)) { rawItems = dbData.items; }
-            else if (dbData.scope && Array.isArray(dbData.scope)) { rawItems = dbData.scope; }
-
-            const cleanItems = rawItems.map((i, index) => ({
-                ...i,
-                id: i.id || generateItemId(),
-                name: i.name || '',
-                description: i.description || '',
-                qty: parseFloat(i.qty) || 1,
-                price: parseFloat(i.price) || 0,
-                type: i.type || 'original'
-            }));
-            
-            return { 
-                client: { ...schema.client, ...(dbData.client || {}) }, 
-                location: { ...schema.location, ...(dbData.location || {}) }, 
-                items: cleanItems, 
-                terms: { ...schema.terms, ...(dbData.terms || {}) }, 
-                settings: { ...schema.settings, ...(dbData.settings || {}) }, 
-                history: Array.isArray(dbData.history) ? dbData.history : [],
-                originalItems: Array.isArray(dbData.originalItems) ? dbData.originalItems : JSON.parse(JSON.stringify(cleanItems)),
-                itemChanges: Array.isArray(dbData.itemChanges) ? dbData.itemChanges : [],
-                pendingReview: dbData.pendingReview || false
-            };
-        }
-
-        function logHistory(action, user, detail) {
-            if (!state.data.history) state.data.history = [];
-            state.data.history.push({ 
-                date: new Date().toISOString(), 
-                action: action, 
-                user: user, 
-                detail: detail || '' 
-            });
         }
 
         async function init() {
@@ -602,7 +605,8 @@
             const changeBtn = document.getElementById('ed-change-btn');
             if (changeBtn) {
                 if (hasPendingChanges && state.user) {
-                    changeBtn.innerHTML = `<i class="fas fa-exchange-alt mr-2"></i> Ver Alterações (${state.data.itemChanges.filter(c => !c.reviewed && c.user === 'client').length})`;
+                    const pendingCount = state.data.itemChanges.filter(c => !c.reviewed && c.user === 'client').length;
+                    changeBtn.innerHTML = `<i class="fas fa-exchange-alt mr-2"></i> Ver Alterações (${pendingCount})`;
                     changeBtn.className = "btn btn-secondary bg-amber-500 border-amber-600 text-white hover:bg-amber-600 text-xs";
                     changeBtn.style.display = 'inline-flex';
                 } else {
