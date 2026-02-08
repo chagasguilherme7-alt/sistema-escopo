@@ -83,18 +83,44 @@
         .btn-secondary { background: white; color: #475569; border: 1px solid #e2e8f0; }
         .btn-secondary:hover { background: #f8fafc; border-color: #cbd5e1; }
 
-        /* NOVOS ESTILOS PARA CONTROLE DE ALTERAÇÕES (mantendo o estilo original) */
-        .item-original { border-left: 3px solid #3b82f6; }
-        .item-altered { border-left: 3px solid #f59e0b; background-color: #fffbeb; }
-        .item-added { border-left: 3px solid #10b981; background-color: #f0fdf4; }
-        .item-removed { border-left: 3px solid #ef4444; background-color: #fef2f2; opacity: 0.6; }
-        .change-badge { font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
-        .change-history-item { border-left: 2px solid #e2e8f0; padding-left: 12px; margin-left: 12px; }
-        
-        /* Botão para ver alterações */
-        .btn-change-view { background: #f59e0b; color: white; border: none; }
-        .btn-change-view:hover { background: #d97706; }
-        
+        /* --- NOVOS ESTILOS PARA O HISTÓRICO DE ALTERAÇÕES --- */
+        .diff-box {
+            background-color: #fff7ed; /* Fundo Laranja claro */
+            border: 1px dashed #f97316;
+            border-radius: 6px;
+            padding: 8px;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: #9a3412;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .diff-tag {
+            background: #f97316;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+        }
+        .old-val {
+            text-decoration: line-through;
+            color: #ef4444; /* Vermelho */
+            margin-right: 4px;
+        }
+        .new-val {
+            color: #16a34a; /* Verde */
+            font-weight: bold;
+        }
+        .item-modified {
+            border-left: 4px solid #f59e0b !important; /* Borda Laranja indicando edição */
+        }
+        .item-new {
+            border-left: 4px solid #10b981 !important; /* Borda Verde indicando novo item */
+        }
+
         @media (max-width: 1024px) { .panel-grid { grid-template-columns: 1fr; height: auto; } }
         @media print { .no-print { display: none !important; } body { background: white; } }
     </style>
@@ -107,16 +133,13 @@
     <script>
         console.log("Aprovado.app iniciando...");
 
-        // ============================================
-        // 1. FUNÇÕES BÁSICAS E AUXILIARES (PRIMEIRO)
-        // ============================================
-        
         // --- FUNÇÕES DE SEGURANÇA (ANTI-CRASH) ---
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
         function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
         function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
         
+        // Novo Helper: Mostra elemento sem erro se ele não existir
         function safeShow(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
         function safeHide(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
 
@@ -127,265 +150,16 @@
             return false;
         };
 
-        // ============================================
-        // 2. CONFIGURAÇÃO DO SUPABASE
-        // ============================================
         const SUPABASE_URL = 'https://outasfgohiiyndsjciau.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91dGFzZmdvaGlpeW5kc2pjaWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4MTk4ODIsImV4cCI6MjA4NTM5NTg4Mn0.4yvGfYbQYf806FJcs34yPGkuU_kVTYHW8mBtbU3JD80';
         const { createClient } = supabase;
         const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ============================================
-        // 3. ESTADO GLOBAL
-        // ============================================
-        let state = { 
-            user: null, 
-            project: null, 
-            version: null, 
-            projectsCache: [], 
-            data: { 
-                client: {}, 
-                location: {}, 
-                items: [], 
-                terms: {}, 
-                settings: {}, 
-                history: [],
-                // NOVO: Sistema de controle de alterações
-                originalItems: [],      // Cópia dos itens originais
-                itemChanges: [],        // Histórico de alterações por item
-                pendingReview: false    // Flag para alterações pendentes
-            } 
-        };
+        let state = { user: null, project: null, version: null, projectsCache: [], data: { client: {}, location: {}, items: [], terms: {}, settings: {}, history: [] }, previousData: null };
 
-        // ============================================
-        // 4. FUNÇÕES DO SISTEMA DE ALTERAÇÕES
-        // (DEFINIDAS ANTES DE QUALQUER USO)
-        // ============================================
-        
-        // Criar ID único para item
-        function generateItemId() {
-            return 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        }
-        
-        function getFieldLabel(field) {
-            const labels = {
-                'name': 'Nome',
-                'description': 'Descrição',
-                'qty': 'Quantidade',
-                'price': 'Preço',
-                'type': 'Tipo'
-            };
-            return labels[field] || field;
-        }
-
-        // Registrar alteração em um item
-        function logItemChange(itemId, action, field, oldValue, newValue, reason = '') {
-            if (!state.data.itemChanges) state.data.itemChanges = [];
-            
-            const change = {
-                id: 'change_' + Date.now(),
-                itemId: itemId,
-                action: action, // 'created', 'updated', 'deleted'
-                field: field,
-                oldValue: oldValue,
-                newValue: newValue,
-                timestamp: new Date().toISOString(),
-                user: state.user ? 'provider' : 'client',
-                reason: reason,
-                reviewed: false
-            };
-            
-            state.data.itemChanges.push(change);
-            return change;
-        }
-        
-        // Salvar cópia dos itens originais
-        function saveOriginalItems() {
-            state.data.originalItems = JSON.parse(JSON.stringify(state.data.items));
-        }
-        
-        // Verificar se há alterações pendentes
-        function hasPendingChanges() {
-            if (!state.data.itemChanges) return false;
-            return state.data.itemChanges.some(change => !change.reviewed && change.user === 'client');
-        }
-        
-        // Obter alterações de um item específico
-        function getItemChanges(itemId) {
-            if (!state.data.itemChanges) return [];
-            return state.data.itemChanges.filter(change => change.itemId === itemId);
-        }
-        
-        // Aceitar todas as alterações pendentes
-        function acceptAllChanges() {
-            if (!state.data.itemChanges) return;
-            
-            state.data.itemChanges.forEach(change => {
-                if (!change.reviewed && change.user === 'client') {
-                    change.reviewed = true;
-                    change.reviewedBy = state.user?.id || 'provider';
-                    change.reviewedAt = new Date().toISOString();
-                }
-            });
-            
-            // Atualizar itens originais para a versão atual
-            saveOriginalItems();
-            logHistory('changes_accepted', 'provider', 'Todas as alterações foram aceitas');
-            alert('Alterações aceitas! A versão original foi atualizada.');
-            renderEditor();
-        }
-        
-        // Rejeitar todas as alterações pendentes
-        function rejectAllChanges() {
-            if (!confirm("Rejeitar TODAS as alterações do cliente e voltar à versão original?")) return;
-            
-            // Restaurar itens originais
-            if (state.data.originalItems && state.data.originalItems.length > 0) {
-                state.data.items = JSON.parse(JSON.stringify(state.data.originalItems));
-                
-                // Marcar alterações como rejeitadas
-                state.data.itemChanges.forEach(change => {
-                    if (!change.reviewed && change.user === 'client') {
-                        change.reviewed = true;
-                        change.reviewedBy = state.user?.id || 'provider';
-                        change.reviewedAt = new Date().toISOString();
-                        change.status = 'rejected';
-                    }
-                });
-                
-                logHistory('changes_rejected', 'provider', 'Todas as alterações foram rejeitadas');
-                alert('Alterações rejeitadas! Restaurado para versão original.');
-                renderEditor();
-            } else {
-                alert('Não há versão original salva para restaurar.');
-            }
-        }
-        
-        // Mostrar histórico de alterações
-        function showChangeHistory() {
-            const modal = document.getElementById('change-history-modal');
-            const content = document.getElementById('change-history-content');
-            
-            if (!state.data.itemChanges || state.data.itemChanges.length === 0) {
-                content.innerHTML = '<div class="text-center py-8 text-slate-500">Nenhuma alteração registrada.</div>';
-                modal.style.display = 'flex';
-                return;
-            }
-            
-            let html = '';
-            
-            // Agrupar alterações por item
-            const changesByItem = {};
-            state.data.itemChanges.forEach(change => {
-                if (!changesByItem[change.itemId]) {
-                    changesByItem[change.itemId] = [];
-                }
-                changesByItem[change.itemId].push(change);
-            });
-            
-            Object.keys(changesByItem).forEach(itemId => {
-                const item = state.data.items.find(i => i.id === itemId) || { name: 'Item removido' };
-                const changes = changesByItem[itemId];
-                
-                html += `<div class="mb-6 p-4 border rounded-lg bg-white">
-                    <div class="font-bold text-slate-800 mb-2 flex items-center">
-                        <i class="fas fa-cube mr-2"></i> ${item.name}
-                        <span class="text-xs font-normal text-slate-500 ml-2">(${changes.length} alterações)</span>
-                    </div>`;
-                
-                changes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach(change => {
-                    const date = new Date(change.timestamp).toLocaleString('pt-BR');
-                    const userLabel = change.user === 'provider' ? 'Você' : 'Cliente';
-                    const reviewedBadge = change.reviewed ? 
-                        `<span class="text-xs ${change.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'} px-2 py-1 rounded ml-2">${change.status === 'rejected' ? 'Rejeitada' : 'Revisada'}</span>` : 
-                        `<span class="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded ml-2">Pendente</span>`;
-                    
-                    html += `<div class="change-history-item ml-4 mb-3">
-                        <div class="text-xs text-slate-500 mb-1">${date} • ${userLabel} ${reviewedBadge}</div>
-                        <div class="text-sm">
-                            <span class="font-medium">${getFieldLabel(change.field)}:</span> 
-                            ${change.oldValue ? `<span class="text-red-500 line-through mr-1">${change.oldValue}</span>` : ''}
-                            ${change.action !== 'deleted' ? `<i class="fas fa-arrow-right text-xs text-slate-400 mx-1"></i><span class="text-green-600 font-medium">${change.newValue}</span>` : ''}
-                        </div>
-                        ${change.reason ? `<div class="text-xs text-slate-600 mt-1 bg-slate-50 p-2 rounded"><i class="fas fa-comment mr-1"></i> ${change.reason}</div>` : ''}
-                    </div>`;
-                });
-                
-                html += `</div>`;
-            });
-            
-            content.innerHTML = html;
-            modal.style.display = 'flex';
-        }
-        
-        // Mostrar comparação lado a lado
-        function showItemComparison() {
-            const modal = document.getElementById('comparison-modal');
-            const oldContent = document.getElementById('comparison-old');
-            const newContent = document.getElementById('comparison-new');
-            
-            // Versão original
-            let oldHtml = '<h4 class="font-bold text-slate-700 mb-3">Versão Original</h4>';
-            if (state.data.originalItems && state.data.originalItems.length > 0) {
-                state.data.originalItems.forEach(item => {
-                    oldHtml += `<div class="mb-3 p-3 border rounded bg-slate-50">
-                        <div class="font-medium text-slate-800">${item.name}</div>
-                        <div class="text-xs text-slate-500 mt-1">${item.description || 'Sem descrição'}</div>
-                        <div class="flex justify-between text-sm mt-2">
-                            <span>Qtd: ${item.qty}</span>
-                            <span class="font-bold">R$ ${(item.qty * item.price).toFixed(2)}</span>
-                        </div>
-                    </div>`;
-                });
-            } else {
-                oldHtml += '<div class="text-slate-400 text-center py-4">Nenhum item na versão original</div>';
-            }
-            
-            // Versão atual
-            let newHtml = '<h4 class="font-bold text-slate-700 mb-3">Versão Atual</h4>';
-            if (state.data.items && state.data.items.length > 0) {
-                state.data.items.forEach(item => {
-                    const changes = getItemChanges(item.id);
-                    const hasChanges = changes.some(c => !c.reviewed);
-                    
-                    newHtml += `<div class="mb-3 p-3 border rounded ${hasChanges ? 'bg-amber-50 border-amber-200' : 'bg-slate-50'}">
-                        <div class="font-medium text-slate-800 flex items-center">
-                            ${item.name}
-                            ${hasChanges ? '<span class="ml-2 text-xs bg-amber-500 text-white px-2 py-1 rounded">Alterado</span>' : ''}
-                        </div>
-                        <div class="text-xs text-slate-500 mt-1">${item.description || 'Sem descrição'}</div>
-                        <div class="flex justify-between text-sm mt-2">
-                            <span>Qtd: ${item.qty}</span>
-                            <span class="font-bold">R$ ${(item.qty * item.price).toFixed(2)}</span>
-                        </div>
-                    </div>`;
-                });
-            } else {
-                newHtml += '<div class="text-slate-400 text-center py-4">Nenhum item na versão atual</div>';
-            }
-            
-            oldContent.innerHTML = oldHtml;
-            newContent.innerHTML = newHtml;
-            modal.style.display = 'flex';
-        }
-
-        // ============================================
-        // 5. FUNÇÕES DE NEGÓCIO PRINCIPAIS
-        // ============================================
-
-        // --- NORMALIZAÇÃO ROBUSTA (CORREÇÃO DE DADOS QUEBRADOS) ---
+        // --- NORMALIZAÇÃO ROBUSTA (CORREÇÃO DE DADOS QUEBRADOS E GERAÇÃO DE IDs) ---
         function normalizeData(dbData) {
-            const schema = { 
-                client: { name: '', doc: '', email: '', phone: '', address: '' }, 
-                location: { address: '', sameAsClient: true }, 
-                items: [], 
-                terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, 
-                settings: { myPhone: '', serviceType: 'Outros' }, 
-                history: [],
-                originalItems: [],
-                itemChanges: [],
-                pendingReview: false
-            };
+            const schema = { client: { name: '', doc: '', email: '', phone: '', address: '' }, location: { address: '', sameAsClient: true }, items: [], terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, settings: { myPhone: '', serviceType: 'Outros' }, history: [] };
             
             if (!dbData) return schema;
 
@@ -393,14 +167,14 @@
             if (Array.isArray(dbData.items)) { rawItems = dbData.items; }
             else if (dbData.scope && Array.isArray(dbData.scope)) { rawItems = dbData.scope; }
 
-            const cleanItems = rawItems.map((i, index) => ({
-                ...i,
-                id: i.id || generateItemId(),
-                name: i.name || '',
-                description: i.description || '',
-                qty: parseFloat(i.qty) || 1,
-                price: parseFloat(i.price) || 0,
-                type: i.type || 'original'
+            // GERA UM ID SE NÃO EXISTIR (Para rastrear mudanças)
+            const cleanItems = rawItems.map(i => ({ 
+                id: i.id || 'item_' + Math.random().toString(36).substr(2, 9), // ID Único
+                name: i.name || '', 
+                description: i.description || '', 
+                qty: parseFloat(i.qty) || 1, 
+                price: parseFloat(i.price) || 0, 
+                type: i.type || 'original' 
             }));
             
             return { 
@@ -409,21 +183,60 @@
                 items: cleanItems, 
                 terms: { ...schema.terms, ...(dbData.terms || {}) }, 
                 settings: { ...schema.settings, ...(dbData.settings || {}) }, 
-                history: Array.isArray(dbData.history) ? dbData.history : [],
-                originalItems: Array.isArray(dbData.originalItems) ? dbData.originalItems : JSON.parse(JSON.stringify(cleanItems)),
-                itemChanges: Array.isArray(dbData.itemChanges) ? dbData.itemChanges : [],
-                pendingReview: dbData.pendingReview || false
+                history: Array.isArray(dbData.history) ? dbData.history : [] 
             };
         }
 
         function logHistory(action, user, detail) {
             if (!state.data.history) state.data.history = [];
-            state.data.history.push({ 
-                date: new Date().toISOString(), 
-                action: action, 
-                user: user, 
-                detail: detail || '' 
-            });
+            state.data.history.push({ date: new Date().toISOString(), action: action, user: user, detail: detail || '' });
+        }
+
+        async function init() {
+            try {
+                console.log("Inicializando sistema...");
+                const params = new URLSearchParams(window.location.search);
+                const view = params.get('view') || 'login';
+                const id = params.get('id');
+                
+                console.log("View:", view, "ID:", id);
+                
+                // Reset de Telas (Seguro)
+                document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
+                
+                const { data: { session } } = await db.auth.getSession();
+                state.user = session?.user;
+                console.log("Usuário:", state.user ? "Autenticado" : "Não autenticado");
+
+                if (view === 'public') {
+                    if(!id) throw new Error("Link inválido - ID não fornecido.");
+                    console.log("Carregando visualização pública para ID:", id);
+                    await loadPublicProposal(id);
+                    safeShow('view-public');
+                } else if (!state.user && view !== 'login') {
+                    window.history.replaceState(null, '', '?view=login');
+                    safeShow('view-login');
+                    initRotator();
+                } else if (state.user && view === 'login') {
+                    goTo('dashboard');
+                } else {
+                    if(view === 'dashboard') await loadDashboard();
+                    if(view === 'editor' && id) await loadEditor(id);
+                    
+                    if(view !== 'login') {
+                        safeShow(`view-${view}`);
+                    } else { 
+                        safeShow('view-login'); 
+                        initRotator(); 
+                    }
+                }
+                setTimeout(() => { const l = document.getElementById('system-loader'); if(l) l.style.display = 'none'; }, 500);
+            } catch (e) { 
+                console.error("Erro no init:", e);
+                const l = document.getElementById('system-loader'); if(l) l.style.display = 'none';
+                const f = document.getElementById('fatal-error'); if(f) f.style.display = 'flex';
+                safeText('error-msg', e.message);
+            }
         }
 
         function initRotator() {
@@ -540,18 +353,31 @@
             console.log("Carregando editor para ID:", id);
             safeHide('editor-content');
             safeShow('editor-loading');
+
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
             state.project = proj;
+            
+            // Carrega TODAS as versões
             const { data: vers } = await db.from('versions').select('*').eq('project_id', id).order('version_number', { ascending: true });
+            
+            // Versão Atual (A última)
             state.version = vers[vers.length - 1];
             state.data = normalizeData(state.version.items);
+
+            // --- Lógica de Comparação (DIFF) ---
+            state.previousData = null;
+            if (state.version.version_number > 1) {
+                // Pega a penúltima versão para comparar
+                const prevVer = vers[vers.length - 2];
+                if (prevVer) {
+                    state.previousData = normalizeData(prevVer.items);
+                    console.log("Versão anterior carregada para comparação:", state.previousData);
+                }
+            }
+            // ----------------------------------
+
             if(state.version.notes && !state.data.terms.obs) state.data.terms.obs = state.version.notes;
             if(!state.data.settings.myPhone) state.data.settings.myPhone = localStorage.getItem('escopo_phone') || '';
-            
-            // Se é a primeira vez carregando e está em negociação, salvar cópia original
-            if (state.version.status === 'negotiating' && (!state.data.originalItems || state.data.originalItems.length === 0)) {
-                saveOriginalItems();
-            }
             
             renderEditor();
             safeHide('editor-loading');
@@ -561,87 +387,81 @@
         function renderEditor() {
             const d = state.data; 
             const isLocked = state.version.status === 'approved' || state.version.status === 'canceled';
-            const isNegotiating = state.version.status === 'negotiating' && !state.user; // Cliente visualizando
-            const hasPendingChanges = hasPendingChanges();
             
             safeText('ed-title', state.project.name);
             safeText('ed-ver', `V${state.version.version_number}`);
             
             const badge = document.getElementById('ed-status-badge');
             if(badge) {
-                badge.className = `status-badge ml-2 ${state.version.status === 'approved' ? 'st-approved' : state.version.status === 'canceled' ? 'st-canceled' : state.version.status === 'negotiating' ? 'st-negotiating' : 'st-draft'}`;
-                badge.innerText = state.version.status === 'negotiating' ? 'EM NEGOCIAÇÃO' : state.version.status.toUpperCase();
-            }
-            
-            // Botão de controle de alterações (só mostra se houver alterações pendentes)
-            const changeBtn = document.getElementById('ed-change-btn');
-            if (changeBtn) {
-                if (hasPendingChanges && state.user) {
-                    const pendingCount = state.data.itemChanges ? state.data.itemChanges.filter(c => !c.reviewed && c.user === 'client').length : 0;
-                    changeBtn.innerHTML = `<i class="fas fa-exchange-alt mr-2"></i> Ver Alterações (${pendingCount})`;
-                    changeBtn.className = "btn btn-secondary bg-amber-500 border-amber-600 text-white hover:bg-amber-600 text-xs";
-                    changeBtn.style.display = 'inline-flex';
-                } else {
-                    changeBtn.style.display = 'none';
-                }
+                badge.className = `status-badge ml-2 ${state.version.status === 'approved' ? 'st-approved' : state.version.status === 'canceled' ? 'st-canceled' : 'st-draft'}`;
+                badge.innerText = state.version.status.toUpperCase();
             }
             
             setVal('c-name', d.client.name); setVal('c-doc', d.client.doc); setVal('c-phone', d.client.phone); setVal('c-email', d.client.email); setVal('c-addr', d.client.address); setVal('in-s-myphone', d.settings.myPhone);
             const svc = document.getElementById('s-type'); if(svc) svc.value = d.settings.serviceType || 'Outros';
             setVal('t-dead', d.terms.deadline); setVal('t-val', d.terms.validity); setVal('t-obs', d.terms.obs);
 
-            let html = ''; let total = 0;
+            let html = ''; 
+            let total = 0;
             const items = Array.isArray(d.items) ? d.items : [];
             
-            items.forEach((item, index) => {
-                const t = (item.qty||0)*(item.price||0); total+=t;
+            items.forEach((i, x) => {
+                const t = (i.qty||0)*(i.price||0); 
+                total += t;
+
+                // --- LÓGICA DE COMPARAÇÃO VISUAL ---
+                let diffHtml = '';
+                let cardClass = '';
                 
-                // Verificar se este item tem alterações não revisadas
-                const itemChanges = getItemChanges(item.id);
-                const hasUnreviewedChanges = itemChanges.some(change => !change.reviewed && change.user === 'client');
-                
-                // Determinar classe baseada no status
-                let itemClass = 'item-original';
-                if (hasUnreviewedChanges) {
-                    itemClass = 'item-altered';
-                } else if (!state.data.originalItems?.some(orig => orig.id === item.id)) {
-                    itemClass = 'item-added';
+                if (state.previousData) {
+                    // Tenta achar o mesmo item na versão anterior pelo ID
+                    const oldItem = state.previousData.items.find(old => old.id === i.id);
+
+                    if (!oldItem) {
+                        // Se não achou, é um item NOVO
+                        cardClass = 'item-new';
+                        diffHtml = `<div class="diff-box"><span class="diff-tag">NOVO</span> Este item foi adicionado nesta revisão.</div>`;
+                    } else {
+                        // Se achou, verifica se mudou algo
+                        let changes = [];
+                        if (oldItem.price !== i.price) changes.push(`Preço: <span class="old-val">R$${oldItem.price}</span> <i class="fas fa-arrow-right text-xs"></i> <span class="new-val">R$${i.price}</span>`);
+                        if (oldItem.qty !== i.qty) changes.push(`Qtd: <span class="old-val">${oldItem.qty}</span> <i class="fas fa-arrow-right text-xs"></i> <span class="new-val">${i.qty}</span>`);
+                        if (oldItem.description !== i.description) changes.push(`Descrição técnica alterada`);
+                        if (oldItem.name !== i.name) changes.push(`Nome alterado`);
+
+                        if (changes.length > 0) {
+                            cardClass = 'item-modified';
+                            diffHtml = `<div class="diff-box"><span class="diff-tag">ALTERADO</span> <span>${changes.join(' &bull; ')}</span></div>`;
+                        }
+                    }
                 }
-                
-                html += `<div class="${itemClass} bg-white border p-4 rounded-lg mb-2 relative group">
-                    ${!isLocked ? `<button onclick="rmItem(${index})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}
-                    
-                    ${hasUnreviewedChanges ? `<div class="absolute top-2 left-2 text-xs bg-amber-500 text-white px-2 py-1 rounded">Alterado</div>` : ''}
-                    
+                // -----------------------------------
+
+                html += `
+                <div class="bg-white border p-4 rounded-lg mb-2 relative group transition-all ${cardClass}">
+                    ${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}
                     <div class="grid grid-cols-12 gap-2 mb-2">
                         <div class="col-span-8">
                             <label class="text-[10px] uppercase font-bold text-slate-400">Item</label>
-                            <input class="w-full font-bold bg-transparent outline-none" value="${item.name}" onchange="upItem(${index},'name',this.value)" ${isLocked?'disabled':''}>
+                            <input class="w-full font-bold bg-transparent outline-none" value="${i.name}" onchange="upItem(${x},'name',this.value)" ${isLocked?'disabled':''}>
                         </div>
                         <div class="col-span-2">
                             <label class="text-[10px] uppercase font-bold text-slate-400 text-center block">Qtd</label>
-                            <input type="number" class="w-full text-center bg-slate-50 rounded" value="${item.qty}" onchange="upItem(${index},'qty',this.value)" ${isLocked?'disabled':''}>
+                            <input type="number" class="w-full text-center bg-slate-50 rounded" value="${i.qty}" onchange="upItem(${x},'qty',this.value)" ${isLocked?'disabled':''}>
                         </div>
                         <div class="col-span-2">
                             <label class="text-[10px] uppercase font-bold text-slate-400 text-right block">$$</label>
-                            <input type="number" class="w-full text-right bg-slate-50 rounded" value="${item.price}" onchange="upItem(${index},'price',this.value)" ${isLocked?'disabled':''}>
+                            <input type="number" class="w-full text-right bg-slate-50 rounded" value="${i.price}" onchange="upItem(${x},'price',this.value)" ${isLocked?'disabled':''}>
                         </div>
                     </div>
-                    
-                    <textarea class="w-full text-xs text-slate-500 bg-transparent outline-none resize-none" rows="1" onchange="upItem(${index},'description',this.value)" placeholder="Descrição técnica..." ${isLocked?'disabled':''}>${item.description||''}</textarea>
-                    
-                    ${itemChanges.length > 0 ? `
-                    <div class="mt-2 text-xs text-slate-400">
-                        <i class="fas fa-history mr-1"></i> ${itemChanges.length} alteração(ões)
-                        ${isNegotiating ? ' • Aguardando resposta' : ''}
-                    </div>` : ''}
+                    <textarea class="w-full text-xs text-slate-500 bg-transparent outline-none resize-none" rows="1" onchange="upItem(${x},'description',this.value)" placeholder="Descrição técnica..." ${isLocked?'disabled':''}>${i.description||''}</textarea>
+                    ${diffHtml}
                 </div>`;
             });
             
             setHTML('ed-items', html);
             safeText('ed-total', total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
 
-            // Histórico principal (mantido igual)
             let histHtml = '';
             if(d.history && d.history.length > 0) {
                 d.history.slice().reverse().forEach(h => {
@@ -655,113 +475,33 @@
             } else { histHtml = '<div class="text-xs text-slate-400 italic">Sem histórico registrado.</div>'; }
             setHTML('ed-history', histHtml);
 
-            // Ações (atualizadas para incluir controle de alterações)
             const actions = document.getElementById('ed-actions');
             if (actions) {
-                if (isLocked) { 
-                    actions.innerHTML = `<button onclick="createAddon()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg mb-2 shadow-lg"><i class="fas fa-copy mr-2"></i> Duplicar / Aditivo</button>`;
-                } else if (hasPendingChanges && state.user) {
-                    // Modo de revisão de alterações
-                    actions.innerHTML = `
-                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-                            <div class="font-bold text-amber-800 mb-2"><i class="fas fa-exclamation-circle mr-2"></i> Alterações Pendentes</div>
-                            <div class="text-sm text-amber-700 mb-3">O cliente solicitou alterações no escopo. Revise abaixo:</div>
-                            <div class="flex gap-2">
-                                <button onclick="acceptAllChanges()" class="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-bold text-sm"><i class="fas fa-check mr-1"></i> Aceitar Todas</button>
-                                <button onclick="rejectAllChanges()" class="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-bold text-sm"><i class="fas fa-times mr-1"></i> Rejeitar Todas</button>
-                            </div>
-                        </div>
-                        <button onclick="save()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg mb-2 shadow-lg"><i class="fas fa-save mr-2"></i> Salvar Alterações</button>
-                        <button onclick="changeStatus('canceled')" class="w-full py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-sm font-bold">Cancelar Orçamento</button>
-                    `;
-                } else {
-                    // Modo normal
-                    actions.innerHTML = `
-                        <button onclick="save()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg mb-2 shadow-lg"><i class="fas fa-save mr-2"></i> Salvar</button>
-                        <button onclick="changeStatus('canceled')" class="w-full py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-sm font-bold">Cancelar Orçamento</button>
-                    `;
-                }
+                if (isLocked) { actions.innerHTML = `<button onclick="createAddon()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg mb-2 shadow-lg"><i class="fas fa-copy mr-2"></i> Criar Revisão (V${state.version.version_number + 1})</button>`; } 
+                else { actions.innerHTML = `<button onclick="save()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg mb-2 shadow-lg"><i class="fas fa-save mr-2"></i> Salvar Alterações</button><button onclick="changeStatus('canceled')" class="w-full py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-sm font-bold">Cancelar Orçamento</button>`; }
             }
         }
 
-        function upVal(k,v) { 
-            if(k.startsWith('c-')) state.data.client[k.substring(2)] = v; 
-            else if(k.startsWith('t-')) state.data.terms[k.substring(2)] = v; 
-            else if(k==='s-phone') { 
-                state.data.settings.myPhone=v; 
-                localStorage.setItem('escopo_phone',v); 
-            } else if(k==='s-type') { 
-                state.data.settings.serviceType = v; 
-            } 
-        }
-        
-        function upItem(i, field, value) { 
-            const item = state.data.items[i];
-            if (!item) return;
-            
-            const oldValue = item[field];
-            
-            // Converter para número se for quantidade ou preço
-            if (field === 'qty' || field === 'price') {
-                item[field] = parseFloat(value) || 0;
-            } else {
-                item[field] = value;
-            }
-            
-            // Registrar alteração se o valor mudou
-            if (oldValue !== item[field]) {
-                let reason = '';
-                
-                // Se for cliente em modo de negociação, pedir motivo
-                if (!state.user && state.version.status === 'negotiating') {
-                    reason = prompt(`Por que você está alterando ${getFieldLabel(field)}? (opcional)`, '') || '';
-                }
-                
-                logItemChange(item.id, 'updated', field, oldValue, item[field], reason);
-            }
-            
-            renderEditor(); 
-        }
+        function upVal(k,v) { if(k.startsWith('c-')) state.data.client[k.substring(2)] = v; else if(k.startsWith('t-')) state.data.terms[k.substring(2)] = v; else if(k==='s-phone') { state.data.settings.myPhone=v; localStorage.setItem('escopo_phone',v); } else if(k==='s-type') { state.data.settings.serviceType = v; } }
+        function upItem(i,f,v) { const it=state.data.items[i]; if(f==='qty'||f==='price') it[f]=parseFloat(v)||0; else it[f]=v; renderEditor(); }
         
         function addItem() { 
             console.log("Adicionando item...");
             if(!Array.isArray(state.data.items)) state.data.items = [];
-            
-            const newItem = {
-                id: generateItemId(),
+            state.data.items.push({
+                id: 'item_' + Date.now(), // Gera ID baseado no tempo
                 name: 'Novo Item',
                 description: '',
                 qty: 1,
                 price: 0,
                 type: state.version?.version_number > 1 ? 'addon' : 'original'
-            };
-            
-            state.data.items.push(newItem);
-            
-            // Registrar criação do item
-            logItemChange(newItem.id, 'created', 'item', null, newItem.name, 'Item adicionado');
-            
-            console.log("Itens após adicionar:", state.data.items.length);
+            }); 
             renderEditor(); 
         }
         
         function rmItem(i) { 
-            const item = state.data.items[i];
-            if (!item) return;
-            
             if(confirm("Remover este item?")) {
-                // Registrar remoção
-                logItemChange(item.id, 'deleted', 'item', item.name, null, 'Item removido');
-                
-                // Se for cliente em negociação, marcar como removido mas manter na lista
-                if (!state.user && state.version.status === 'negotiating') {
-                    // Não remove fisicamente, apenas marca
-                    item._markedForDeletion = true;
-                } else {
-                    // Remove fisicamente
-                    state.data.items.splice(i, 1);
-                }
-                
+                state.data.items.splice(i, 1); 
                 renderEditor(); 
             }
         }
@@ -810,18 +550,13 @@
 
         async function share() {
             console.log("Gerando link para compartilhar...");
-            
             await save();
-            
             if (!state.version?.id) {
                 alert("Erro: Não foi possível gerar o link. Tente salvar novamente.");
                 return;
             }
-            
             const url = `${window.location.origin}${window.location.pathname}?view=public&id=${state.version.id}`;
-            
             console.log("URL para compartilhar:", url);
-            
             try {
                 await navigator.clipboard.writeText(url);
                 alert("✅ Link copiado para a área de transferência!\n\nEnvie este link para seu cliente:\n" + url);
@@ -840,6 +575,7 @@
         // --- PUBLIC INTERACTION FLOW ---
         async function loadPublicProposal(id) {
             try {
+                console.log("Carregando proposta pública com ID:", id);
                 safeShow('public-loading');
                 
                 const { data: v, error } = await db.from('versions')
@@ -981,36 +717,16 @@
         }
 
         async function sendLogic(action, newStatus, text) {
-            // Quando cliente solicita alteração, salvar cópia dos itens originais
-            if (action === 'change_request') {
-                saveOriginalItems();
-                logHistory('change_request', 'client', text);
-                
-                // Salvar alterações pendentes
-                state.data.pendingReview = true;
-            } else {
-                logHistory(action, 'client', text);
-            }
-            
-            await db.from('versions').update({ 
-                status: newStatus, 
-                items: state.data 
-            }).eq('id', state.version.id);
-            
-            const modal = document.getElementById('interaction-modal'); 
-            if(modal) modal.style.display = 'none';
+            logHistory(action, 'client', text);
+            await db.from('versions').update({ status: newStatus, items: state.data }).eq('id', state.version.id);
+            const modal = document.getElementById('interaction-modal'); if(modal) modal.style.display = 'none';
             showSuccessScreen(action);
         }
 
         async function approveLogic() {
             let ip = 'IP'; try { const r = await fetch('https://api.ipify.org?format=json'); const j = await r.json(); ip = j.ip; } catch(e){}
             logHistory('approved', 'client', 'Aprovado via link');
-            await db.from('versions').update({ 
-                status: 'approved', 
-                approved_at: new Date(), 
-                approved_by_ip: ip, 
-                items: state.data 
-            }).eq('id', state.version.id);
+            await db.from('versions').update({ status: 'approved', approved_at: new Date(), approved_by_ip: ip, items: state.data }).eq('id', state.version.id);
             
             const phone = state.data.settings?.myPhone;
             if(phone) {
@@ -1021,54 +737,6 @@
             showSuccessScreen('approved');
         }
 
-        // ============================================
-        // 6. FUNÇÃO INIT PRINCIPAL (ÚLTIMA)
-        // ============================================
-        async function init() {
-            try {
-                const params = new URLSearchParams(window.location.search);
-                const view = params.get('view') || 'login';
-                const id = params.get('id');
-                
-                // Reset de Telas (Seguro)
-                document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
-                
-                const { data: { session } } = await db.auth.getSession();
-                state.user = session?.user;
-
-                if (view === 'public') {
-                    if(!id) throw new Error("Link inválido.");
-                    await loadPublicProposal(id);
-                    safeShow('view-public');
-                } else if (!state.user && view !== 'login') {
-                    window.history.replaceState(null, '', '?view=login');
-                    safeShow('view-login');
-                    initRotator();
-                } else if (state.user && view === 'login') {
-                    goTo('dashboard');
-                } else {
-                    if(view === 'dashboard') await loadDashboard();
-                    if(view === 'editor' && id) await loadEditor(id);
-                    
-                    if(view !== 'login') {
-                        safeShow(`view-${view}`);
-                    } else { 
-                        safeShow('view-login'); 
-                        initRotator(); 
-                    }
-                }
-                setTimeout(() => { const l = document.getElementById('system-loader'); if(l) l.style.display = 'none'; }, 500);
-            } catch (e) { 
-                console.error("Erro no init:", e);
-                const l = document.getElementById('system-loader'); if(l) l.style.display = 'none';
-                const f = document.getElementById('fatal-error'); if(f) f.style.display = 'flex';
-                safeText('error-msg', e.message);
-            }
-        }
-
-        // ============================================
-        // 7. EVENT LISTENERS (ÚLTIMOS)
-        // ============================================
         window.onload = init;
         window.onpopstate = init;
     </script>
@@ -1146,25 +814,10 @@
             <div class="app-header justify-between">
                 <div class="flex items-center gap-4">
                     <button onclick="goTo('dashboard')" class="text-slate-400 hover:text-white"><i class="fas fa-arrow-left"></i></button>
-                    <div>
-                        <h2 id="ed-title" class="font-bold leading-none text-lg text-white">...</h2>
-                        <span id="ed-ver" class="text-[10px] text-slate-400 uppercase font-bold">V1</span>
-                        <span id="ed-status-badge" class="status-badge ml-2">RASCUNHO</span>
-                    </div>
+                    <div><h2 id="ed-title" class="font-bold leading-none text-lg text-white">...</h2><span id="ed-ver" class="text-[10px] text-slate-400 uppercase font-bold">V1</span><span id="ed-status-badge" class="ml-2 text-[10px] uppercase font-bold bg-white text-slate-900 px-2 py-1 rounded"></span></div>
                 </div>
-                <div class="flex gap-2">
-                    <button id="ed-change-btn" onclick="showChangeHistory()" class="btn btn-secondary bg-amber-500 border-amber-600 text-white hover:bg-amber-600 text-xs" style="display: none;">
-                        <i class="fas fa-exchange-alt mr-2"></i> Ver Alterações
-                    </button>
-                    <button onclick="showItemComparison()" class="btn btn-secondary bg-blue-600 border-blue-700 text-white hover:bg-blue-700 text-xs">
-                        <i class="fas fa-code-compare mr-2"></i> Comparar
-                    </button>
-                    <button onclick="share()" class="btn btn-secondary bg-slate-800 border-slate-700 text-white hover:bg-slate-700 text-xs">
-                        <i class="fas fa-link mr-2"></i> Link Cliente
-                    </button>
-                </div>
+                <button onclick="share()" class="btn btn-secondary bg-slate-800 border-slate-700 text-white hover:bg-slate-700 text-xs"><i class="fas fa-link"></i> Link Cliente</button>
             </div>
-            
             <div class="panel-grid overflow-hidden">
                 <div class="overflow-y-auto pr-2 pb-20 no-scrollbar">
                     <div class="editor-section">
@@ -1178,7 +831,7 @@
                         </div>
                     </div>
                     <div class="editor-section">
-                        <div class="editor-header justify-between"><span><i class="fas fa-list-ol"></i> Escopo</span><button onclick="addItem()" class="btn btn-primary text-xs py-1 px-3 bg-slate-800 border-none">+ Item</button></div>
+                        <div class="editor-header justify-between"><span><i class="fas fa-list-ol"></i> Escopo</span><button id="btn-add-item" onclick="addItem()" class="btn btn-primary text-xs py-1 px-3 bg-slate-800 border-none">+ Item</button></div>
                         <div class="editor-body bg-slate-50 min-h-[300px]"><div id="ed-items"></div></div>
                     </div>
                 </div>
@@ -1224,48 +877,6 @@
             <p id="modal-desc" class="text-sm text-slate-500 mb-4"></p>
             <textarea id="modal-input" class="w-full border p-3 rounded-lg mb-4 h-24 text-sm bg-slate-50" placeholder="Digite aqui..."></textarea>
             <div class="flex gap-3"><button onclick="document.getElementById('interaction-modal').style.display='none'" class="flex-1 py-3 border rounded text-slate-500 font-bold hover:bg-slate-50">Cancelar</button><button id="modal-btn" class="flex-1 py-3 rounded text-white font-bold"></button></div>
-        </div>
-    </div>
-    
-    <!-- NOVO MODAL: Histórico de Alterações -->
-    <div id="change-history-modal" class="modal-overlay">
-        <div class="modal-box" style="max-width: 700px; max-height: 80vh;">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-slate-800"><i class="fas fa-history mr-2"></i> Histórico de Alterações</h3>
-                <button onclick="document.getElementById('change-history-modal').style.display='none'" class="text-slate-400 hover:text-slate-700"><i class="fas fa-times"></i></button>
-            </div>
-            <div id="change-history-content" class="overflow-y-auto max-h-[60vh] pr-2"></div>
-            <div class="mt-6 border-t pt-4">
-                <div class="flex justify-between">
-                    <button onclick="acceptAllChanges()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm"><i class="fas fa-check mr-2"></i>Aceitar Todas</button>
-                    <button onclick="rejectAllChanges()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"><i class="fas fa-times mr-2"></i>Rejeitar Todas</button>
-                    <button onclick="document.getElementById('change-history-modal').style.display='none'" class="px-4 py-2 border rounded text-slate-600">Fechar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- NOVO MODAL: Comparação de Itens -->
-    <div id="comparison-modal" class="modal-overlay">
-        <div class="modal-box" style="max-width: 900px; max-height: 80vh;">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-slate-800"><i class="fas fa-code-compare mr-2"></i> Comparação: Original vs Atual</h3>
-                <button onclick="document.getElementById('comparison-modal').style.display='none'" class="text-slate-400 hover:text-slate-700"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="grid grid-cols-2 gap-6">
-                <div id="comparison-old" class="max-h-[60vh] overflow-y-auto"></div>
-                <div id="comparison-new" class="max-h-[60vh] overflow-y-auto"></div>
-            </div>
-            <div class="mt-6 border-t pt-4">
-                <div class="text-sm text-slate-600 mb-3">
-                    <span class="font-medium">Legenda:</span>
-                    <span class="ml-4"><span class="inline-block w-3 h-3 bg-blue-500 mr-1"></span> Item original</span>
-                    <span class="ml-4"><span class="inline-block w-3 h-3 bg-amber-500 mr-1"></span> Item alterado</span>
-                </div>
-                <div class="flex justify-end">
-                    <button onclick="document.getElementById('comparison-modal').style.display='none'" class="px-4 py-2 border rounded text-slate-600">Fechar</button>
-                </div>
-            </div>
         </div>
     </div>
 
