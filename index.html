@@ -107,6 +107,10 @@
     <script>
         console.log("Aprovado.app iniciando...");
 
+        // ============================================
+        // 1. FUNÇÕES BÁSICAS E AUXILIARES (PRIMEIRO)
+        // ============================================
+        
         // --- FUNÇÕES DE SEGURANÇA (ANTI-CRASH) ---
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
@@ -123,12 +127,17 @@
             return false;
         };
 
+        // ============================================
+        // 2. CONFIGURAÇÃO DO SUPABASE
+        // ============================================
         const SUPABASE_URL = 'https://outasfgohiiyndsjciau.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91dGFzZmdvaGlpeW5kc2pjaWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4MTk4ODIsImV4cCI6MjA4NTM5NTg4Mn0.4yvGfYbQYf806FJcs34yPGkuU_kVTYHW8mBtbU3JD80';
         const { createClient } = supabase;
         const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // --- ESTRUTURA DE DADOS COM CONTROLE DE ALTERAÇÕES ---
+        // ============================================
+        // 3. ESTADO GLOBAL
+        // ============================================
         let state = { 
             user: null, 
             project: null, 
@@ -148,7 +157,10 @@
             } 
         };
 
-        // --- FUNÇÕES BÁSICAS (PRIMEIRO) ---
+        // ============================================
+        // 4. FUNÇÕES DO SISTEMA DE ALTERAÇÕES
+        // (DEFINIDAS ANTES DE QUALQUER USO)
+        // ============================================
         
         // Criar ID único para item
         function generateItemId() {
@@ -166,61 +178,6 @@
             return labels[field] || field;
         }
 
-        // --- NORMALIZAÇÃO ROBUSTA (CORREÇÃO DE DADOS QUEBRADOS) ---
-        function normalizeData(dbData) {
-            const schema = { 
-                client: { name: '', doc: '', email: '', phone: '', address: '' }, 
-                location: { address: '', sameAsClient: true }, 
-                items: [], 
-                terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, 
-                settings: { myPhone: '', serviceType: 'Outros' }, 
-                history: [],
-                originalItems: [],
-                itemChanges: [],
-                pendingReview: false
-            };
-            
-            if (!dbData) return schema;
-
-            let rawItems = [];
-            if (Array.isArray(dbData.items)) { rawItems = dbData.items; }
-            else if (dbData.scope && Array.isArray(dbData.scope)) { rawItems = dbData.scope; }
-
-            const cleanItems = rawItems.map((i, index) => ({
-                ...i,
-                id: i.id || generateItemId(),
-                name: i.name || '',
-                description: i.description || '',
-                qty: parseFloat(i.qty) || 1,
-                price: parseFloat(i.price) || 0,
-                type: i.type || 'original'
-            }));
-            
-            return { 
-                client: { ...schema.client, ...(dbData.client || {}) }, 
-                location: { ...schema.location, ...(dbData.location || {}) }, 
-                items: cleanItems, 
-                terms: { ...schema.terms, ...(dbData.terms || {}) }, 
-                settings: { ...schema.settings, ...(dbData.settings || {}) }, 
-                history: Array.isArray(dbData.history) ? dbData.history : [],
-                originalItems: Array.isArray(dbData.originalItems) ? dbData.originalItems : JSON.parse(JSON.stringify(cleanItems)),
-                itemChanges: Array.isArray(dbData.itemChanges) ? dbData.itemChanges : [],
-                pendingReview: dbData.pendingReview || false
-            };
-        }
-
-        function logHistory(action, user, detail) {
-            if (!state.data.history) state.data.history = [];
-            state.data.history.push({ 
-                date: new Date().toISOString(), 
-                action: action, 
-                user: user, 
-                detail: detail || '' 
-            });
-        }
-
-        // --- FUNÇÕES DO SISTEMA DE ALTERAÇÕES (AGORA DEFINIDAS ANTES DE SEREM USADAS) ---
-        
         // Registrar alteração em um item
         function logItemChange(itemId, action, field, oldValue, newValue, reason = '') {
             if (!state.data.itemChanges) state.data.itemChanges = [];
@@ -328,7 +285,7 @@
             
             Object.keys(changesByItem).forEach(itemId => {
                 const item = state.data.items.find(i => i.id === itemId) || { name: 'Item removido' };
-                const changes = changesByItem[change.itemId];
+                const changes = changesByItem[itemId];
                 
                 html += `<div class="mb-6 p-4 border rounded-lg bg-white">
                     <div class="font-bold text-slate-800 mb-2 flex items-center">
@@ -412,46 +369,61 @@
             modal.style.display = 'flex';
         }
 
-        async function init() {
-            try {
-                const params = new URLSearchParams(window.location.search);
-                const view = params.get('view') || 'login';
-                const id = params.get('id');
-                
-                // Reset de Telas (Seguro)
-                document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
-                
-                const { data: { session } } = await db.auth.getSession();
-                state.user = session?.user;
+        // ============================================
+        // 5. FUNÇÕES DE NEGÓCIO PRINCIPAIS
+        // ============================================
 
-                if (view === 'public') {
-                    if(!id) throw new Error("Link inválido.");
-                    await loadPublicProposal(id);
-                    safeShow('view-public');
-                } else if (!state.user && view !== 'login') {
-                    window.history.replaceState(null, '', '?view=login');
-                    safeShow('view-login');
-                    initRotator();
-                } else if (state.user && view === 'login') {
-                    goTo('dashboard');
-                } else {
-                    if(view === 'dashboard') await loadDashboard();
-                    if(view === 'editor' && id) await loadEditor(id);
-                    
-                    if(view !== 'login') {
-                        safeShow(`view-${view}`);
-                    } else { 
-                        safeShow('view-login'); 
-                        initRotator(); 
-                    }
-                }
-                setTimeout(() => { const l = document.getElementById('system-loader'); if(l) l.style.display = 'none'; }, 500);
-            } catch (e) { 
-                console.error(e);
-                const l = document.getElementById('system-loader'); if(l) l.style.display = 'none';
-                const f = document.getElementById('fatal-error'); if(f) f.style.display = 'flex';
-                safeText('error-msg', e.message);
-            }
+        // --- NORMALIZAÇÃO ROBUSTA (CORREÇÃO DE DADOS QUEBRADOS) ---
+        function normalizeData(dbData) {
+            const schema = { 
+                client: { name: '', doc: '', email: '', phone: '', address: '' }, 
+                location: { address: '', sameAsClient: true }, 
+                items: [], 
+                terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, 
+                settings: { myPhone: '', serviceType: 'Outros' }, 
+                history: [],
+                originalItems: [],
+                itemChanges: [],
+                pendingReview: false
+            };
+            
+            if (!dbData) return schema;
+
+            let rawItems = [];
+            if (Array.isArray(dbData.items)) { rawItems = dbData.items; }
+            else if (dbData.scope && Array.isArray(dbData.scope)) { rawItems = dbData.scope; }
+
+            const cleanItems = rawItems.map((i, index) => ({
+                ...i,
+                id: i.id || generateItemId(),
+                name: i.name || '',
+                description: i.description || '',
+                qty: parseFloat(i.qty) || 1,
+                price: parseFloat(i.price) || 0,
+                type: i.type || 'original'
+            }));
+            
+            return { 
+                client: { ...schema.client, ...(dbData.client || {}) }, 
+                location: { ...schema.location, ...(dbData.location || {}) }, 
+                items: cleanItems, 
+                terms: { ...schema.terms, ...(dbData.terms || {}) }, 
+                settings: { ...schema.settings, ...(dbData.settings || {}) }, 
+                history: Array.isArray(dbData.history) ? dbData.history : [],
+                originalItems: Array.isArray(dbData.originalItems) ? dbData.originalItems : JSON.parse(JSON.stringify(cleanItems)),
+                itemChanges: Array.isArray(dbData.itemChanges) ? dbData.itemChanges : [],
+                pendingReview: dbData.pendingReview || false
+            };
+        }
+
+        function logHistory(action, user, detail) {
+            if (!state.data.history) state.data.history = [];
+            state.data.history.push({ 
+                date: new Date().toISOString(), 
+                action: action, 
+                user: user, 
+                detail: detail || '' 
+            });
         }
 
         function initRotator() {
@@ -605,7 +577,7 @@
             const changeBtn = document.getElementById('ed-change-btn');
             if (changeBtn) {
                 if (hasPendingChanges && state.user) {
-                    const pendingCount = state.data.itemChanges.filter(c => !c.reviewed && c.user === 'client').length;
+                    const pendingCount = state.data.itemChanges ? state.data.itemChanges.filter(c => !c.reviewed && c.user === 'client').length : 0;
                     changeBtn.innerHTML = `<i class="fas fa-exchange-alt mr-2"></i> Ver Alterações (${pendingCount})`;
                     changeBtn.className = "btn btn-secondary bg-amber-500 border-amber-600 text-white hover:bg-amber-600 text-xs";
                     changeBtn.style.display = 'inline-flex';
@@ -1049,6 +1021,54 @@
             showSuccessScreen('approved');
         }
 
+        // ============================================
+        // 6. FUNÇÃO INIT PRINCIPAL (ÚLTIMA)
+        // ============================================
+        async function init() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const view = params.get('view') || 'login';
+                const id = params.get('id');
+                
+                // Reset de Telas (Seguro)
+                document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
+                
+                const { data: { session } } = await db.auth.getSession();
+                state.user = session?.user;
+
+                if (view === 'public') {
+                    if(!id) throw new Error("Link inválido.");
+                    await loadPublicProposal(id);
+                    safeShow('view-public');
+                } else if (!state.user && view !== 'login') {
+                    window.history.replaceState(null, '', '?view=login');
+                    safeShow('view-login');
+                    initRotator();
+                } else if (state.user && view === 'login') {
+                    goTo('dashboard');
+                } else {
+                    if(view === 'dashboard') await loadDashboard();
+                    if(view === 'editor' && id) await loadEditor(id);
+                    
+                    if(view !== 'login') {
+                        safeShow(`view-${view}`);
+                    } else { 
+                        safeShow('view-login'); 
+                        initRotator(); 
+                    }
+                }
+                setTimeout(() => { const l = document.getElementById('system-loader'); if(l) l.style.display = 'none'; }, 500);
+            } catch (e) { 
+                console.error("Erro no init:", e);
+                const l = document.getElementById('system-loader'); if(l) l.style.display = 'none';
+                const f = document.getElementById('fatal-error'); if(f) f.style.display = 'flex';
+                safeText('error-msg', e.message);
+            }
+        }
+
+        // ============================================
+        // 7. EVENT LISTENERS (ÚLTIMOS)
+        // ============================================
         window.onload = init;
         window.onpopstate = init;
     </script>
