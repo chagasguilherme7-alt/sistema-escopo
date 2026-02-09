@@ -68,12 +68,13 @@
         .modal-box { background: white; width: 90%; max-width: 500px; padding: 2rem; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); animation: fadeInUp 0.3s ease-out; }
         #fatal-error { display: none; position: fixed; inset: 0; background: #FFF1F2; z-index: 10000; padding: 40px; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
         
+        /* EDITOR LAYOUT */
         .panel-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; max-width: 1600px; margin: 24px auto; padding: 0 24px; height: calc(100vh - 112px); }
         .editor-section { background: white; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; margin-bottom: 24px; position: relative; }
         
-        /* FIX: Empilhamento Visual */
-        .sticky-finance { position: sticky; top: 0; z-index: 50; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        .history-section { z-index: 1; margin-top: 24px; } /* Adicionado margem top para não colar */
+        /* CORREÇÃO DO EMPILHAMENTO VISUAL - IMPORTANTE */
+        .sticky-finance { position: sticky; top: 0; z-index: 50; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); background-color: white; }
+        .history-section { position: relative; z-index: 1; margin-top: 24px; } /* Garante que fique abaixo do sticky mas visível */
 
         .editor-header { background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #475569; display: flex; align-items: center; gap: 8px; }
         .editor-body { padding: 20px; }
@@ -348,6 +349,78 @@
             safeShow('editor-content');
         }
 
+        // --- NOVA FUNÇÃO INDEPENDENTE PARA RENDERIZAR HISTÓRICO ---
+        function renderHistory() {
+            let histHtml = '';
+            
+            // 1. Resumo Financeiro (Try/Catch para não quebrar)
+            try {
+                if(state.allVersions && Array.isArray(state.allVersions) && state.allVersions.length > 0) {
+                    histHtml += '<div class="mb-6 border-b pb-4"><h4 class="font-bold text-xs text-slate-500 uppercase mb-3">Resumo Financeiro</h4>';
+                    state.allVersions.forEach((v, idx) => {
+                        const val = parseFloat(v.total_value) || 0;
+                        let diffText = '';
+                        if (idx > 0 && state.allVersions[idx-1]) {
+                            const prevVal = parseFloat(state.allVersions[idx-1].total_value) || 0;
+                            const diff = val - prevVal;
+                            if (diff !== 0) {
+                                const signal = diff > 0 ? '+' : '';
+                                diffText = `<span class="text-xs font-bold ${diff > 0 ? 'text-green-600' : 'text-red-500'}">(${signal}${diff.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})})</span>`;
+                            } else {
+                                diffText = `<span class="text-xs text-slate-400">(=)</span>`;
+                            }
+                        }
+                        const date = v.created_at ? new Date(v.created_at).toLocaleDateString() : '--/--';
+                        histHtml += `
+                            <div class="flex justify-between items-center mb-2 text-sm">
+                                <div>
+                                    <span class="font-bold text-slate-700">V${v.version_number}</span> 
+                                    <span class="text-xs text-slate-400 ml-1">${date}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    ${diffText}
+                                    <span class="font-mono text-slate-600">${val.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</span>
+                                </div>
+                            </div>`;
+                    });
+                    histHtml += '</div>';
+                }
+            } catch(e) {
+                console.error("Erro no resumo:", e);
+                histHtml += '<div class="text-xs text-red-400 mb-2">Erro ao carregar resumo.</div>';
+            }
+
+            // 2. Timeline de Ações
+            histHtml += '<h4 class="font-bold text-xs text-slate-500 uppercase mb-3">Timeline de Ações</h4>';
+            const historyData = state.data && state.data.history ? state.data.history : [];
+            
+            if(historyData.length > 0) {
+                historyData.slice().reverse().forEach(h => {
+                    const date = h.date ? new Date(h.date).toLocaleString('pt-BR') : 'Data N/A';
+                    let icon = 'info-circle text-blue-400';
+                    if(h.action === 'approved') icon = 'check text-green-500';
+                    if(h.action === 'change_request') icon = 'comment-dots text-amber-500';
+                    if(h.action === 'canceled') icon = 'times text-red-500';
+                    
+                    let actionLabel = 'Ação';
+                    if(h.action === 'created') actionLabel = 'Criou o orçamento';
+                    else if(h.action === 'change_request') actionLabel = 'Solicitou alteração';
+                    else if(h.action === 'approved') actionLabel = 'Aprovou';
+                    else if(h.action === 'canceled') actionLabel = 'Cancelou/Recusou';
+                    else if(h.action === 'viewed') actionLabel = 'Visualizou';
+
+                    const userLabel = h.user === 'provider' ? 'Você' : 'Cliente';
+                    const cssClass = (h.action === 'change_request' || h.action === 'canceled') ? 'timeline-desc' : 'timeline-desc system';
+                    
+                    histHtml += `<div class="timeline-item"><div class="timeline-date">${date} • ${userLabel}</div><div class="timeline-title flex items-center gap-2"><i class="fas fa-${icon}"></i> ${actionLabel}</div>${h.detail ? `<div class="${cssClass}">${h.detail}</div>` : ''}</div>`;
+                });
+            } else { 
+                histHtml += '<div class="text-xs text-slate-400 italic">Sem histórico registrado ainda.</div>'; 
+            }
+            
+            setHTML('ed-history', histHtml);
+        }
+
         function renderEditor() {
             const d = state.data; 
             const isLocked = state.version.status === 'approved' || state.version.status === 'canceled';
@@ -455,74 +528,8 @@
             }
             setHTML('ed-total', totalDisplay);
 
-            // --- CORREÇÃO DEFINITIVA DO HISTÓRICO ---
-            let histHtml = '';
-            
-            // 1. Resumo Financeiro com Try/Catch e verificação de array
-            if (state.allVersions && Array.isArray(state.allVersions) && state.allVersions.length > 0) {
-                histHtml += '<div class="mb-6 border-b pb-4"><h4 class="font-bold text-xs text-slate-500 uppercase mb-3">Resumo Financeiro</h4>';
-                try {
-                    state.allVersions.forEach((v, idx) => {
-                        const val = parseFloat(v.total_value) || 0;
-                        let diffText = '';
-                        // Só calcula diff se existir versão anterior válida
-                        if (idx > 0 && state.allVersions[idx-1]) {
-                            const prevVal = parseFloat(state.allVersions[idx-1].total_value) || 0;
-                            const diff = val - prevVal;
-                            if (diff !== 0) {
-                                const signal = diff > 0 ? '+' : '';
-                                diffText = `<span class="text-xs font-bold ${diff > 0 ? 'text-green-600' : 'text-red-500'}">(${signal}${diff.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})})</span>`;
-                            } else {
-                                diffText = `<span class="text-xs text-slate-400">(=)</span>`;
-                            }
-                        }
-                        const date = v.created_at ? new Date(v.created_at).toLocaleDateString() : '--/--';
-                        histHtml += `
-                            <div class="flex justify-between items-center mb-2 text-sm">
-                                <div>
-                                    <span class="font-bold text-slate-700">V${v.version_number}</span> 
-                                    <span class="text-xs text-slate-400 ml-1">${date}</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    ${diffText}
-                                    <span class="font-mono text-slate-600">${val.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</span>
-                                </div>
-                            </div>`;
-                    });
-                } catch(e) {
-                    console.error("Erro renderizando resumo:", e);
-                    histHtml += '<div class="text-xs text-red-400">Erro ao exibir resumo.</div>';
-                }
-                histHtml += '</div>';
-            }
-
-            // 2. Timeline de Ações
-            histHtml += '<h4 class="font-bold text-xs text-slate-500 uppercase mb-3">Timeline de Ações</h4>';
-            if(d.history && Array.isArray(d.history) && d.history.length > 0) {
-                d.history.slice().reverse().forEach(h => {
-                    const date = h.date ? new Date(h.date).toLocaleString('pt-BR') : 'Data N/A';
-                    let icon = 'info-circle text-blue-400';
-                    if(h.action === 'approved') icon = 'check text-green-500';
-                    if(h.action === 'change_request') icon = 'comment-dots text-amber-500';
-                    if(h.action === 'canceled') icon = 'times text-red-500';
-                    
-                    let actionLabel = 'Ação';
-                    if(h.action === 'created') actionLabel = 'Criou o orçamento';
-                    if(h.action === 'change_request') actionLabel = 'Solicitou alteração';
-                    if(h.action === 'approved') actionLabel = 'Aprovou';
-                    if(h.action === 'canceled') actionLabel = 'Cancelou/Recusou';
-                    if(h.action === 'viewed') actionLabel = 'Visualizou';
-
-                    const userLabel = h.user === 'provider' ? 'Você' : 'Cliente';
-                    const cssClass = (h.action === 'change_request' || h.action === 'canceled') ? 'timeline-desc' : 'timeline-desc system';
-                    
-                    histHtml += `<div class="timeline-item"><div class="timeline-date">${date} • ${userLabel}</div><div class="timeline-title flex items-center gap-2"><i class="fas fa-${icon}"></i> ${actionLabel}</div>${h.detail ? `<div class="${cssClass}">${h.detail}</div>` : ''}</div>`;
-                });
-            } else { 
-                histHtml += '<div class="text-xs text-slate-400 italic">Nenhum histórico registrado ainda.</div>'; 
-            }
-            
-            setHTML('ed-history', histHtml);
+            // Chama a função de histórico separadamente para garantir que roda
+            renderHistory();
 
             const actions = document.getElementById('ed-actions');
             if (actions) {
