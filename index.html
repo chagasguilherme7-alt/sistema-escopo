@@ -68,19 +68,28 @@
         .modal-box { background: white; width: 90%; max-width: 500px; padding: 2rem; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); animation: fadeInUp 0.3s ease-out; }
         #fatal-error { display: none; position: fixed; inset: 0; background: #FFF1F2; z-index: 10000; padding: 40px; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
         
+        /* EDITOR LAYOUT */
         .panel-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; max-width: 1600px; margin: 24px auto; padding: 0 24px; height: calc(100vh - 112px); }
-        /* CORREÇÃO VISUAL: z-index e position relative para controlar empilhamento */
-        .editor-section { background: white; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; margin-bottom: 24px; position: relative; z-index: 10; }
+        
+        /* CORREÇÃO DO EMPILHAMENTO VISUAL */
+        .editor-section { background: white; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; margin-bottom: 24px; position: relative; }
+        
+        /* Painel Financeiro Fixo: Z-Index 50 garante que fique na frente */
+        .sticky-finance { position: sticky; top: 0; z-index: 50 !important; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); background-color: white; }
+        
+        /* Painel Histórico: Z-Index 0 garante que fique atrás ao rolar */
+        .history-section { position: relative; z-index: 0; }
+
         .editor-header { background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #475569; display: flex; align-items: center; gap: 8px; }
         .editor-body { padding: 20px; }
-        
-        /* CORREÇÃO VISUAL: Painel financeiro com z-index maior para ficar por cima ao rolar */
-        .sticky-finance { position: sticky; top: 0; z-index: 30 !important; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-
         .input-group { margin-bottom: 16px; }
         .input-label { display: block; font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
         .input-field { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.875rem; background: white; outline: none; transition: border-color 0.2s; }
         .input-field:focus { border-color: #3b82f6; }
+        
+        /* Disabled Input Style */
+        input:disabled, textarea:disabled, select:disabled { background-color: #f1f5f9; color: #94a3b8; cursor: not-allowed; border-color: #e2e8f0; }
+
         .btn { padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-primary { background: #0f172a; color: white; border: none; }
         .btn-primary:hover { background: #1e293b; }
@@ -333,7 +342,7 @@
             state.project = proj;
             const { data: vers } = await db.from('versions').select('*').eq('project_id', id).order('version_number', { ascending: true });
             
-            state.allVersions = vers; // Guarda todas as versões para o histórico
+            state.allVersions = vers || []; // Garante array
             state.version = vers[vers.length - 1];
             state.data = normalizeData(state.version.items);
             state.previousData = null;
@@ -359,12 +368,12 @@
                 badge.innerText = state.version.status === 'draft' ? 'EM ABERTO' : state.version.status.toUpperCase();
             }
             
-            // Campos com trava de edição (isLocked)
+            // Função Helper para travar campos
             const setLockedVal = (id, val) => {
                 const el = document.getElementById(id);
                 if(el) {
                     el.value = val || '';
-                    if(isLocked) el.setAttribute('disabled', 'true'); else el.removeAttribute('disabled');
+                    if(isLocked) el.disabled = true; else el.disabled = false;
                 }
             }
 
@@ -374,18 +383,13 @@
             const svc = document.getElementById('s-type'); 
             if(svc) {
                 svc.value = d.settings.serviceType || 'Outros';
-                if(isLocked) svc.setAttribute('disabled','true'); else svc.removeAttribute('disabled');
+                if(isLocked) svc.disabled = true; else svc.disabled = false;
             }
             
             setLockedVal('t-deadline', d.terms.deadline); 
             setLockedVal('t-val', d.terms.validity); 
-            
-            // Obs e Payment Text
             const tObs = document.getElementById('t-obs');
-            if(tObs) {
-                tObs.value = d.terms.obs || '';
-                if(isLocked) tObs.setAttribute('disabled', 'true'); else tObs.removeAttribute('disabled');
-            }
+            if(tObs) { tObs.value = d.terms.obs || ''; if(isLocked) tObs.disabled = true; else tObs.disabled = false; }
 
             // Botão Adicionar Item
             const btnAdd = document.getElementById('btn-add-item');
@@ -441,7 +445,7 @@
                     <div class="flex items-center gap-2">
                          <textarea class="w-full text-xs text-slate-500 bg-transparent outline-none resize-none" rows="1" onchange="upItem(${x},'description',this.value)" placeholder="Descrição técnica..." ${isLocked?'disabled':''}>${i.description||''}</textarea>
                          ${!isLocked ? `
-                            <button onclick="toggleOpt(${x})" class="text-[10px] font-bold px-2 py-1 rounded border ${i.optional ? 'bg-slate-600 text-white border-slate-600' : 'text-slate-400 border-slate-200 hover:border-slate-400'}" title="Marcar como opcional (não soma no total automaticamente)">
+                            <button onclick="toggleOpt(${x})" class="text-[10px] font-bold px-2 py-1 rounded border ${i.optional ? 'bg-slate-600 text-white border-slate-600' : 'text-slate-400 border-slate-200 hover:border-slate-400'}" title="Marcar como opcional">
                                 ${i.optional ? 'OPCIONAL' : 'Opcional?'}
                             </button>
                          ` : ''}
@@ -459,7 +463,7 @@
             }
             setHTML('ed-total', totalDisplay);
 
-            // --- NOVO RESUMO FINANCEIRO DE VERSÕES ---
+            // --- NOVO RESUMO FINANCEIRO DE VERSÕES (Corrigido para sempre aparecer) ---
             let verSummaryHtml = '<div class="mb-6 border-b pb-4"><h4 class="font-bold text-xs text-slate-500 uppercase mb-3">Resumo Financeiro</h4>';
             if(state.allVersions && state.allVersions.length > 0) {
                  state.allVersions.forEach((v, idx) => {
@@ -951,7 +955,7 @@
                             <div id="ed-actions" class="mt-6"></div>
                         </div>
                     </div>
-                    <div class="editor-section relative z-10"><div class="editor-header"><i class="fas fa-history"></i> Histórico</div><div id="ed-history" class="p-4 space-y-4"></div></div>
+                    <div class="editor-section history-section"><div class="editor-header"><i class="fas fa-history"></i> Histórico</div><div id="ed-history" class="p-4 space-y-4"></div></div>
                 </div>
             </div>
         </div>
