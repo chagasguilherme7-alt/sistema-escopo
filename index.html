@@ -140,7 +140,7 @@
                 terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, 
                 settings: { myPhone: '', serviceType: 'Outros', providerName: '', providerDoc: '', providerAddr: '', providerPhone: '' }, 
                 history: [],
-                signature: null // Novo campo para assinatura
+                signature: null 
             };
             
             if (!dbData) return schema;
@@ -153,7 +153,8 @@
                 qty: parseFloat(i.qty) || 1, 
                 price: parseFloat(i.price) || 0, 
                 type: i.type || 'original',
-                optional: i.optional || false // Novo campo: Opcional
+                optional: i.optional || false,
+                publicSelected: i.publicSelected || false // <--- Correção aqui: Salva o estado do checkbox
             }));
             
             return { 
