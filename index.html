@@ -68,38 +68,33 @@
         .modal-box { background: white; width: 90%; max-width: 500px; padding: 2rem; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); animation: fadeInUp 0.3s ease-out; }
         #fatal-error { display: none; position: fixed; inset: 0; background: #FFF1F2; z-index: 10000; padding: 40px; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
         
-        /* EDITOR LAYOUT */
         .panel-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; max-width: 1600px; margin: 24px auto; padding: 0 24px; height: calc(100vh - 112px); }
-        .editor-section { background: white; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; margin-bottom: 24px; position: relative; }
-        
-        /* CORREÇÃO DO EMPILHAMENTO VISUAL - IMPORTANTE */
-        .sticky-finance { position: sticky; top: 0; z-index: 50; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); background-color: white; }
-        .history-section { position: relative; z-index: 1; margin-top: 24px; } /* Garante que fique abaixo do sticky mas visível */
-
+        .editor-section { background: white; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
         .editor-header { background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #475569; display: flex; align-items: center; gap: 8px; }
         .editor-body { padding: 20px; }
         .input-group { margin-bottom: 16px; }
         .input-label { display: block; font-size: 0.75rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
         .input-field { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.875rem; background: white; outline: none; transition: border-color 0.2s; }
         .input-field:focus { border-color: #3b82f6; }
-        
-        input:disabled, textarea:disabled, select:disabled { background-color: #f1f5f9; color: #94a3b8; cursor: not-allowed; border-color: #e2e8f0; }
-
         .btn { padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-primary { background: #0f172a; color: white; border: none; }
         .btn-primary:hover { background: #1e293b; }
         .btn-secondary { background: white; color: #475569; border: 1px solid #e2e8f0; }
         .btn-secondary:hover { background: #f8fafc; border-color: #cbd5e1; }
 
+        /* Estilos Item Opcional e Diff */
         .diff-box { background-color: #fff7ed; border: 1px dashed #f97316; border-radius: 6px; padding: 8px; margin-top: 8px; font-size: 0.75rem; color: #9a3412; display: flex; align-items: center; gap: 8px; }
         .diff-tag { background: #f97316; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.65rem; text-transform: uppercase; }
         .old-val { text-decoration: line-through; color: #ef4444; margin-right: 4px; }
         .new-val { color: #16a34a; font-weight: bold; }
         .item-modified { border-left: 4px solid #f59e0b !important; }
         .item-new { border-left: 4px solid #10b981 !important; }
+        
+        /* ITEM OPCIONAL ESTILO */
         .item-optional { border: 2px dashed #94a3b8 !important; opacity: 0.9; background-color: #f8fafc; }
         .optional-badge { background: #64748b; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; font-weight: bold; text-transform: uppercase; margin-left: 8px; }
 
+        /* Estilo para Canvas de Assinatura */
         #signature-pad { border: 2px dashed #cbd5e1; border-radius: 12px; background: #f8fafc; cursor: crosshair; touch-action: none; width: 100%; height: 200px; }
         
         @media (max-width: 1024px) { .panel-grid { grid-template-columns: 1fr; height: auto; } }
@@ -133,7 +128,7 @@
         const { createClient } = supabase;
         const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let state = { user: null, project: null, version: null, allVersions: [], projectsCache: [], data: { client: {}, items: [], terms: {}, settings: {}, history: [], signature: null }, previousData: null };
+        let state = { user: null, project: null, version: null, projectsCache: [], data: { client: {}, items: [], terms: {}, settings: {}, history: [], signature: null }, previousData: null };
         let signaturePad = null;
         let isDrawing = false;
 
@@ -334,8 +329,6 @@
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
             state.project = proj;
             const { data: vers } = await db.from('versions').select('*').eq('project_id', id).order('version_number', { ascending: true });
-            
-            state.allVersions = vers || [];
             state.version = vers[vers.length - 1];
             state.data = normalizeData(state.version.items);
             state.previousData = null;
@@ -347,78 +340,6 @@
             renderEditor();
             safeHide('editor-loading');
             safeShow('editor-content');
-        }
-
-        // --- NOVA FUNÇÃO INDEPENDENTE PARA RENDERIZAR HISTÓRICO ---
-        function renderHistory() {
-            let histHtml = '';
-            
-            // 1. Resumo Financeiro (Try/Catch para não quebrar)
-            try {
-                if(state.allVersions && Array.isArray(state.allVersions) && state.allVersions.length > 0) {
-                    histHtml += '<div class="mb-6 border-b pb-4"><h4 class="font-bold text-xs text-slate-500 uppercase mb-3">Resumo Financeiro</h4>';
-                    state.allVersions.forEach((v, idx) => {
-                        const val = parseFloat(v.total_value) || 0;
-                        let diffText = '';
-                        if (idx > 0 && state.allVersions[idx-1]) {
-                            const prevVal = parseFloat(state.allVersions[idx-1].total_value) || 0;
-                            const diff = val - prevVal;
-                            if (diff !== 0) {
-                                const signal = diff > 0 ? '+' : '';
-                                diffText = `<span class="text-xs font-bold ${diff > 0 ? 'text-green-600' : 'text-red-500'}">(${signal}${diff.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})})</span>`;
-                            } else {
-                                diffText = `<span class="text-xs text-slate-400">(=)</span>`;
-                            }
-                        }
-                        const date = v.created_at ? new Date(v.created_at).toLocaleDateString() : '--/--';
-                        histHtml += `
-                            <div class="flex justify-between items-center mb-2 text-sm">
-                                <div>
-                                    <span class="font-bold text-slate-700">V${v.version_number}</span> 
-                                    <span class="text-xs text-slate-400 ml-1">${date}</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    ${diffText}
-                                    <span class="font-mono text-slate-600">${val.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</span>
-                                </div>
-                            </div>`;
-                    });
-                    histHtml += '</div>';
-                }
-            } catch(e) {
-                console.error("Erro no resumo:", e);
-                histHtml += '<div class="text-xs text-red-400 mb-2">Erro ao carregar resumo.</div>';
-            }
-
-            // 2. Timeline de Ações
-            histHtml += '<h4 class="font-bold text-xs text-slate-500 uppercase mb-3">Timeline de Ações</h4>';
-            const historyData = state.data && state.data.history ? state.data.history : [];
-            
-            if(historyData.length > 0) {
-                historyData.slice().reverse().forEach(h => {
-                    const date = h.date ? new Date(h.date).toLocaleString('pt-BR') : 'Data N/A';
-                    let icon = 'info-circle text-blue-400';
-                    if(h.action === 'approved') icon = 'check text-green-500';
-                    if(h.action === 'change_request') icon = 'comment-dots text-amber-500';
-                    if(h.action === 'canceled') icon = 'times text-red-500';
-                    
-                    let actionLabel = 'Ação';
-                    if(h.action === 'created') actionLabel = 'Criou o orçamento';
-                    else if(h.action === 'change_request') actionLabel = 'Solicitou alteração';
-                    else if(h.action === 'approved') actionLabel = 'Aprovou';
-                    else if(h.action === 'canceled') actionLabel = 'Cancelou/Recusou';
-                    else if(h.action === 'viewed') actionLabel = 'Visualizou';
-
-                    const userLabel = h.user === 'provider' ? 'Você' : 'Cliente';
-                    const cssClass = (h.action === 'change_request' || h.action === 'canceled') ? 'timeline-desc' : 'timeline-desc system';
-                    
-                    histHtml += `<div class="timeline-item"><div class="timeline-date">${date} • ${userLabel}</div><div class="timeline-title flex items-center gap-2"><i class="fas fa-${icon}"></i> ${actionLabel}</div>${h.detail ? `<div class="${cssClass}">${h.detail}</div>` : ''}</div>`;
-                });
-            } else { 
-                histHtml += '<div class="text-xs text-slate-400 italic">Sem histórico registrado ainda.</div>'; 
-            }
-            
-            setHTML('ed-history', histHtml);
         }
 
         function renderEditor() {
@@ -433,32 +354,14 @@
                 badge.innerText = state.version.status === 'draft' ? 'EM ABERTO' : state.version.status.toUpperCase();
             }
             
-            const setLockedVal = (id, val) => {
-                const el = document.getElementById(id);
-                if(el) {
-                    el.value = val || '';
-                    el.disabled = isLocked;
-                }
-            }
-
-            setLockedVal('p-name', d.settings.providerName); setLockedVal('p-doc', d.settings.providerDoc);
-            setLockedVal('p-addr', d.settings.providerAddr); setLockedVal('p-phone', d.settings.providerPhone);
-            setLockedVal('c-name', d.client.name); setLockedVal('c-doc', d.client.doc); setLockedVal('c-phone', d.client.phone); setLockedVal('c-email', d.client.email); setLockedVal('c-addr', d.client.address); setLockedVal('in-s-myphone', d.settings.myPhone);
+            setVal('p-name', d.settings.providerName); setVal('p-doc', d.settings.providerDoc);
+            setVal('p-addr', d.settings.providerAddr); setVal('p-phone', d.settings.providerPhone);
+            setVal('c-name', d.client.name); setVal('c-doc', d.client.doc); setVal('c-phone', d.client.phone); setVal('c-email', d.client.email); setVal('c-addr', d.client.address); setVal('in-s-myphone', d.settings.myPhone);
+            const svc = document.getElementById('s-type'); if(svc) svc.value = d.settings.serviceType || 'Outros';
             
-            const svc = document.getElementById('s-type'); 
-            if(svc) {
-                svc.value = d.settings.serviceType || 'Outros';
-                svc.disabled = isLocked;
-            }
-            
-            setLockedVal('t-deadline', d.terms.deadline); 
-            setLockedVal('t-val', d.terms.validity); 
-            const tObs = document.getElementById('t-obs');
-            if(tObs) { tObs.value = d.terms.obs || ''; tObs.disabled = isLocked; }
-
-            const btnAdd = document.getElementById('btn-add-item'); if(btnAdd) btnAdd.style.display = isLocked ? 'none' : 'block';
-            const btnPay = document.querySelector('#pay-mode').nextElementSibling; if(btnPay) btnPay.disabled = isLocked;
-            const selPay = document.getElementById('pay-mode'); if(selPay) selPay.disabled = isLocked;
+            // CORREÇÃO AQUI: Mudado t-dead para t-deadline
+            setVal('t-deadline', d.terms.deadline); 
+            setVal('t-val', d.terms.validity); setVal('t-obs', d.terms.obs);
 
             let html = ''; 
             let total = 0;
@@ -510,7 +413,7 @@
                     <div class="flex items-center gap-2">
                          <textarea class="w-full text-xs text-slate-500 bg-transparent outline-none resize-none" rows="1" onchange="upItem(${x},'description',this.value)" placeholder="Descrição técnica..." ${isLocked?'disabled':''}>${i.description||''}</textarea>
                          ${!isLocked ? `
-                            <button onclick="toggleOpt(${x})" class="text-[10px] font-bold px-2 py-1 rounded border ${i.optional ? 'bg-slate-600 text-white border-slate-600' : 'text-slate-400 border-slate-200 hover:border-slate-400'}" title="Marcar como opcional">
+                            <button onclick="toggleOpt(${x})" class="text-[10px] font-bold px-2 py-1 rounded border ${i.optional ? 'bg-slate-600 text-white border-slate-600' : 'text-slate-400 border-slate-200 hover:border-slate-400'}" title="Marcar como opcional (não soma no total automaticamente)">
                                 ${i.optional ? 'OPCIONAL' : 'Opcional?'}
                             </button>
                          ` : ''}
@@ -528,8 +431,16 @@
             }
             setHTML('ed-total', totalDisplay);
 
-            // Chama a função de histórico separadamente para garantir que roda
-            renderHistory();
+            let histHtml = '';
+            if(d.history && d.history.length > 0) {
+                d.history.slice().reverse().forEach(h => {
+                    const date = new Date(h.date).toLocaleString('pt-BR');
+                    let icon = h.action === 'approved' ? 'check text-green-500' : h.action === 'change_request' ? 'comment-dots text-amber-500' : h.action === 'canceled' ? 'times text-red-500' : 'info-circle text-blue-400';
+                    let actionLabel = h.action === 'created' ? 'Criou o orçamento' : h.action === 'change_request' ? 'Solicitou alteração' : h.action === 'approved' ? 'Aprovou' : h.action === 'canceled' ? 'Recusou/Cancelou' : 'Visualizou';
+                    histHtml += `<div class="timeline-item"><div class="timeline-date">${date} • ${h.user === 'provider' ? 'Você' : 'Cliente'}</div><div class="timeline-title flex items-center gap-2"><i class="fas fa-${icon}"></i> ${actionLabel}</div>${h.detail ? `<div class="timeline-desc ${h.action.includes('request')?'':'system'}">${h.detail}</div>` : ''}</div>`;
+                });
+            } else { histHtml = '<div class="text-xs text-slate-400 italic">Sem histórico registrado.</div>'; }
+            setHTML('ed-history', histHtml);
 
             const actions = document.getElementById('ed-actions');
             if (actions) {
@@ -961,8 +872,8 @@
                         <div class="editor-body bg-slate-50 min-h-[300px]"><div id="ed-items"></div></div>
                     </div>
                 </div>
-                <div class="overflow-y-auto pb-20 no-scrollbar relative">
-                    <div class="editor-section sticky-finance bg-white shadow-lg">
+                <div class="overflow-y-auto pb-20 no-scrollbar">
+                    <div class="editor-section sticky top-0 shadow-lg">
                         <div class="editor-header"><i class="fas fa-coins"></i> Financeiro</div>
                         <div class="editor-body">
                             <div class="bg-slate-900 text-white p-6 rounded-lg text-center mb-6"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Global</div><div id="ed-total" class="text-3xl font-bold">R$ 0,00</div></div>
@@ -974,7 +885,7 @@
                             <div id="ed-actions" class="mt-6"></div>
                         </div>
                     </div>
-                    <div class="editor-section history-section"><div class="editor-header"><i class="fas fa-history"></i> Histórico</div><div id="ed-history" class="p-4 space-y-4"></div></div>
+                    <div class="editor-section"><div class="editor-header"><i class="fas fa-history"></i> Histórico</div><div id="ed-history" class="p-4 space-y-4"></div></div>
                 </div>
             </div>
         </div>
