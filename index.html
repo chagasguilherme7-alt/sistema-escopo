@@ -71,14 +71,14 @@
         /* EDITOR LAYOUT */
         .panel-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; max-width: 1600px; margin: 24px auto; padding: 0 24px; height: calc(100vh - 112px); }
         
-        /* CORREÇÃO DO EMPILHAMENTO VISUAL */
+        /* CORREÇÃO DO EMPILHAMENTO (Z-INDEX FIX) */
         .editor-section { background: white; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; margin-bottom: 24px; position: relative; }
         
-        /* Painel Financeiro Fixo: Z-Index 50 garante que fique na frente */
-        .sticky-finance { position: sticky; top: 0; z-index: 50 !important; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); background-color: white; }
+        /* Sticky Finance: Z-Index 50 (Frente) */
+        .sticky-finance { position: sticky; top: 0; z-index: 50 !important; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
         
-        /* Painel Histórico: Z-Index 0 garante que fique atrás ao rolar */
-        .history-section { position: relative; z-index: 0; }
+        /* History Section: Z-Index 0 (Fundo) */
+        .history-section { z-index: 0; }
 
         .editor-header { background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #475569; display: flex; align-items: center; gap: 8px; }
         .editor-body { padding: 20px; }
@@ -87,7 +87,7 @@
         .input-field { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.875rem; background: white; outline: none; transition: border-color 0.2s; }
         .input-field:focus { border-color: #3b82f6; }
         
-        /* Disabled Input Style */
+        /* Campos Bloqueados */
         input:disabled, textarea:disabled, select:disabled { background-color: #f1f5f9; color: #94a3b8; cursor: not-allowed; border-color: #e2e8f0; }
 
         .btn { padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
@@ -96,7 +96,6 @@
         .btn-secondary { background: white; color: #475569; border: 1px solid #e2e8f0; }
         .btn-secondary:hover { background: #f8fafc; border-color: #cbd5e1; }
 
-        /* Estilos Item Opcional e Diff */
         .diff-box { background-color: #fff7ed; border: 1px dashed #f97316; border-radius: 6px; padding: 8px; margin-top: 8px; font-size: 0.75rem; color: #9a3412; display: flex; align-items: center; gap: 8px; }
         .diff-tag { background: #f97316; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.65rem; text-transform: uppercase; }
         .old-val { text-decoration: line-through; color: #ef4444; margin-right: 4px; }
@@ -342,7 +341,7 @@
             state.project = proj;
             const { data: vers } = await db.from('versions').select('*').eq('project_id', id).order('version_number', { ascending: true });
             
-            state.allVersions = vers || []; // Garante array
+            state.allVersions = vers || []; // Garante array vazio se nulo
             state.version = vers[vers.length - 1];
             state.data = normalizeData(state.version.items);
             state.previousData = null;
@@ -391,9 +390,10 @@
             const tObs = document.getElementById('t-obs');
             if(tObs) { tObs.value = d.terms.obs || ''; if(isLocked) tObs.disabled = true; else tObs.disabled = false; }
 
-            // Botão Adicionar Item
-            const btnAdd = document.getElementById('btn-add-item');
-            if(btnAdd) btnAdd.style.display = isLocked ? 'none' : 'block';
+            // Botão Adicionar Item e Pagamento
+            const btnAdd = document.getElementById('btn-add-item'); if(btnAdd) btnAdd.style.display = isLocked ? 'none' : 'block';
+            const btnPay = document.querySelector('#pay-mode').nextElementSibling; if(btnPay) btnPay.disabled = isLocked;
+            const selPay = document.getElementById('pay-mode'); if(selPay) selPay.disabled = isLocked;
 
             let html = ''; 
             let total = 0;
@@ -463,44 +463,36 @@
             }
             setHTML('ed-total', totalDisplay);
 
-            // --- NOVO RESUMO FINANCEIRO DE VERSÕES (Corrigido para sempre aparecer) ---
-            let verSummaryHtml = '<div class="mb-6 border-b pb-4"><h4 class="font-bold text-xs text-slate-500 uppercase mb-3">Resumo Financeiro</h4>';
-            if(state.allVersions && state.allVersions.length > 0) {
-                 state.allVersions.forEach((v, idx) => {
-                     const val = parseFloat(v.total_value) || 0;
-                     let diffText = '';
-                     
-                     if (idx > 0) {
-                         const prevVal = parseFloat(state.allVersions[idx-1].total_value) || 0;
-                         const diff = val - prevVal;
-                         if (diff !== 0) {
-                            diffText = `<span class="text-xs font-bold ${diff > 0 ? 'text-green-600' : 'text-red-500'}">(${diff > 0 ? '+' : ''}${diff.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})})</span>`;
-                         } else {
-                            diffText = `<span class="text-xs text-slate-400">(=)</span>`;
+            // --- PROTEÇÃO DO HISTÓRICO ---
+            // Adicionado bloco try-catch para evitar que erros de cálculo impeçam a renderização
+            let histHtml = '';
+            try {
+                let verSummaryHtml = '<div class="mb-6 border-b pb-4"><h4 class="font-bold text-xs text-slate-500 uppercase mb-3">Resumo Financeiro</h4>';
+                if(state.allVersions && state.allVersions.length > 0) {
+                     state.allVersions.forEach((v, idx) => {
+                         const val = parseFloat(v.total_value) || 0;
+                         let diffText = '';
+                         if (idx > 0) {
+                             const prevVal = parseFloat(state.allVersions[idx-1].total_value) || 0;
+                             const diff = val - prevVal;
+                             if (diff !== 0) {
+                                diffText = `<span class="text-xs font-bold ${diff > 0 ? 'text-green-600' : 'text-red-500'}">(${diff > 0 ? '+' : ''}${diff.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})})</span>`;
+                             } else {
+                                diffText = `<span class="text-xs text-slate-400">(=)</span>`;
+                             }
                          }
-                     }
-
-                     const date = new Date(v.created_at).toLocaleDateString();
-                     verSummaryHtml += `
-                        <div class="flex justify-between items-center mb-2 text-sm">
-                            <div>
-                                <span class="font-bold text-slate-700">V${v.version_number}</span> 
-                                <span class="text-xs text-slate-400 ml-1">${date}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                ${diffText}
-                                <span class="font-mono text-slate-600">${val.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</span>
-                            </div>
-                        </div>
-                     `;
-                 });
-            } else {
-                verSummaryHtml += '<div class="text-xs text-slate-400 italic">Nenhuma versão salva.</div>';
+                         const date = new Date(v.created_at).toLocaleDateString();
+                         verSummaryHtml += `<div class="flex justify-between items-center mb-2 text-sm"><div><span class="font-bold text-slate-700">V${v.version_number}</span> <span class="text-xs text-slate-400 ml-1">${date}</span></div><div class="flex items-center gap-2">${diffText}<span class="font-mono text-slate-600">${val.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</span></div></div>`;
+                     });
+                } else {
+                    verSummaryHtml += '<div class="text-xs text-slate-400 italic">Nenhuma versão salva.</div>';
+                }
+                verSummaryHtml += '</div>';
+                histHtml = verSummaryHtml + '<h4 class="font-bold text-xs text-slate-500 uppercase mb-3">Timeline de Ações</h4>';
+            } catch(e) {
+                console.error("Erro no resumo financeiro:", e);
+                histHtml = '<div class="text-xs text-red-400 mb-4">Erro ao carregar resumo financeiro.</div><h4 class="font-bold text-xs text-slate-500 uppercase mb-3">Timeline de Ações</h4>';
             }
-            verSummaryHtml += '</div>';
-            // -----------------------------------------
-
-            let histHtml = verSummaryHtml + '<h4 class="font-bold text-xs text-slate-500 uppercase mb-3">Timeline de Ações</h4>';
             
             if(d.history && d.history.length > 0) {
                 d.history.slice().reverse().forEach(h => {
