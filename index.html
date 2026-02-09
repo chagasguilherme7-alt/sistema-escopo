@@ -240,7 +240,7 @@
         }
 
         function initRotator() {
-            const words = ["Eletricistas", "Instaladores", "Manutenção", "Técnicos", "Prestadores"];
+            const words = ["Prestadores","Técnicos", "Mecânicos", "Fotógrafos"];
             let idx = 0; const el = document.getElementById('rotator'); if(!el) return;
             el.innerHTML = '';
             words.forEach((w, i) => { const s = document.createElement('span'); s.className = `rotate-word ${i===0?'active':''}`; s.innerText = w; el.appendChild(s); });
@@ -882,3 +882,4 @@
 
 </body>
 </html>
+
