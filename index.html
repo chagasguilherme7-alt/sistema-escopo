@@ -54,7 +54,12 @@
         .kpi-card { background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.02); display: flex; flex-col; justify-content: space-between; transition: transform 0.2s; }
         .kpi-card:hover { transform: translateY(-2px); }
         .status-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.05em; }
-        .st-draft { background: #f1f5f9; color: #64748b; } .st-sent { background: #dbeafe; color: #1e40af; } .st-negotiating { background: #ffedd5; color: #c2410c; } .st-approved { background: #dcfce7; color: #166534; } .st-canceled { background: #fee2e2; color: #991b1b; }
+        /* st-draft agora representa Em Aberto visualmente */
+        .st-draft { background: #e0f2fe; color: #0284c7; } /* Azul claro para Em Aberto */
+        .st-sent { background: #dbeafe; color: #1e40af; } 
+        .st-negotiating { background: #ffedd5; color: #c2410c; } 
+        .st-approved { background: #dcfce7; color: #166534; } 
+        .st-canceled { background: #fee2e2; color: #991b1b; }
         
         .timeline-item { position: relative; padding-left: 2rem; border-left: 2px solid #e2e8f0; padding-bottom: 1.5rem; }
         .timeline-item::before { content: ''; position: absolute; left: -5px; top: 0; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
@@ -159,7 +164,15 @@
 
         // --- NORMALIZAÇÃO ROBUSTA (CORREÇÃO DE DADOS QUEBRADOS E GERAÇÃO DE IDs) ---
         function normalizeData(dbData) {
-            const schema = { client: { name: '', doc: '', email: '', phone: '', address: '' }, location: { address: '', sameAsClient: true }, items: [], terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, settings: { myPhone: '', serviceType: 'Outros' }, history: [] };
+            // Adicionado campos do prestador em settings
+            const schema = { 
+                client: { name: '', doc: '', email: '', phone: '', address: '' }, 
+                location: { address: '', sameAsClient: true }, 
+                items: [], 
+                terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, 
+                settings: { myPhone: '', serviceType: 'Outros', providerName: '', providerDoc: '', providerAddr: '', providerPhone: '' }, 
+                history: [] 
+            };
             
             if (!dbData) return schema;
 
@@ -278,7 +291,7 @@
             if(!list) return;
             const search = safeVal('dash-search').toLowerCase();
             const filterStatus = safeVal('dash-filter');
-            let totalRev = 0, totalAprov = 0, countAprov = 0, countNegoc = 0, countCancel = 0;
+            let totalRev = 0, totalAprov = 0, countAprov = 0, countNegoc = 0, countOpen = 0;
 
             const filtered = state.projectsCache.filter(p => {
                 const v = p.versions?.[0] || { status: 'draft', total_value: 0 };
@@ -293,14 +306,14 @@
                 totalRev += val; 
                 if(v.status === 'approved') { totalAprov += val; countAprov++; }
                 if(v.status === 'negotiating' || v.status === 'sent') countNegoc++;
-                if(v.status === 'canceled') countCancel++;
+                if(v.status === 'draft') countOpen++; // Contabiliza "Em Aberto" em vez de cancelado
             });
 
             safeText('kpi-total-est', totalRev.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
             safeText('kpi-total-apr', totalAprov.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
             safeText('kpi-count-neg', countNegoc);
             safeText('kpi-count-apr', countAprov);
-            safeText('kpi-count-can', countCancel);
+            safeText('kpi-count-open', countOpen); // ID alterado para open
 
             let html = '';
             if(filtered.length === 0) html = '<div class="col-span-full text-center py-20 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Nenhum orçamento encontrado.</div>';
@@ -308,7 +321,7 @@
                 filtered.forEach(p => {
                     const v = p.versions?.[0] || { total_value: 0, status: 'draft', version_number: 1 };
                     const val = parseFloat(v.total_value) || 0;
-                    let badgeClass = 'st-draft'; let statusLabel = 'Rascunho';
+                    let badgeClass = 'st-draft'; let statusLabel = 'Em Aberto';
                     if(v.status === 'sent') { badgeClass = 'st-sent'; statusLabel = 'Enviado'; }
                     if(v.status === 'negotiating') { badgeClass = 'st-negotiating'; statusLabel = 'Em Negociação'; }
                     if(v.status === 'approved') { badgeClass = 'st-approved'; statusLabel = 'Aprovado'; }
@@ -343,7 +356,14 @@
         async function createProject() {
             const name = prompt("Nome do Orçamento:"); if(!name) return;
             const { data: p, error } = await db.from('projects').insert({ name, user_id: state.user.id, client_name: 'Novo Cliente' }).select().single();
-            const d = normalizeData(null); d.settings.myPhone = localStorage.getItem('escopo_phone') || '';
+            const d = normalizeData(null); 
+            d.settings.myPhone = localStorage.getItem('escopo_phone') || '';
+            // Recupera dados do prestador salvos localmente
+            d.settings.providerName = localStorage.getItem('prov_name') || '';
+            d.settings.providerDoc = localStorage.getItem('prov_doc') || '';
+            d.settings.providerAddr = localStorage.getItem('prov_addr') || '';
+            d.settings.providerPhone = localStorage.getItem('prov_phone') || '';
+
             logHistory('created', 'provider', 'Orçamento criado via painel.', d); 
             await db.from('versions').insert({ project_id: p.id, version_number: 1, items: d, total_value: 0, status: 'draft' });
             goTo('editor', p.id);
@@ -393,10 +413,15 @@
             
             const badge = document.getElementById('ed-status-badge');
             if(badge) {
+                // Atualizado Status Draft visual
                 badge.className = `status-badge ml-2 ${state.version.status === 'approved' ? 'st-approved' : state.version.status === 'canceled' ? 'st-canceled' : 'st-draft'}`;
-                badge.innerText = state.version.status.toUpperCase();
+                badge.innerText = state.version.status === 'draft' ? 'EM ABERTO' : state.version.status.toUpperCase();
             }
             
+            // Dados Prestador
+            setVal('p-name', d.settings.providerName); setVal('p-doc', d.settings.providerDoc);
+            setVal('p-addr', d.settings.providerAddr); setVal('p-phone', d.settings.providerPhone);
+
             setVal('c-name', d.client.name); setVal('c-doc', d.client.doc); setVal('c-phone', d.client.phone); setVal('c-email', d.client.email); setVal('c-addr', d.client.address); setVal('in-s-myphone', d.settings.myPhone);
             const svc = document.getElementById('s-type'); if(svc) svc.value = d.settings.serviceType || 'Outros';
             setVal('t-dead', d.terms.deadline); setVal('t-val', d.terms.validity); setVal('t-obs', d.terms.obs);
@@ -414,15 +439,12 @@
                 let cardClass = '';
                 
                 if (state.previousData) {
-                    // Tenta achar o mesmo item na versão anterior pelo ID
                     const oldItem = state.previousData.items.find(old => old.id === i.id);
 
                     if (!oldItem) {
-                        // Se não achou, é um item NOVO
                         cardClass = 'item-new';
                         diffHtml = `<div class="diff-box"><span class="diff-tag">NOVO</span> Este item foi adicionado nesta revisão.</div>`;
                     } else {
-                        // Se achou, verifica se mudou algo
                         let changes = [];
                         if (oldItem.price !== i.price) changes.push(`Preço: <span class="old-val">R$${oldItem.price}</span> <i class="fas fa-arrow-right text-xs"></i> <span class="new-val">R$${i.price}</span>`);
                         if (oldItem.qty !== i.qty) changes.push(`Qtd: <span class="old-val">${oldItem.qty}</span> <i class="fas fa-arrow-right text-xs"></i> <span class="new-val">${i.qty}</span>`);
@@ -483,6 +505,16 @@
         }
 
         function upVal(k,v) { if(k.startsWith('c-')) state.data.client[k.substring(2)] = v; else if(k.startsWith('t-')) state.data.terms[k.substring(2)] = v; else if(k==='s-phone') { state.data.settings.myPhone=v; localStorage.setItem('escopo_phone',v); } else if(k==='s-type') { state.data.settings.serviceType = v; } }
+        // Nova função para atualizar dados do prestador
+        function upSettings(k,v) {
+            state.data.settings[k] = v;
+            // Salva em localStorage para reuso em próximos orçamentos
+            if(k === 'providerName') localStorage.setItem('prov_name', v);
+            if(k === 'providerDoc') localStorage.setItem('prov_doc', v);
+            if(k === 'providerAddr') localStorage.setItem('prov_addr', v);
+            if(k === 'providerPhone') localStorage.setItem('prov_phone', v);
+        }
+
         function upItem(i,f,v) { const it=state.data.items[i]; if(f==='qty'||f==='price') it[f]=parseFloat(v)||0; else it[f]=v; renderEditor(); }
         
         function addItem() { 
@@ -598,9 +630,28 @@
                 state.data = normalizeData(v.items);
                 const d = state.data;
                 
+                // Exibe carimbo se aprovado
+                if(v.status === 'approved') {
+                    const stamp = document.getElementById('stamp-approved');
+                    if(stamp) stamp.style.display = 'block';
+                }
+
+                // Renderiza dados do Prestador no topo
+                if(d.settings.providerName) {
+                    setHTML('doc-provider-info', `
+                        <div class="mb-4 pb-4 border-b border-slate-700">
+                            <h2 class="text-xl font-bold">${d.settings.providerName}</h2>
+                            <p class="text-slate-400 text-sm">${d.settings.providerDoc || ''} • ${d.settings.providerPhone || ''}</p>
+                            <p class="text-slate-400 text-xs">${d.settings.providerAddr || ''}</p>
+                        </div>
+                    `);
+                }
+
                 safeText('doc-title', v.projects?.name);
                 safeText('doc-id', `#${v.project_id ? v.project_id.substr(0,4).toUpperCase() : 'XXXX'}-${v.version_number}`);
                 safeText('doc-c-name', d.client.name);
+                safeText('doc-c-doc', d.client.doc);
+                safeText('doc-c-addr', d.client.address);
                 
                 let html = '';
                 const items = Array.isArray(state.data.items) ? state.data.items : [];
@@ -641,6 +692,36 @@
             }
         }
 
+        // --- FUNÇÃO PARA GERAR PDF (COMPROVANTE) ---
+        function downloadPDF() {
+            const element = document.getElementById('public-content');
+            const btn = document.getElementById('btn-download-pdf');
+            if(btn) btn.innerText = "Gerando PDF...";
+            
+            // Força a exibição do carimbo de aprovado no PDF
+            const stamp = document.getElementById('stamp-approved');
+            const originalDisplay = stamp.style.display;
+            stamp.style.display = 'block';
+
+            // Oculta botões para o PDF
+            document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
+
+            const opt = {
+                margin:       0,
+                filename:     `Comprovante_${state.project?.name || 'Orcamento'}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                 // Restaura estado original
+                 if(btn) btn.innerText = "Baixar Comprovante PDF";
+                 document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
+                 stamp.style.display = originalDisplay;
+            });
+        }
+
         // --- TELA DE SUCESSO ---
         function showSuccessScreen(type) {
             safeHide('view-public');
@@ -649,11 +730,16 @@
             const icon = document.getElementById('success-icon');
             const title = document.getElementById('success-title');
             const desc = document.getElementById('success-desc');
+            const actions = document.getElementById('success-actions');
+
+            actions.innerHTML = ''; // Limpa botões anteriores
 
             if(type === 'approved' || type === 'approve') {
                 if(icon) icon.className = "fas fa-check-circle text-6xl text-green-500 mb-4";
                 if(title) title.innerText = "Orçamento Aprovado!";
-                if(desc) desc.innerText = "Obrigado pela confiança. O prestador já foi notificado.";
+                if(desc) desc.innerText = "Obrigado pela confiança. O comprovante foi gerado.";
+                // Botão para baixar PDF
+                actions.innerHTML = `<button id="btn-download-pdf" onclick="loadPublicProposal('${state.version.id}').then(() => setTimeout(downloadPDF, 1000))" class="px-6 py-3 bg-slate-800 text-white rounded-lg font-bold shadow hover:bg-slate-700"><i class="fas fa-file-pdf mr-2"></i> Baixar Comprovante PDF</button>`;
             } else if (type === 'negotiating' || type === 'change_request') {
                 if(icon) icon.className = "fas fa-clock text-6xl text-amber-500 mb-4";
                 if(title) title.innerText = "Solicitação Enviada";
@@ -742,10 +828,14 @@
     </script>
 
     <section id="view-success" class="hidden min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
-        <div class="max-w-md">
+        <div class="max-w-md w-full">
             <i id="success-icon" class="fas fa-check-circle text-6xl text-green-500 mb-6 anim-entry"></i>
             <h2 id="success-title" class="text-3xl font-bold text-slate-900 mb-4 anim-entry delay-100">Tudo Certo!</h2>
             <p id="success-desc" class="text-slate-600 text-lg anim-entry delay-200">Sua resposta foi registrada com sucesso.</p>
+            
+            <div id="success-actions" class="mt-8 anim-entry delay-300">
+                </div>
+
             <div class="mt-8 text-xs text-slate-400">Pode fechar esta janela.</div>
         </div>
     </section>
@@ -797,12 +887,12 @@
             <div class="flex gap-4 mb-4">
                 <div class="kpi-card bg-amber-50 border-amber-200 flex-1"><div class="kpi-label text-amber-700">Em Negociação</div><div class="kpi-value text-amber-700" id="kpi-count-neg">0</div></div>
                 <div class="kpi-card bg-emerald-50 border-emerald-200 flex-1"><div class="kpi-label text-emerald-700">Aprovados</div><div class="kpi-value text-emerald-700" id="kpi-count-apr">0</div></div>
-                <div class="kpi-card flex-1"><div class="kpi-label">Cancelados</div><div class="kpi-value text-red-500" id="kpi-count-can">0</div></div>
+                <div class="kpi-card bg-blue-50 border-blue-200 flex-1"><div class="kpi-label text-blue-700">Em Aberto</div><div class="kpi-value text-blue-700" id="kpi-count-open">0</div></div>
             </div>
 
             <div class="flex flex-col md:flex-row gap-4 mb-6 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                 <div class="flex-1 w-full relative"><i class="fas fa-search absolute left-3 top-3 text-slate-400"></i><input id="dash-search" onkeyup="renderDashboardList()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Buscar cliente ou projeto..."></div>
-                <select id="dash-filter" onchange="renderDashboardList()" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none"><option value="all">Todos os Status</option><option value="draft">Rascunhos</option><option value="sent">Enviados</option><option value="negotiating">Em Negociação</option><option value="approved">Aprovados</option><option value="canceled">Cancelados</option></select>
+                <select id="dash-filter" onchange="renderDashboardList()" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none"><option value="all">Todos os Status</option><option value="draft">Em Aberto</option><option value="sent">Enviados</option><option value="negotiating">Em Negociação</option><option value="approved">Aprovados</option><option value="canceled">Cancelados</option></select>
             </div>
             <div id="project-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
@@ -820,6 +910,19 @@
             </div>
             <div class="panel-grid overflow-hidden">
                 <div class="overflow-y-auto pr-2 pb-20 no-scrollbar">
+                    
+                    <div class="editor-section">
+                        <div class="editor-header bg-slate-100 text-blue-700"><i class="fas fa-id-card"></i> Seus Dados (Prestador)</div>
+                        <div class="editor-body">
+                            <div class="input-group"><label class="input-label">Nome / Razão Social</label><input id="p-name" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Nome da sua empresa" onchange="upSettings('providerName',this.value)"></div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="input-group"><label class="input-label">CNPJ / CPF</label><input id="p-doc" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="000.000.000-00" onchange="upSettings('providerDoc',this.value)"></div>
+                                <div class="input-group"><label class="input-label">Telefone</label><input id="p-phone" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="(00) 00000-0000" onchange="upSettings('providerPhone',this.value)"></div>
+                            </div>
+                            <div class="input-group"><label class="input-label">Endereço</label><input id="p-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Endereço da sua empresa" onchange="upSettings('providerAddr',this.value)"></div>
+                        </div>
+                    </div>
+
                     <div class="editor-section">
                         <div class="editor-header"><i class="fas fa-user-tie"></i> Dados do Cliente</div>
                         <div class="editor-body">
@@ -827,7 +930,7 @@
                             <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Doc</label><input id="c-doc" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="CPF/CNPJ" onchange="upVal('c-doc',this.value)"></div><div class="input-group"><label class="input-label">Tel</label><input id="c-phone" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Telefone" onchange="upVal('c-phone',this.value)"></div></div>
                             <div class="input-group"><label class="input-label">Email</label><input id="c-email" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="E-mail" onchange="upVal('c-email',this.value)"></div>
                             <div class="input-group"><label class="input-label">Endereço</label><input id="c-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Endereço Completo" onchange="upVal('c-addr',this.value)"></div>
-                            <div class="mt-4 pt-4 border-t"><label class="input-label text-blue-600">Seu WhatsApp</label><input id="in-s-myphone" onchange="upSettings('myPhone', this.value)" class="input-field bg-blue-50 border-blue-200"></div>
+                            <div class="mt-4 pt-4 border-t"><label class="input-label text-blue-600">Seu WhatsApp (Para Notificações)</label><input id="in-s-myphone" onchange="upSettings('myPhone', this.value)" class="input-field bg-blue-50 border-blue-200"></div>
                         </div>
                     </div>
                     <div class="editor-section">
@@ -856,7 +959,14 @@
         <div id="public-loading" class="flex justify-center mt-20"><div class="spinner border-slate-900"></div></div>
         <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col">
             <div id="stamp-approved" class="hidden absolute top-10 right-10 border-4 border-emerald-600 text-emerald-600 font-bold text-3xl px-6 py-2 uppercase opacity-30 transform -rotate-12 z-20">APROVADO</div>
-            <div class="bg-slate-900 text-white p-12 print:bg-white print:text-black print:border-b-2"><div class="flex justify-between items-start"><div><h1 id="doc-title" class="text-3xl font-bold mb-2">Projeto</h1><p class="text-xs uppercase tracking-widest text-slate-400">Proposta Técnica</p></div><div class="text-right"><div id="doc-id" class="font-bold text-lg">#REF</div><div id="doc-date" class="text-sm opacity-70">--/--/--</div></div></div></div>
+            <div class="bg-slate-900 text-white p-12 print:bg-white print:text-black print:border-b-2">
+                <div id="doc-provider-info"></div>
+                
+                <div class="flex justify-between items-start mt-4">
+                    <div><h1 id="doc-title" class="text-3xl font-bold mb-2">Projeto</h1><p class="text-xs uppercase tracking-widest text-slate-400">Proposta Técnica</p></div>
+                    <div class="text-right"><div id="doc-id" class="font-bold text-lg">#REF</div><div id="doc-date" class="text-sm opacity-70">--/--/--</div></div>
+                </div>
+            </div>
             <div class="p-12 flex-1">
                 <div class="flex gap-12 mb-12 text-sm"><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Contratante</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div><div id="doc-c-doc" class="text-slate-500"></div></div><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Local</h3><div id="doc-c-addr" class="text-slate-600"></div></div></div>
                 <div class="mb-12"><h3 class="font-bold text-xs uppercase text-slate-400 mb-4 tracking-wider">Escopo</h3><table class="w-full"><tbody id="doc-items-body"></tbody></table></div>
@@ -882,5 +992,3 @@
 
 </body>
 </html>
-
-
