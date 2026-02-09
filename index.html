@@ -154,7 +154,7 @@
                 price: parseFloat(i.price) || 0, 
                 type: i.type || 'original',
                 optional: i.optional || false,
-                publicSelected: i.publicSelected || false // <--- Correção aqui: Salva o estado do checkbox
+                publicSelected: i.publicSelected || false 
             }));
             
             return { 
@@ -358,7 +358,10 @@
             setVal('p-addr', d.settings.providerAddr); setVal('p-phone', d.settings.providerPhone);
             setVal('c-name', d.client.name); setVal('c-doc', d.client.doc); setVal('c-phone', d.client.phone); setVal('c-email', d.client.email); setVal('c-addr', d.client.address); setVal('in-s-myphone', d.settings.myPhone);
             const svc = document.getElementById('s-type'); if(svc) svc.value = d.settings.serviceType || 'Outros';
-            setVal('t-dead', d.terms.deadline); setVal('t-val', d.terms.validity); setVal('t-obs', d.terms.obs);
+            
+            // CORREÇÃO AQUI: Mudado t-dead para t-deadline
+            setVal('t-deadline', d.terms.deadline); 
+            setVal('t-val', d.terms.validity); setVal('t-obs', d.terms.obs);
 
             let html = ''; 
             let total = 0;
@@ -366,7 +369,6 @@
             
             items.forEach((i, x) => {
                 const t = (i.qty||0)*(i.price||0); 
-                // Se não for opcional, soma.
                 if(!i.optional) total += t;
 
                 let diffHtml = '';
@@ -421,7 +423,6 @@
             });
             
             setHTML('ed-items', html);
-            // Calcula total de opcionais para mostrar separado
             const totalOpt = items.reduce((acc, i) => i.optional ? acc + (i.qty * i.price) : acc, 0);
             
             let totalDisplay = total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
@@ -453,7 +454,6 @@
 
         function upItem(i,f,v) { const it=state.data.items[i]; if(f==='qty'||f==='price') it[f]=parseFloat(v)||0; else it[f]=v; renderEditor(); }
         
-        // Nova função para alternar opcional
         function toggleOpt(i) {
             state.data.items[i].optional = !state.data.items[i].optional;
             renderEditor();
@@ -543,14 +543,13 @@
                 safeText('doc-c-doc', d.client.doc);
                 safeText('doc-c-addr', d.client.address);
                 
-                renderPublicItems(); // Nova função para renderizar e permitir interatividade
+                renderPublicItems(); 
 
                 safeText('doc-payment', d.terms.paymentText); 
                 safeText('doc-deadline', d.terms.deadline); 
                 safeText('doc-validity', d.terms.validity); 
                 safeText('doc-obs', d.terms.obs);
 
-                // Exibe assinatura se existir
                 if (d.signature) {
                     setHTML('doc-signature-area', `<div class="mt-8 border-t border-dashed pt-4 w-64 text-center"><img src="${d.signature}" class="mx-auto h-16 mb-2" alt="Assinatura"><p class="text-xs text-slate-500 uppercase font-bold">Assinado Digitalmente</p></div>`);
                 }
@@ -579,7 +578,6 @@
             }
         }
 
-        // Renderiza itens com checkboxes para opcionais na tela pública
         function renderPublicItems() {
             let html = '';
             let total = 0;
@@ -587,18 +585,9 @@
             const isFrozen = state.version.status !== 'sent' && state.version.status !== 'negotiating' && state.version.status !== 'draft';
 
             items.forEach((i, idx) => {
-                // Se estiver marcado como opcional (checked) ou não for opcional, soma
-                if (!i.optional || (i.optional && i.selected)) {
-                     // Lógica invertida: No DB 'optional' diz que É opcional. 'selected' diz se o cliente quer.
-                     // Se for obrigatório (!optional) soma.
-                     // Se for opcional E selected, soma.
-                }
-
-                // Ajuste de lógica de soma para exibição pública
-                let isActive = !i.optional; // Itens normais são sempre ativos
-                if (i.optional && i.publicSelected) isActive = true; // Se cliente marcou
+                let isActive = !i.optional; 
+                if (i.optional && i.publicSelected) isActive = true; 
                 
-                // Se já estiver aprovado/recusado, usa o estado salvo. Se for novo, opcionais começam desmarcados.
                 if(i.optional && typeof i.publicSelected === 'undefined') i.publicSelected = false;
 
                 if (!i.optional || i.publicSelected) {
@@ -674,12 +663,9 @@
             }
         }
 
-        // --- LÓGICA DE ASSINATURA (CANVAS) ---
         function initSignaturePad() {
             const canvas = document.getElementById('signature-pad');
             const ctx = canvas.getContext('2d');
-            
-            // Ajustar tamanho do canvas para resolução da tela
             function resizeCanvas() {
                 const ratio = Math.max(window.devicePixelRatio || 1, 1);
                 canvas.width = canvas.offsetWidth * ratio;
@@ -687,45 +673,21 @@
                 ctx.scale(ratio, ratio);
             }
             resizeCanvas();
-            
             let painting = false;
-
-            function startPosition(e) {
-                painting = true;
-                draw(e);
-            }
-            function endPosition() {
-                painting = false;
-                ctx.beginPath();
-            }
+            function startPosition(e) { painting = true; draw(e); }
+            function endPosition() { painting = false; ctx.beginPath(); }
             function draw(e) {
                 if (!painting) return;
                 e.preventDefault(); 
                 const rect = canvas.getBoundingClientRect();
                 const x = (e.clientX || e.touches[0].clientX) - rect.left;
                 const y = (e.clientY || e.touches[0].clientY) - rect.top;
-                
-                ctx.lineWidth = 2;
-                ctx.lineCap = 'round';
-                ctx.strokeStyle = '#0f172a';
-                
-                ctx.lineTo(x, y);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(x, y);
+                ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#0f172a';
+                ctx.lineTo(x, y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y);
             }
-
-            canvas.addEventListener('mousedown', startPosition);
-            canvas.addEventListener('mouseup', endPosition);
-            canvas.addEventListener('mousemove', draw);
-            
-            canvas.addEventListener('touchstart', startPosition);
-            canvas.addEventListener('touchend', endPosition);
-            canvas.addEventListener('touchmove', draw);
-
-            document.getElementById('clear-sig').onclick = () => {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-            };
+            canvas.addEventListener('mousedown', startPosition); canvas.addEventListener('mouseup', endPosition); canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('touchstart', startPosition); canvas.addEventListener('touchend', endPosition); canvas.addEventListener('touchmove', draw);
+            document.getElementById('clear-sig').onclick = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); };
         }
 
         function openModal(type) {
@@ -748,7 +710,7 @@
                 btn.innerText = 'Confirmar Aprovação';
                 btn.className = "w-full py-3 bg-green-600 text-white rounded font-bold hover:bg-green-700";
                 btn.onclick = () => executeAction('approve');
-                setTimeout(initSignaturePad, 100); // Inicializa canvas após render
+                setTimeout(initSignaturePad, 100); 
             } else if(type === 'change') {
                 title.innerText = 'O que deseja alterar?';
                 desc.innerText = 'Descreva as mudanças desejadas:';
@@ -774,8 +736,6 @@
 
             if (type === 'approve') {
                 const canvas = document.getElementById('signature-pad');
-                // Verifica se está vazio (simples verificação de pixel ou assumir que clicou)
-                // Para simplificar, salva a imagem
                 const signatureData = canvas.toDataURL();
                 state.data.signature = signatureData;
                 await approveLogic();
@@ -797,13 +757,9 @@
         async function approveLogic() {
             let ip = 'IP'; try { const r = await fetch('https://api.ipify.org?format=json'); const j = await r.json(); ip = j.ip; } catch(e){}
             logHistory('approved', 'client', 'Aprovado via link com assinatura');
-            
-            // Recalcula total final considerando opcionais selecionados
             const items = state.data.items;
             const finalTotal = items.reduce((acc, i) => (!i.optional || i.publicSelected ? acc + (i.qty * i.price) : acc), 0);
-
             await db.from('versions').update({ status: 'approved', approved_at: new Date(), approved_by_ip: ip, items: state.data, total_value: finalTotal }).eq('id', state.version.id);
-            
             const phone = state.data.settings?.myPhone;
             if(phone) {
                 const msg = `✅ O cliente APROVOU o orçamento ${state.version.projects.name}!`;
@@ -922,7 +878,9 @@
                         <div class="editor-body">
                             <div class="bg-slate-900 text-white p-6 rounded-lg text-center mb-6"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Global</div><div id="ed-total" class="text-3xl font-bold">R$ 0,00</div></div>
                             <div class="input-group"><div class="flex gap-2 mb-2"><select id="pay-mode" class="input-field"><option value="entry_installments">Entrada + Parcelas</option><option value="single">Único</option></select><button onclick="generatePayment()" class="btn btn-secondary px-3"><i class="fas fa-calculator"></i></button></div><div id="payment-display" class="text-xs bg-slate-50 p-3 rounded border border-slate-200 text-slate-600 whitespace-pre-line min-h-[60px]">...</div></div>
-                            <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Entrega</label><input id="t-dead" class="border p-2 rounded text-sm" placeholder="Prazo" onchange="upVal('t-dead',this.value)"></div><div class="input-group"><label class="input-label">Validade</label><input id="t-val" class="border p-2 rounded text-sm" placeholder="Validade" onchange="upVal('t-val',this.value)"></div></div>
+                            
+                            <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Entrega</label><input id="t-deadline" class="border p-2 rounded text-sm" placeholder="Prazo" onchange="upVal('t-deadline',this.value)"></div><div class="input-group"><label class="input-label">Validade</label><input id="t-val" class="border p-2 rounded text-sm" placeholder="Validade" onchange="upVal('t-val',this.value)"></div></div>
+                            
                             <div class="input-group"><label class="input-label">Obs</label><textarea id="t-obs" class="w-full border p-2 rounded text-sm h-20 mb-4 bg-slate-50" placeholder="Condições de pagamento..." onchange="upVal('t-obs',this.value)"></textarea></div>
                             <div id="ed-actions" class="mt-6"></div>
                         </div>
