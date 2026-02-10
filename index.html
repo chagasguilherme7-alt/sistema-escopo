@@ -145,7 +145,7 @@
         const { createClient } = supabase;
         const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let state = { user: null, project: null, version: null, projectsCache: [], data: { client: {}, items: [], terms: {}, settings: {}, history: [], signature: null }, previousData: null, snapshot: [] };
+        let state = { user: null, project: null, version: null, projectsCache: [], data: { client: {}, location: {}, items: [], terms: {}, settings: {}, history: [], signature: null }, previousData: null, snapshot: [] };
         let signaturePad = null;
         let isDrawing = false;
 
@@ -254,6 +254,16 @@
             setHTML('project-list', '<div class="col-span-full text-center py-10 text-slate-400">Carregando dados...</div>');
             const { data: projects, error } = await db.from('projects').select('*, versions(status, total_value, version_number)').eq('user_id', state.user.id).order('created_at', { ascending: false });
             if(error) return setHTML('project-list', 'Erro ao carregar.');
+            
+            // CORREÇÃO: ORDENAR VERSÕES INTERNAMENTE PARA GARANTIR QUE A [0] SEJA A MAIS RECENTE
+            if (projects) {
+                projects.forEach(p => {
+                    if (p.versions && p.versions.length > 0) {
+                        p.versions.sort((a, b) => b.version_number - a.version_number);
+                    }
+                });
+            }
+            
             state.projectsCache = projects || [];
             renderDashboardList();
         }
@@ -386,8 +396,15 @@
             setVal('t-deadline', d.terms.deadline); 
             setVal('t-val', d.terms.validity); setVal('t-obs', d.terms.obs);
 
+            // ENDEREÇO DO SERVIÇO
+            const locCheck = document.getElementById('loc-check');
+            if(locCheck) locCheck.checked = d.location.sameAsClient;
+            const locDiv = document.getElementById('loc-custom-div');
+            if(locDiv) locDiv.style.display = d.location.sameAsClient ? 'none' : 'block';
+            setVal('loc-addr', d.location.address);
+
             // DESABILITA TODOS OS CAMPOS DE TEXTO E INPUTS SE ESTIVER BLOQUEADO
-            const staticInputs = ['p-name','p-doc','p-addr','p-phone','c-name','c-doc','c-phone','c-email','c-addr','in-s-myphone','s-type','pay-mode','t-deadline','t-val','t-obs'];
+            const staticInputs = ['p-name','p-doc','p-addr','p-phone','c-name','c-doc','c-phone','c-email','c-addr','in-s-myphone','s-type','pay-mode','t-deadline','t-val','t-obs', 'loc-check', 'loc-addr'];
             staticInputs.forEach(id => { const el = document.getElementById(id); if(el) el.disabled = isLocked; });
 
             // OCULTA BOTÃO DE ADICIONAR ITEM E CALCULADORA
@@ -496,6 +513,15 @@
 
         function upVal(k,v) { if(k.startsWith('c-')) state.data.client[k.substring(2)] = v; else if(k.startsWith('t-')) state.data.terms[k.substring(2)] = v; else if(k==='s-phone') { state.data.settings.myPhone=v; localStorage.setItem('escopo_phone',v); } else if(k==='s-type') { state.data.settings.serviceType = v; } }
         function upSettings(k,v) { state.data.settings[k] = v; if(['providerName','providerDoc','providerAddr','providerPhone'].includes(k)) localStorage.setItem(k.replace('provider','prov_').toLowerCase(), v); }
+
+        // LOGICA DE LOCALIZAÇÃO
+        function toggleLoc(checked) {
+            state.data.location.sameAsClient = checked;
+            renderEditor();
+        }
+        function upLoc(v) {
+            state.data.location.address = v;
+        }
 
         // CORREÇÃO: SÓ RENDERIZA SE FOR NUMÉRICO PARA ATUALIZAR TOTAL. TEXTO SÓ ATUALIZA ESTADO.
         function upItem(i,f,v) { 
@@ -630,7 +656,10 @@
                 safeText('doc-id', `#${v.project_id ? v.project_id.substr(0,4).toUpperCase() : 'XXXX'}-${v.version_number}`);
                 safeText('doc-c-name', d.client.name);
                 safeText('doc-c-doc', d.client.doc);
-                safeText('doc-c-addr', d.client.address);
+                
+                // LOGICA DE EXIBIÇÃO DE ENDEREÇO
+                const finalAddr = d.location.sameAsClient ? d.client.address : (d.location.address || 'Não informado');
+                safeText('doc-c-addr', finalAddr);
                 
                 renderPublicItems(); 
 
@@ -957,7 +986,19 @@
                             <div class="input-group"><label class="input-label">Nome</label><input id="c-name" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Nome do Cliente / Empresa" onchange="upVal('c-name',this.value)"></div>
                             <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Doc</label><input id="c-doc" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="CPF/CNPJ" onchange="upVal('c-doc',this.value)"></div><div class="input-group"><label class="input-label">Tel</label><input id="c-phone" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Telefone" onchange="upVal('c-phone',this.value)"></div></div>
                             <div class="input-group"><label class="input-label">Email</label><input id="c-email" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="E-mail" onchange="upVal('c-email',this.value)"></div>
-                            <div class="input-group"><label class="input-label">Endereço</label><input id="c-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Endereço Completo" onchange="upVal('c-addr',this.value)"></div>
+                            <div class="input-group"><label class="input-label">Endereço do Cliente</label><input id="c-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Endereço Completo" onchange="upVal('c-addr',this.value)"></div>
+                            
+                            <div class="mt-4 pt-4 border-t border-dashed">
+                                <label class="flex items-center gap-2 text-sm text-slate-600 mb-2 cursor-pointer">
+                                    <input type="checkbox" id="loc-check" onchange="toggleLoc(this.checked)" class="accent-blue-600">
+                                    Endereço do serviço é o mesmo do cliente?
+                                </label>
+                                <div id="loc-custom-div">
+                                    <label class="input-label">Endereço do Serviço/Obra</label>
+                                    <input id="loc-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Onde será realizado o serviço?" onchange="upLoc(this.value)">
+                                </div>
+                            </div>
+
                             <div class="mt-4 pt-4 border-t"><label class="input-label text-blue-600">Seu WhatsApp (Para Notificações)</label><input id="in-s-myphone" onchange="upSettings('myPhone', this.value)" class="input-field bg-blue-50 border-blue-200"></div>
                         </div>
                     </div>
