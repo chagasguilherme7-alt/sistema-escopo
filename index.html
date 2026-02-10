@@ -361,7 +361,11 @@
 
         function renderEditor() {
             const d = state.data; 
-            const isLocked = state.version.status === 'approved' || state.version.status === 'canceled';
+            
+            // LÓGICA DE BLOQUEIO RIGOROSA: Bloqueia se NÃO for rascunho.
+            // Isso cobre: Aprovado, Cancelado, Em Negociação (Pedido de alteração), Enviado.
+            const isLocked = state.version.status !== 'draft'; 
+            
             safeText('ed-title', state.project.name);
             safeText('ed-ver', `V${state.version.version_number}`);
             
@@ -378,6 +382,18 @@
             
             setVal('t-deadline', d.terms.deadline); 
             setVal('t-val', d.terms.validity); setVal('t-obs', d.terms.obs);
+
+            // DESABILITA TODOS OS CAMPOS DE TEXTO E INPUTS SE ESTIVER BLOQUEADO
+            const staticInputs = ['p-name','p-doc','p-addr','p-phone','c-name','c-doc','c-phone','c-email','c-addr','in-s-myphone','s-type','pay-mode','t-deadline','t-val','t-obs'];
+            staticInputs.forEach(id => { const el = document.getElementById(id); if(el) el.disabled = isLocked; });
+
+            // OCULTA BOTÃO DE ADICIONAR ITEM E CALCULADORA
+            const btnAdd = document.getElementById('btn-add-item');
+            if(btnAdd) btnAdd.style.display = isLocked ? 'none' : 'inline-block';
+            
+            const btnCalc = document.getElementById('btn-calc-pay');
+            if(btnCalc) btnCalc.style.display = isLocked ? 'none' : 'inline-block';
+
 
             let html = ''; 
             let total = 0;
@@ -899,7 +915,7 @@
                         <div class="editor-header"><i class="fas fa-coins"></i> Financeiro</div>
                         <div class="editor-body">
                             <div class="bg-slate-900 text-white p-6 rounded-lg text-center mb-6"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Global</div><div id="ed-total" class="text-3xl font-bold">R$ 0,00</div></div>
-                            <div class="input-group"><div class="flex gap-2 mb-2"><select id="pay-mode" class="input-field"><option value="entry_installments">Entrada + Parcelas</option><option value="single">Único</option></select><button onclick="generatePayment()" class="btn btn-secondary px-3"><i class="fas fa-calculator"></i></button></div><div id="payment-display" class="text-xs bg-slate-50 p-3 rounded border border-slate-200 text-slate-600 whitespace-pre-line min-h-[60px]">...</div></div>
+                            <div class="input-group"><div class="flex gap-2 mb-2"><select id="pay-mode" class="input-field"><option value="entry_installments">Entrada + Parcelas</option><option value="single">Único</option></select><button id="btn-calc-pay" onclick="generatePayment()" class="btn btn-secondary px-3"><i class="fas fa-calculator"></i></button></div><div id="payment-display" class="text-xs bg-slate-50 p-3 rounded border border-slate-200 text-slate-600 whitespace-pre-line min-h-[60px]">...</div></div>
                             
                             <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Entrega</label><input id="t-deadline" class="border p-2 rounded text-sm" placeholder="Prazo" onchange="upVal('t-deadline',this.value)"></div><div class="input-group"><label class="input-label">Validade</label><input id="t-val" class="border p-2 rounded text-sm" placeholder="Validade" onchange="upVal('t-val',this.value)"></div></div>
                             
