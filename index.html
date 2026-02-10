@@ -425,6 +425,7 @@
                     }
                 }
 
+                // CORREÇÃO: USANDO ONINPUT E NOME VAZIO
                 html += `
                 <div class="bg-white border p-4 rounded-lg mb-2 relative group transition-all ${cardClass}">
                     ${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}
@@ -434,7 +435,7 @@
                                 Item 
                                 ${i.optional ? '<span class="optional-badge">Opcional</span>' : ''}
                             </label>
-                            <input class="w-full font-bold bg-transparent outline-none" value="${i.name}" onchange="upItem(${x},'name',this.value)" ${isLocked?'disabled':''}>
+                            <input class="w-full font-bold bg-transparent outline-none" placeholder="Nome do Item..." value="${i.name}" oninput="upItem(${x},'name',this.value)" ${isLocked?'disabled':''}>
                         </div>
                         <div class="col-span-2">
                             <label class="text-[10px] uppercase font-bold text-slate-400 text-center block">Qtd</label>
@@ -446,7 +447,7 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                         <textarea class="w-full text-xs text-slate-500 bg-transparent outline-none resize-none" rows="1" onchange="upItem(${x},'description',this.value)" placeholder="Descrição técnica..." ${isLocked?'disabled':''}>${i.description||''}</textarea>
+                         <textarea class="w-full text-xs text-slate-500 bg-transparent outline-none resize-none" rows="1" oninput="upItem(${x},'description',this.value)" placeholder="Descrição técnica..." ${isLocked?'disabled':''}>${i.description||''}</textarea>
                          ${!isLocked ? `
                             <button onclick="toggleOpt(${x})" class="text-[10px] font-bold px-2 py-1 rounded border ${i.optional ? 'bg-slate-600 text-white border-slate-600' : 'text-slate-400 border-slate-200 hover:border-slate-400'}" title="Marcar como opcional (não soma no total automaticamente)">
                                 ${i.optional ? 'OPCIONAL' : 'Opcional?'}
@@ -496,16 +497,26 @@
         function upVal(k,v) { if(k.startsWith('c-')) state.data.client[k.substring(2)] = v; else if(k.startsWith('t-')) state.data.terms[k.substring(2)] = v; else if(k==='s-phone') { state.data.settings.myPhone=v; localStorage.setItem('escopo_phone',v); } else if(k==='s-type') { state.data.settings.serviceType = v; } }
         function upSettings(k,v) { state.data.settings[k] = v; if(['providerName','providerDoc','providerAddr','providerPhone'].includes(k)) localStorage.setItem(k.replace('provider','prov_').toLowerCase(), v); }
 
-        function upItem(i,f,v) { const it=state.data.items[i]; if(f==='qty'||f==='price') it[f]=parseFloat(v)||0; else it[f]=v; renderEditor(); }
+        // CORREÇÃO: SÓ RENDERIZA SE FOR NUMÉRICO PARA ATUALIZAR TOTAL. TEXTO SÓ ATUALIZA ESTADO.
+        function upItem(i,f,v) { 
+            const it=state.data.items[i]; 
+            if(f==='qty'||f==='price') {
+                it[f]=parseFloat(v)||0; 
+                renderEditor(); 
+            } else {
+                it[f]=v; 
+            }
+        }
         
         function toggleOpt(i) {
             state.data.items[i].optional = !state.data.items[i].optional;
             renderEditor();
         }
 
+        // CORREÇÃO: NOME VAZIO POR PADRÃO
         function addItem() { 
             if(!Array.isArray(state.data.items)) state.data.items = [];
-            state.data.items.push({ id: 'item_' + Date.now(), name: 'Novo Item', description: '', qty: 1, price: 0, type: state.version?.version_number > 1 ? 'addon' : 'original', optional: false }); 
+            state.data.items.push({ id: 'item_' + Date.now(), name: '', description: '', qty: 1, price: 0, type: state.version?.version_number > 1 ? 'addon' : 'original', optional: false }); 
             renderEditor(); 
         }
         function rmItem(i) { if(confirm("Remover este item?")) { state.data.items.splice(i, 1); renderEditor(); } }
@@ -537,10 +548,10 @@
             
             // Verificando Adições e Modificações
             newArr.forEach(i => {
-                if(!oldMap.has(i.id)) logs.push(`Adicionou: ${i.name}`);
+                if(!oldMap.has(i.id)) logs.push(`Adicionou: ${i.name || 'Item sem nome'}`);
                 else {
                     const old = oldMap.get(i.id);
-                    if(old.name !== i.name) logs.push(`Renomeou: ${old.name} -> ${i.name}`);
+                    if(old.name !== i.name) logs.push(`Renomeou: ${old.name || 'Sem nome'} -> ${i.name}`);
                     if(old.price !== i.price || old.qty !== i.qty) logs.push(`Alterou valor/qtd: ${i.name}`);
                 }
             });
