@@ -344,7 +344,14 @@
             d.settings.providerAddr = localStorage.getItem('prov_addr') || '';
             d.settings.providerPhone = localStorage.getItem('prov_phone') || '';
 
-            logHistory('created', 'provider', 'Orçamento criado via painel.', d); 
+            // CRIAÇÃO DO HISTÓRICO: INSERE ANTES DE SALVAR NO BANCO
+            d.history.push({ 
+                date: new Date().toISOString(), 
+                action: 'created', 
+                user: 'provider', 
+                detail: 'Orçamento criado via painel.' 
+            });
+
             await db.from('versions').insert({ project_id: p.id, version_number: 1, items: d, total_value: 0, status: 'draft' });
             goTo('editor', p.id);
         }
@@ -986,7 +993,7 @@
                             <div class="input-group"><label class="input-label">Nome</label><input id="c-name" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Nome do Cliente / Empresa" onchange="upVal('c-name',this.value)"></div>
                             <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Doc</label><input id="c-doc" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="CPF/CNPJ" onchange="upVal('c-doc',this.value)"></div><div class="input-group"><label class="input-label">Tel</label><input id="c-phone" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Telefone" onchange="upVal('c-phone',this.value)"></div></div>
                             <div class="input-group"><label class="input-label">Email</label><input id="c-email" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="E-mail" onchange="upVal('c-email',this.value)"></div>
-                            <div class="input-group"><label class="input-label">Endereço</label><input id="c-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Endereço Completo" onchange="upVal('c-addr',this.value)"></div>
+                            <div class="input-group"><label class="input-label">Endereço do Cliente</label><input id="c-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Endereço Completo" onchange="upVal('c-addr',this.value)"></div>
                             
                             <div class="mt-4 pt-4 border-t border-dashed">
                                 <label class="flex items-center gap-2 text-sm text-slate-600 mb-2 cursor-pointer">
