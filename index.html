@@ -226,7 +226,7 @@
                 client: { name: '', doc: '', email: '', phone: '', address: '' }, 
                 location: { address: '', sameAsClient: true }, 
                 items: [], 
-                terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, 
+                terms: { paymentMode: 'custom', paymentText: '', deadline: '', obs: '' }, 
                 settings: { myPhone: '', serviceType: 'Outros', providerName: '', providerDoc: '', providerAddr: '', providerPhone: '' }, 
                 history: [],
                 signature: null 
@@ -1090,7 +1090,7 @@
                             <div class="bg-slate-900 text-white p-6 rounded-lg text-center mb-6"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Global</div><div id="ed-total" class="text-3xl font-bold">R$ 0,00</div></div>
                             <div class="input-group"><div class="flex gap-2 mb-2"><select id="pay-mode" class="input-field"><option value="entry_installments">Entrada + Parcelas</option><option value="single">Único</option></select><button id="btn-calc-pay" onclick="generatePayment()" class="btn btn-secondary px-3"><i class="fas fa-calculator"></i></button></div><div id="payment-display" class="text-xs bg-slate-50 p-3 rounded border border-slate-200 text-slate-600 whitespace-pre-line min-h-[60px]">...</div></div>
                             
-                            <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Entrega</label><input id="t-deadline" class="border p-2 rounded text-sm" placeholder="Prazo" onchange="upVal('t-deadline',this.value)"></div><div class="input-group"><label class="input-label">Validade</label><input id="t-val" class="border p-2 rounded text-sm" placeholder="Validade" onchange="upVal('t-val',this.value)"></div></div>
+                            <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Prazo para entrega (dias)</label><input id="t-deadline" class="border p-2 rounded text-sm" placeholder="Prazo" onchange="upVal('t-deadline',this.value)"></div><div class="input-group"><label class="input-label">Validade da proposta (dias)</label><input id="t-val" class="border p-2 rounded text-sm" placeholder="Validade da proposta (dias)" onchange="upVal('t-val',this.value)"></div></div>
                             
                             <div class="input-group"><label class="input-label">Obs</label><textarea id="t-obs" class="w-full border p-2 rounded text-sm h-20 mb-4 bg-slate-50" placeholder="Condições de pagamento..." onchange="upVal('t-obs',this.value)"></textarea></div>
                             <div id="ed-actions" class="mt-6"></div>
@@ -1134,7 +1134,7 @@
                     </table>
                 </div>
                 <div class="bg-slate-50 border border-slate-100 rounded-lg p-8 mb-12 flex gap-12">
-                    <div class="flex-1"><h4 class="font-bold text-xs uppercase text-slate-400 mb-2">Pagamento</h4><div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line"></div><div class="mt-4 flex gap-6 text-sm"><div><span class="font-bold text-xs uppercase text-slate-400 block">Entrega</span><span id="doc-deadline"></span></div><div><span class="font-bold text-xs uppercase text-slate-400 block">Validade</span><span id="doc-validity"></span></div></div></div>
+                    <div class="flex-1"><h4 class="font-bold text-xs uppercase text-slate-400 mb-2">Pagamento</h4><div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line"></div><div class="mt-4 flex gap-6 text-sm"><div><span class="font-bold text-xs uppercase text-slate-400 block">Prazo para entrega (dias)</span><span id="doc-deadline"></span></div><div><span class="font-bold text-xs uppercase text-slate-400 block">Validade da proposta (dias)</span><span id="doc-validity"></span></div></div></div>
                     <div class="text-right"><h4 class="font-bold text-xs uppercase text-slate-400 mb-1">Total</h4><div id="doc-total" class="text-3xl font-bold text-slate-900">R$ 0,00</div></div>
                 </div>
                 <div id="doc-obs" class="text-xs text-slate-500 italic text-justify"></div>
@@ -1162,3 +1162,4 @@
 
 </body>
 </html>
+
