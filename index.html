@@ -68,7 +68,14 @@
         .modal-box { background: white; width: 90%; max-width: 500px; padding: 2rem; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); animation: fadeInUp 0.3s ease-out; }
         #fatal-error { display: none; position: fixed; inset: 0; background: #FFF1F2; z-index: 10000; padding: 40px; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
         
-        .panel-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; max-width: 1600px; margin: 24px auto; padding: 0 24px; height: calc(100vh - 112px); }
+        /* CORREÇÃO DO LAYOUT DO EDITOR */
+        .panel-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; max-width: 1600px; margin: 24px auto; padding: 0 24px; height: calc(100vh - 112px); overflow: hidden; }
+        .left-col-scroll { overflow-y: auto; padding-right: 8px; height: 100%; }
+        .right-col-fixed { display: flex; flex-direction: column; height: 100%; gap: 24px; overflow: hidden; }
+        .finance-section { flex-shrink: 0; background: white; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; }
+        .history-section { flex-grow: 1; background: white; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+        .history-content-scroll { overflow-y: auto; flex-grow: 1; padding: 16px; }
+
         .editor-section { background: white; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
         .editor-header { background: #F8FAFC; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #475569; display: flex; align-items: center; gap: 8px; }
         .editor-body { padding: 20px; }
@@ -97,7 +104,12 @@
         /* Estilo para Canvas de Assinatura */
         #signature-pad { border: 2px dashed #cbd5e1; border-radius: 12px; background: #f8fafc; cursor: crosshair; touch-action: none; width: 100%; height: 200px; }
         
-        @media (max-width: 1024px) { .panel-grid { grid-template-columns: 1fr; height: auto; } }
+        @media (max-width: 1024px) { 
+            .panel-grid { grid-template-columns: 1fr; height: auto; overflow: visible; } 
+            .left-col-scroll { overflow: visible; height: auto; }
+            .right-col-fixed { height: auto; overflow: visible; }
+            .finance-section, .history-section { flex: none; }
+        }
         @media print { .no-print { display: none !important; } body { background: white; } }
     </style>
 </head>
@@ -852,8 +864,9 @@
                 </div>
                 <button onclick="share()" class="btn btn-secondary bg-slate-800 border-slate-700 text-white hover:bg-slate-700 text-xs"><i class="fas fa-link"></i> Link Cliente</button>
             </div>
-            <div class="panel-grid overflow-hidden">
-                <div class="overflow-y-auto pr-2 pb-20 no-scrollbar">
+            
+            <div class="panel-grid">
+                <div class="left-col-scroll no-scrollbar">
                     <div class="editor-section">
                         <div class="editor-header bg-slate-100 text-blue-700"><i class="fas fa-id-card"></i> Seus Dados (Prestador)</div>
                         <div class="editor-body">
@@ -875,13 +888,14 @@
                             <div class="mt-4 pt-4 border-t"><label class="input-label text-blue-600">Seu WhatsApp (Para Notificações)</label><input id="in-s-myphone" onchange="upSettings('myPhone', this.value)" class="input-field bg-blue-50 border-blue-200"></div>
                         </div>
                     </div>
-                    <div class="editor-section">
+                    <div class="editor-section" style="margin-bottom: 80px;">
                         <div class="editor-header justify-between"><span><i class="fas fa-list-ol"></i> Escopo</span><button id="btn-add-item" onclick="addItem()" class="btn btn-primary text-xs py-1 px-3 bg-slate-800 border-none">+ Item</button></div>
                         <div class="editor-body bg-slate-50 min-h-[300px]"><div id="ed-items"></div></div>
                     </div>
                 </div>
-                <div class="overflow-y-auto pb-20 no-scrollbar">
-                    <div class="editor-section sticky top-0 shadow-lg">
+
+                <div class="right-col-fixed">
+                    <div class="finance-section">
                         <div class="editor-header"><i class="fas fa-coins"></i> Financeiro</div>
                         <div class="editor-body">
                             <div class="bg-slate-900 text-white p-6 rounded-lg text-center mb-6"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Global</div><div id="ed-total" class="text-3xl font-bold">R$ 0,00</div></div>
@@ -893,7 +907,11 @@
                             <div id="ed-actions" class="mt-6"></div>
                         </div>
                     </div>
-                    <div class="editor-section"><div class="editor-header"><i class="fas fa-history"></i> Histórico</div><div id="ed-history" class="p-4 space-y-4"></div></div>
+                    
+                    <div class="history-section">
+                        <div class="editor-header"><i class="fas fa-history"></i> Histórico</div>
+                        <div id="ed-history" class="history-content-scroll space-y-4"></div>
+                    </div>
                 </div>
             </div>
         </div>
