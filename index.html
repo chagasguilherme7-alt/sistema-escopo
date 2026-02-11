@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aprova Ai | Sistema de Orçamentos</title>
+    <title>Aprova Ai | Gestão Inteligente</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -12,447 +12,188 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        /* --- ESTILO GERAL --- */
-        body { font-family: 'Inter', sans-serif; background-color: #F1F5F9; color: #334155; font-size: 15px; overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #334155; overflow-x: hidden; font-size: 16px; }
         .font-heading { font-family: 'Plus Jakarta Sans', sans-serif; }
-        
-        /* Scrollbar Personalizada */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Utilitários de Scroll */
         .no-scrollbar::-webkit-scrollbar { display: none; }
-
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
         /* Animações */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .anim-entry { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .anim-entry { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
 
-        /* --- COMPONENTES DE UI --- */
-        .app-header { background: #0f172a; height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; position: sticky; top: 0; z-index: 50; box-shadow: 0 4px 20px rgba(0,0,0,0.1); color: white; }
+        /* Login Rotativo */
+        .ideal-para-container { display: flex; align-items: center; justify-content: center; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.25rem; color: #94a3b8; margin-bottom: 3rem; margin-top: 1rem; }
+        @media (min-width: 1024px) { .ideal-para-container { justify-content: flex-start; } }
+        .rotating-wrapper { position: relative; height: 1.5em; width: 350px; overflow: hidden; margin-left: 0.5rem; display: inline-block; vertical-align: middle; text-align: left; }
+        .rotate-word { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; font-weight: 700; color: #ffffff; opacity: 0; transform: translateY(100%); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .rotate-word.active { opacity: 1; transform: translateY(0); } .rotate-word.exit { opacity: 0; transform: translateY(-100%); }
+
+        /* Layout Dividido (Login) */
+        .split-screen { display: flex; min-height: 100vh; width: 100%; position: absolute; top: 0; left: 0; z-index: 50; background: white; }
+        .left-area { width: 60%; background: radial-gradient(circle at top left, #1e1b4b, #0f172a), linear-gradient(135deg, #172554 0%, #1e3a8a 100%); color: white; display: flex; flex-direction: column; justify-content: center; padding: 5rem 6rem; position: relative; overflow: hidden; }
+        .glow-orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.35; }
+        .orb-1 { width: 600px; height: 600px; background: #3b82f6; top: -15%; left: -15%; animation: float 10s ease-in-out infinite; }
+        .orb-2 { width: 500px; height: 500px; background: #8b5cf6; bottom: -15%; right: -15%; animation: float 12s ease-in-out infinite reverse; }
+        .benefit-item { display: flex; align-items: start; gap: 1.25rem; padding: 1.25rem; margin-bottom: 1.25rem; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 16px; backdrop-filter: blur(12px); transition: all 0.3s ease; }
+        .benefit-item:hover { background: rgba(255, 255, 255, 0.08); transform: translateX(8px); border-color: rgba(255, 255, 255, 0.2); }
+        .icon-circle { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .right-area { width: 40%; background: #F8FAFC; display: flex; align-items: center; justify-content: center; position: relative; padding: 2rem; }
+        .login-card { background: white; width: 100%; max-width: 420px; padding: 3rem 2rem; border-radius: 24px; box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.08); border: 1px solid #f1f5f9; text-align: center; }
         
-        /* Inputs & Forms */
-        .input-label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
-        .input-field { width: 100%; padding: 12px 16px; background: #fff; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.95rem; color: #1e293b; transition: all 0.2s; outline: none; }
-        .input-field:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
-        .input-field:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+        /* Inputs e Botões Globais */
+        .input-pro { width: 100%; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 1rem; color: #1e293b; text-align: center; transition: all 0.2s; margin-bottom: 1.5rem; outline: none; }
+        .input-pro:focus { background: white; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        .btn-pro { width: 100%; padding: 16px; border-radius: 12px; font-weight: 700; color: white; background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); border: none; cursor: pointer; transition: all 0.3s; font-size: 1rem; box-shadow: 0 10px 25px -5px rgba(30, 58, 138, 0.25); }
+        .btn-pro:hover { transform: translateY(-2px); box-shadow: 0 15px 30px -5px rgba(30, 58, 138, 0.35); }
+        .btn-pro:disabled { opacity: 0.7; cursor: not-allowed; }
 
-        /* Botões */
-        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.95rem; gap: 8px; }
-        .btn:hover { transform: translateY(-1px); }
-        .btn:active { transform: translateY(0); }
-        .btn-primary { background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: white; border: none; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2); }
-        .btn-primary:hover { box-shadow: 0 6px 16px rgba(15, 23, 42, 0.3); }
-        .btn-secondary { background: white; color: #475569; border: 1px solid #e2e8f0; }
-        .btn-secondary:hover { background: #f8fafc; border-color: #cbd5e1; color: #1e293b; }
-        .btn-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-        .btn-danger:hover { background: #fecaca; }
-
-        /* Cards do Editor */
-        .panel-grid { display: grid; grid-template-columns: 1fr 420px; gap: 24px; max-width: 1900px; margin: 24px auto; padding: 0 24px; height: calc(100vh - 120px); }
-        .col-scroll { overflow-y: auto; height: 100%; padding-right: 8px; padding-bottom: 40px; display: flex; flex-direction: column; gap: 24px; }
-        
-        .card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: all 0.3s; }
-        .card-header { background: #f8fafc; padding: 16px 24px; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: #475569; display: flex; align-items: center; gap: 10px; letter-spacing: 0.05em; }
-        .card-body { padding: 24px; }
-
-        /* Itens do Escopo */
-        .item-row { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s; }
-        .item-row:hover { border-color: #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .item-optional { border: 2px dashed #94a3b8; background: #f8fafc; }
-        
-        /* Anexos */
-        .attach-item { display: flex; align-items: center; gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 10px; margin-bottom: 8px; }
-        .attach-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: white; border: 1px solid #e2e8f0; }
-        .attach-input { background: transparent; border: none; border-bottom: 1px dashed #cbd5e1; width: 100%; padding: 4px 0; font-size: 0.9rem; color: #475569; }
-        .attach-input:focus { border-bottom-color: #3b82f6; outline: none; }
-
-        /* Responsividade */
-        @media (max-width: 1280px) { .panel-grid { grid-template-columns: 1fr 360px; padding: 0 16px; } }
+        /* Media Queries para Login */
         @media (max-width: 1024px) { 
-            .panel-grid { display: flex; flex-direction: column; height: auto; overflow: visible; gap: 30px; } 
-            .col-scroll { height: auto; overflow: visible; padding-right: 0; }
-            .app-header { padding: 0 16px; height: 64px; }
+            .split-screen { flex-direction: column; position: relative; height: auto; min-height: 100vh; } 
+            .left-area { width: 100%; padding: 3rem 1.5rem; min-height: auto; text-align: center; } 
+            .ideal-para-container { justify-content: center; font-size: 1rem; } 
+            .rotating-wrapper { width: 200px; }
+            .right-area { width: 100%; padding: 2rem 1rem; background: white; } 
+            .login-card { box-shadow: none; border: none; padding: 0; max-width: 100%; } 
+            .benefit-item { flex-direction: column; align-items: center; text-align: center; } 
+            .glow-orb { display: none; } 
         }
 
-        /* Loading */
-        #system-loader { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        /* Dashboard & Componentes */
+        #system-loader { position: fixed; inset: 0; background: #0F172A; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; transition: opacity 0.5s; }
+        .loader-spin { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        
+        .app-header { background: #fff; border-bottom: 1px solid #e2e8f0; height: 70px; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; position: sticky; top: 0; z-index: 40; }
+        .kpi-card { background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s; }
+        .status-badge { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.05em; white-space: nowrap; }
+        .st-draft { background: #e0f2fe; color: #0284c7; } 
+        .st-sent { background: #dbeafe; color: #1e40af; } 
+        .st-negotiating { background: #ffedd5; color: #c2410c; } 
+        .st-approved { background: #dcfce7; color: #166534; } 
+        .st-canceled { background: #fee2e2; color: #991b1b; }
+        
+        /* Timeline */
+        .timeline-item { position: relative; padding-left: 2rem; border-left: 2px solid #e2e8f0; padding-bottom: 1.5rem; }
+        .timeline-item::before { content: ''; position: absolute; left: -5px; top: 0; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
+        .timeline-item:last-child { border-left: transparent; }
+        .timeline-desc { font-size: 0.85rem; color: #334155; margin-top: 6px; background: #fff7ed; padding: 12px; border-radius: 8px; border: 1px solid #fed7aa; font-style: italic; }
+        .timeline-desc.system { background: #f8fafc; border-color: #f1f5f9; font-style: normal; }
+        
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.8); backdrop-filter: blur(4px); z-index: 60; display: none; align-items: center; justify-content: center; padding: 1rem; }
+        .modal-box { background: white; width: 100%; max-width: 500px; padding: 2rem; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); animation: fadeInUp 0.3s ease-out; }
+        #fatal-error { display: none; position: fixed; inset: 0; background: #FFF1F2; z-index: 10000; padding: 40px; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
+        
+        /* --- EDITOR - LAYOUT ATUALIZADO (WIDESCREEN) --- */
+        .panel-grid { 
+            display: grid; 
+            /* Coluna da Esquerda (Flexible) e Coluna da Direita (Fixa um pouco mais larga) */
+            grid-template-columns: 1fr 400px; 
+            gap: 32px; /* Mais espaço entre as colunas */
+            width: 98%; /* Ocupa quase toda a tela */
+            max-width: 2400px; /* Limite bem alto para telas gigantes */
+            margin: 24px auto; 
+            padding: 0 16px; 
+            height: calc(100vh - 112px); 
+            overflow: hidden; 
+        }
+        
+        .left-col-scroll { overflow-y: auto; padding-right: 12px; height: 100%; }
+        .right-col-fixed { display: flex; flex-direction: column; height: 100%; gap: 24px; overflow-y: auto; }
+        
+        .editor-section { background: white; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+        .editor-header { background: #F8FAFC; padding: 16px 20px; border-bottom: 1px solid #E2E8F0; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: #475569; display: flex; align-items: center; gap: 10px; letter-spacing: 0.05em; }
+        .editor-body { padding: 24px; }
+        
+        .finance-section { flex-shrink: 0; background: white; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; }
+        .history-section { flex-grow: 1; background: white; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-height: 200px; }
+        .history-content-scroll { overflow-y: auto; flex-grow: 1; padding: 16px; }
 
-        /* Utils */
-        .hidden { display: none !important; }
-        @media print { .no-print { display: none !important; } .panel-grid { display: block; } }
+        /* Inputs Responsivos */
+        .input-group { margin-bottom: 0; /* Removido margem padrão, controlado pelo Grid */ }
+        .input-label { display: block; font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
+        .input-field { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; background: white; outline: none; transition: all 0.2s; }
+        .input-field:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+        
+        .btn { padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; }
+        .btn-primary { background: #0f172a; color: white; border: none; }
+        .btn-primary:hover { background: #1e293b; }
+        .btn-secondary { background: white; color: #475569; border: 1px solid #e2e8f0; }
+        .btn-secondary:hover { background: #f8fafc; border-color: #cbd5e1; }
+
+        /* Estilos Item */
+        .diff-box { background-color: #fff7ed; border: 1px dashed #f97316; border-radius: 6px; padding: 8px; margin-top: 8px; font-size: 0.75rem; color: #9a3412; display: flex; align-items: center; gap: 8px; }
+        .diff-tag { background: #f97316; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.65rem; text-transform: uppercase; }
+        .old-val { text-decoration: line-through; color: #ef4444; margin-right: 4px; }
+        .new-val { color: #16a34a; font-weight: bold; }
+        .item-modified { border-left: 4px solid #f59e0b !important; }
+        .item-new { border-left: 4px solid #10b981 !important; }
+        .item-optional { border: 2px dashed #94a3b8 !important; opacity: 0.9; background-color: #f8fafc; }
+        .optional-badge { background: #64748b; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; font-weight: bold; text-transform: uppercase; margin-left: 8px; }
+
+        /* Assinatura */
+        #signature-pad { border: 2px dashed #cbd5e1; border-radius: 12px; background: #f8fafc; cursor: crosshair; touch-action: none; width: 100%; height: 200px; }
+        
+        /* --- RESPONSIVIDADE --- */
+        
+        /* Telas Gigantes (4k, Ultrawide) */
+        @media (min-width: 1921px) {
+            body { font-size: 18px; } 
+            .panel-grid { grid-template-columns: 1fr 500px; } 
+            .input-field { padding: 16px; font-size: 1rem; }
+        }
+
+        /* Tablets e Notebooks Pequenos */
+        @media (max-width: 1280px) {
+            .panel-grid { grid-template-columns: 1fr 350px; padding: 0 16px; gap: 16px; width: 100%; }
+        }
+
+        /* Mobile */
+        @media (max-width: 1024px) { 
+            body { font-size: 15px; }
+            .app-header { padding: 0 16px; height: 60px; }
+            .panel-grid { 
+                display: flex; 
+                flex-direction: column; 
+                height: auto; 
+                overflow: visible; 
+                padding: 16px;
+                gap: 20px;
+                margin: 0;
+            } 
+            .left-col-scroll { overflow: visible; height: auto; padding-right: 0; }
+            .right-col-fixed { height: auto; overflow: visible; gap: 20px; }
+            .finance-section, .history-section { flex: none; width: 100%; border-radius: 16px; }
+            .history-section { max-height: 400px; }
+            table { display: block; overflow-x: auto; white-space: nowrap; }
+            .app-header .btn { padding: 8px 12px; font-size: 0.8rem; }
+            .app-header img { height: 32px; }
+        }
+        
+        @media print { 
+            .no-print { display: none !important; } 
+            body { background: white; font-size: 12pt; } 
+            .panel-grid { display: block; height: auto; overflow: visible; }
+            #view-public { padding: 0; background: white; }
+            #public-content { box-shadow: none; margin: 0; width: 100%; max-width: 100%; }
+        }
     </style>
 </head>
-<body>
+<body class="flex flex-col min-h-screen">
 
     <div id="system-loader">
-        <div class="spinner"></div>
-        <p class="text-sm opacity-70 tracking-widest uppercase">Carregando...</p>
+        <div class="loader-spin"></div>
+        <img src="logo.png" alt="Aprova Ai" class="h-12 mb-2">
+        <p class="text-xs text-slate-400 mt-2">Carregando CRM...</p>
     </div>
-
-    <div id="fatal-error" class="hidden fixed inset-0 bg-red-50 z-[10000] flex flex-col items-center justify-center text-center p-8">
-        <i class="fas fa-bug text-5xl text-red-500 mb-4"></i>
-        <h2 class="text-2xl font-bold text-red-900">Algo deu errado</h2>
-        <p id="error-msg" class="text-red-700 mt-2 mb-6 max-w-md">Erro desconhecido.</p>
-        <button onclick="localStorage.clear(); window.location.reload()" class="btn btn-primary bg-red-600 hover:bg-red-700">Recarregar Sistema</button>
-    </div>
-
-    <section id="view-login" class="hidden min-h-screen flex flex-col lg:flex-row">
-        <div class="lg:w-3/5 bg-slate-900 relative flex items-center justify-center p-10 overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-black opacity-80"></div>
-            <div class="absolute -top-20 -left-20 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-            <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-            
-            <div class="relative z-10 text-white max-w-lg">
-                <div class="mb-6 flex items-center gap-3">
-                    <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center font-bold text-xl">A</div>
-                    <span class="text-2xl font-bold tracking-tight">Aprova Ai</span>
-                </div>
-                <h1 class="text-5xl font-extrabold leading-tight mb-6">Orçamentos que <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">fecham negócios.</span></h1>
-                <p class="text-lg text-slate-300 mb-8 leading-relaxed">Profissionalize sua gestão, evite prejuízos com mudanças de escopo e transmita confiança para seus clientes.</p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10">
-                        <i class="fas fa-check-circle text-emerald-400 mb-2 text-xl"></i>
-                        <h3 class="font-bold">Aprovação Digital</h3>
-                        <p class="text-xs text-slate-400">Link seguro para o cliente.</p>
-                    </div>
-                    <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10">
-                        <i class="fas fa-history text-blue-400 mb-2 text-xl"></i>
-                        <h3 class="font-bold">Histórico Completo</h3>
-                        <p class="text-xs text-slate-400">Registre todas as alterações.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="lg:w-2/5 bg-white flex items-center justify-center p-8">
-            <div class="w-full max-w-md">
-                <div class="text-center mb-10">
-                    <h2 class="text-2xl font-bold text-slate-900">Bem-vindo de volta</h2>
-                    <p class="text-slate-500">Digite seu e-mail para acessar sua conta.</p>
-                </div>
-                <div class="space-y-4">
-                    <div>
-                        <label class="input-label">E-mail Corporativo</label>
-                        <input type="email" id="email" placeholder="seu@email.com" class="input-field">
-                    </div>
-                    <button onclick="handleLogin()" id="btn-login" class="btn btn-primary w-full py-4 text-lg">
-                        <span>Enviar Link de Acesso</span> <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div>
-                <p class="mt-8 text-center text-xs text-slate-400">Seu acesso é seguro e livre de senhas.</p>
-            </div>
-        </div>
-    </section>
-
-    <section id="view-dashboard" class="hidden min-h-screen flex flex-col">
-        <header class="app-header">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold">A</div>
-                <span class="font-bold text-lg tracking-tight">Painel de Controle</span>
-            </div>
-            <div class="flex items-center gap-4">
-                <button onclick="createProject()" class="btn bg-white text-slate-900 hover:bg-slate-100 py-2 px-4 text-xs font-bold border-none"><i class="fas fa-plus"></i> Novo Projeto</button>
-                <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="text-slate-400 hover:text-white transition-colors" title="Sair"><i class="fas fa-sign-out-alt text-lg"></i></button>
-            </div>
-        </header>
-
-        <main class="flex-1 max-w-7xl mx-auto w-full p-6 md:p-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                    <p class="text-xs font-bold text-slate-400 uppercase mb-1">Em Aberto</p>
-                    <h3 class="text-2xl font-bold text-slate-800" id="kpi-count-open">0</h3>
-                </div>
-                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                    <p class="text-xs font-bold text-amber-500 uppercase mb-1">Em Negociação</p>
-                    <h3 class="text-2xl font-bold text-slate-800" id="kpi-count-neg">0</h3>
-                </div>
-                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                    <p class="text-xs font-bold text-emerald-500 uppercase mb-1">Aprovados</p>
-                    <h3 class="text-2xl font-bold text-slate-800" id="kpi-count-apr">0</h3>
-                </div>
-                <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 shadow-sm text-white">
-                    <p class="text-xs font-bold text-slate-400 uppercase mb-1">Faturamento (Aprovado)</p>
-                    <h3 class="text-2xl font-bold" id="kpi-total-apr">R$ 0,00</h3>
-                </div>
-            </div>
-
-            <div class="flex flex-col md:flex-row gap-4 mb-6">
-                <div class="flex-1 relative">
-                    <i class="fas fa-search absolute left-4 top-3.5 text-slate-400"></i>
-                    <input id="dash-search" onkeyup="renderDashboardList()" class="input-field pl-10" placeholder="Buscar por cliente ou projeto...">
-                </div>
-                <select id="dash-filter" onchange="renderDashboardList()" class="input-field md:w-64">
-                    <option value="all">Todos os Status</option>
-                    <option value="draft">Em Aberto</option>
-                    <option value="sent">Enviados</option>
-                    <option value="negotiating">Em Negociação</option>
-                    <option value="approved">Aprovados</option>
-                    <option value="canceled">Cancelados</option>
-                </select>
-            </div>
-
-            <div id="project-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                </div>
-        </main>
-    </section>
-
-    <section id="view-editor" class="hidden min-h-screen flex flex-col bg-slate-50">
-        <header class="app-header">
-            <div class="flex items-center gap-4">
-                <button onclick="goTo('dashboard')" class="text-slate-400 hover:text-white transition-colors"><i class="fas fa-arrow-left"></i> Voltar</button>
-                <div class="h-6 w-px bg-slate-700"></div>
-                <div>
-                    <h2 id="ed-title" class="font-bold text-white leading-none">Carregando...</h2>
-                    <div class="flex items-center gap-2 mt-1">
-                        <span id="ed-ver" class="text-[10px] bg-slate-800 text-slate-300 px-1.5 rounded font-mono">V1</span>
-                        <span id="ed-status-badge" class="text-[10px] uppercase font-bold tracking-wider">STATUS</span>
-                    </div>
-                </div>
-            </div>
-            <button onclick="openShareModal()" class="btn bg-blue-600 hover:bg-blue-500 text-white border-none py-2 px-4 text-xs font-bold shadow-lg shadow-blue-900/50">
-                <i class="fas fa-share-alt"></i> Enviar Proposta
-            </button>
-        </header>
-
-        <div class="panel-grid">
-            
-            <div class="col-scroll">
-                
-                <div class="card">
-                    <div class="card-header"><i class="fas fa-building text-blue-500"></i> Seus Dados (Prestador)</div>
-                    <div class="card-body">
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                            <div class="md:col-span-6"><label class="input-label">Nome / Razão Social</label><input id="p-name" class="input-field" placeholder="Sua Empresa Ltda" onchange="upSettings('providerName',this.value)"></div>
-                            <div class="md:col-span-3"><label class="input-label">CNPJ / CPF</label><input id="p-doc" class="input-field" placeholder="00.000.000/0000-00" onchange="upSettings('providerDoc',this.value)"></div>
-                            <div class="md:col-span-3"><label class="input-label">Telefone</label><input id="p-phone" class="input-field" placeholder="(00) 00000-0000" onchange="upSettings('providerPhone',this.value)"></div>
-                            <div class="md:col-span-12"><label class="input-label">Endereço Completo</label><input id="p-addr" class="input-field" placeholder="Rua, Número, Bairro, Cidade - UF" onchange="upSettings('providerAddr',this.value)"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header flex justify-between">
-                        <span><i class="fas fa-user-tie text-emerald-500"></i> Dados do Cliente</span>
-                    </div>
-                    <div class="card-body">
-                        <div id="cl-type-btns" class="mb-4"></div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                            <div class="md:col-span-6"><label class="input-label" id="lbl-c-name">Nome</label><input id="c-name" class="input-field" placeholder="Nome do Cliente" onchange="upVal('c-name',this.value)"></div>
-                            <div class="md:col-span-3"><label class="input-label" id="lbl-c-doc">Documento</label><input id="c-doc" class="input-field" placeholder="CPF/CNPJ" onchange="upVal('c-doc',this.value)"></div>
-                            <div class="md:col-span-3"><label class="input-label">Telefone</label><input id="c-phone" class="input-field" placeholder="(00) 00000-0000" onchange="upVal('c-phone',this.value)"></div>
-                            <div class="md:col-span-6"><label class="input-label">E-mail</label><input id="c-email" class="input-field" placeholder="cliente@email.com" onchange="upVal('c-email',this.value)"></div>
-                            <div class="md:col-span-6"><label class="input-label">Endereço do Cliente</label><input id="c-addr" class="input-field" placeholder="Endereço Completo" onchange="upVal('c-addr',this.value)"></div>
-                            
-                            <div class="md:col-span-12 pt-4 mt-2 border-t border-dashed border-slate-200">
-                                <label class="flex items-center gap-3 cursor-pointer mb-3">
-                                    <input type="checkbox" id="loc-check" onchange="toggleLoc(this.checked)" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                                    <span class="text-sm font-medium text-slate-700">O endereço do serviço é o mesmo do cliente?</span>
-                                </label>
-                                <div id="loc-custom-div" class="animate-fade-in">
-                                    <label class="input-label">Local de Execução do Serviço</label>
-                                    <input id="loc-addr" class="input-field" placeholder="Onde o serviço será realizado?" onchange="upLoc(this.value)">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header justify-between">
-                        <span><i class="fas fa-clipboard-list text-purple-500"></i> Escopo do Projeto</span>
-                        <button id="btn-add-item" onclick="addItem()" class="btn btn-secondary py-1 px-3 text-xs bg-white border-slate-300 shadow-sm"><i class="fas fa-plus"></i> Adicionar Item</button>
-                    </div>
-                    <div class="card-body bg-slate-50 min-h-[200px]">
-                        <div id="ed-items" class="space-y-3"></div>
-                        
-                        <div class="mt-8 pt-6 border-t-2 border-dashed border-slate-200">
-                            <h4 class="font-bold text-slate-600 text-sm mb-3 uppercase flex items-center gap-2">
-                                <i class="fas fa-paperclip text-slate-400"></i> Anexos e Imagens
-                            </h4>
-                            <div id="ed-attachments-list" class="space-y-2 mb-4"></div>
-                            
-                            <div id="upload-area">
-                                <label for="file-upload" id="upload-label" class="cursor-pointer block w-full text-center p-6 border-2 border-dashed border-blue-200 bg-white rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-all text-blue-600 font-bold uppercase text-xs tracking-wider">
-                                    <i class="fas fa-cloud-upload-alt text-3xl mb-2 block text-blue-300"></i> 
-                                    Clique aqui para anexar PDF ou Imagens
-                                </label>
-                                <input id="file-upload" type="file" class="hidden" accept=".pdf, .png, .jpg, .jpeg" onchange="handleUpload(event)">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="right-col-fixed">
-                
-                <div class="card finance-section">
-                    <div class="card-header"><i class="fas fa-coins text-emerald-600"></i> Resumo Financeiro</div>
-                    <div class="card-body">
-                        <div class="bg-slate-900 text-white p-6 rounded-xl text-center mb-6 shadow-xl shadow-slate-200 relative overflow-hidden">
-                            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-emerald-500"></div>
-                            <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Valor Total</div>
-                            <div id="ed-total" class="text-3xl font-bold tracking-tight">R$ 0,00</div>
-                        </div>
-
-                        <div class="space-y-4">
-                            <div>
-                                <label class="input-label">Forma de Pagamento</label>
-                                <div class="flex gap-2 mb-2">
-                                    <select id="pay-mode" class="input-field">
-                                        <option value="single">Pagamento Único</option>
-                                        <option value="entry_installments">Entrada + Parcelas</option>
-                                    </select>
-                                    <button id="btn-calc-pay" onclick="generatePayment()" class="btn btn-secondary px-3" title="Gerar Texto"><i class="fas fa-calculator"></i></button>
-                                </div>
-                                <div id="payment-display" class="text-xs bg-slate-50 p-3 rounded border border-slate-200 text-slate-600 whitespace-pre-line min-h-[60px]"></div>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-3">
-                                <div><label class="input-label">Prazo Entrega</label><input id="t-deadline" class="input-field" placeholder="Ex: 15 dias" onchange="upVal('t-deadline',this.value)"></div>
-                                <div><label class="input-label">Validade</label><input id="t-val" class="input-field" placeholder="Ex: 7 dias" onchange="upVal('t-val',this.value)"></div>
-                            </div>
-
-                            <div>
-                                <label class="input-label">Observações Gerais</label>
-                                <textarea id="t-obs" class="input-field h-24 resize-none" placeholder="Detalhes bancários, garantias, etc..." onchange="upVal('t-obs',this.value)"></textarea>
-                            </div>
-                        </div>
-
-                        <div id="ed-actions" class="mt-6 border-t border-slate-100 pt-4 flex flex-col gap-2"></div>
-                    </div>
-                </div>
-
-                <div class="card history-section">
-                    <div class="card-header"><i class="fas fa-history text-slate-400"></i> Linha do Tempo</div>
-                    <div id="ed-history" class="history-content-scroll bg-slate-50"></div>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    <div id="interaction-modal" class="modal-overlay hidden">
-        <div class="modal-box">
-            <h3 id="modal-title" class="text-xl font-bold mb-2 text-slate-800">Confirmar</h3>
-            <p id="modal-desc" class="text-sm text-slate-500 mb-4">Ação necessária.</p>
-            
-            <textarea id="modal-input" class="w-full border p-3 rounded-lg mb-4 h-24 text-sm bg-slate-50 focus:ring-2 ring-blue-500 outline-none" placeholder="Digite aqui..."></textarea>
-            
-            <div id="modal-sig-area" class="mb-4 hidden">
-                <canvas id="signature-pad"></canvas>
-                <div class="text-right mt-1"><button id="clear-sig" class="text-xs text-red-500 hover:text-red-700 font-bold">Limpar Assinatura</button></div>
-            </div>
-
-            <div class="flex gap-3">
-                <button onclick="document.getElementById('interaction-modal').classList.add('hidden')" class="flex-1 py-3 border rounded-lg text-slate-500 font-bold hover:bg-slate-50">Cancelar</button>
-                <button id="modal-btn" class="flex-1 py-3 rounded-lg text-white font-bold bg-slate-900 hover:bg-slate-800">Confirmar</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="share-modal" class="modal-overlay hidden" style="z-index: 70;">
-        <div class="modal-box text-center max-w-sm">
-            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-xl"><i class="fas fa-share-alt"></i></div>
-            <h3 class="text-xl font-bold mb-2 text-slate-800">Enviar Proposta</h3>
-            <p class="text-sm text-slate-500 mb-6">Escolha como deseja enviar o link para o cliente.</p>
-            
-            <div class="space-y-3">
-                <button id="btn-share-wa" class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-3 transition-transform hover:scale-[1.02] shadow-lg shadow-emerald-100">
-                    <i class="fab fa-whatsapp text-2xl"></i> 
-                    <span>Enviar no WhatsApp</span>
-                </button>
-
-                <button id="btn-share-copy" class="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl font-bold flex items-center justify-center gap-3 transition-colors">
-                    <i class="fas fa-link text-lg"></i> 
-                    <span>Copiar Link Apenas</span>
-                </button>
-            </div>
-
-            <button onclick="document.getElementById('share-modal').classList.add('hidden')" class="mt-6 text-xs text-slate-400 hover:text-slate-600 uppercase font-bold tracking-wider">Cancelar</button>
-        </div>
-    </div>
-
-    <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10 overflow-y-auto print:p-0">
-        <div id="public-loading" class="flex justify-center mt-20"><div class="spinner border-slate-900"></div></div>
-        <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col">
-            <div id="stamp-approved" class="hidden absolute top-10 right-10 border-4 border-emerald-600 text-emerald-600 font-bold text-3xl px-6 py-2 uppercase opacity-30 transform -rotate-12 z-20">APROVADO</div>
-            
-            <div class="bg-slate-900 text-white p-12 print:bg-white print:text-black print:border-b-2">
-                <div id="doc-provider-info"></div>
-                <div class="flex justify-between items-start mt-6 pt-6 border-t border-slate-700 print:border-slate-300">
-                    <div><h1 id="doc-title" class="text-3xl font-bold mb-1">Orçamento</h1><p class="text-xs uppercase tracking-widest text-slate-400">Proposta Comercial</p></div>
-                    <div class="text-right"><div id="doc-id" class="font-mono font-bold text-lg text-emerald-400 print:text-black">#REF</div><div id="doc-date" class="text-sm opacity-70"></div></div>
-                </div>
-            </div>
-
-            <div class="p-12 flex-1">
-                <div class="flex flex-col md:flex-row gap-12 mb-12 text-sm">
-                    <div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Dados do Cliente</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div><div id="doc-c-doc" class="text-slate-500 mb-1"></div></div>
-                    <div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Local do Serviço</h3><div id="doc-c-addr" class="text-slate-600"></div></div>
-                </div>
-
-                <div class="mb-12">
-                    <h3 class="font-bold text-xs uppercase text-slate-400 mb-4 tracking-wider">Detalhamento do Escopo</h3>
-                    <table class="w-full">
-                        <thead>
-                            <tr class="text-left text-xs uppercase text-slate-400 border-b border-slate-200">
-                                <th class="pb-3 pl-2 w-3/5">Descrição</th>
-                                <th class="pb-3 text-center w-24">Qtd</th>
-                                <th class="pb-3 text-right">Valor Unit.</th>
-                                <th class="pb-3 text-right pr-2">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="doc-items-body" class="text-sm"></tbody>
-                    </table>
-                </div>
-                
-                <div id="doc-attachments-area" class="mb-12"></div>
-
-                <div class="bg-slate-50 border border-slate-100 rounded-xl p-8 mb-8 flex flex-col md:flex-row gap-12">
-                    <div class="flex-1">
-                        <h4 class="font-bold text-xs uppercase text-slate-400 mb-3">Condições Comerciais</h4>
-                        <div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line mb-4"></div>
-                        <div class="flex gap-8 text-sm">
-                            <div><span class="font-bold text-xs uppercase text-slate-400 block">Prazo Entrega</span><span id="doc-deadline" class="font-bold text-slate-800"></span></div>
-                            <div><span class="font-bold text-xs uppercase text-slate-400 block">Validade Proposta</span><span id="doc-validity" class="font-bold text-slate-800"></span></div>
-                        </div>
-                    </div>
-                    <div class="text-right flex flex-col justify-center">
-                        <h4 class="font-bold text-xs uppercase text-slate-400 mb-1">Valor Total</h4>
-                        <div id="doc-total" class="text-4xl font-bold text-slate-900 tracking-tight">R$ 0,00</div>
-                    </div>
-                </div>
-
-                <div id="doc-obs" class="text-xs text-slate-500 italic text-justify border-t pt-4"></div>
-                <div id="doc-signature-area"></div>
-                
-                <div id="doc-actions" class="no-print mt-12 p-6 bg-slate-50 rounded-xl border border-slate-200"></div>
-            </div>
-            
-            <div class="bg-slate-100 p-4 text-center border-t no-print">
-                <button onclick="window.print()" class="text-xs font-bold text-slate-500 uppercase hover:text-slate-800 flex items-center justify-center gap-2 w-full">
-                    <i class="fas fa-print"></i> Salvar como PDF / Imprimir
-                </button>
-            </div>
-        </div>
-    </section>
+    
+    <div id="fatal-error"><i class="fas fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i><h2 class="text-2xl font-bold text-slate-800">Ops! Algo deu errado.</h2><p id="error-msg" class="text-slate-600 mt-2 mb-6 max-w-md">...</p><button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button></div>
 
     <script>
-        // Configuração Supabase
-        const SUPABASE_URL = 'https://outasfgohiiyndsjciau.supabase.co'; 
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91dGFzZmdvaGlpeW5kc2pjaWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4MTk4ODIsImV4cCI6MjA4NTM5NTg4Mn0.4yvGfYbQYf806FJcs34yPGkuU_kVTYHW8mBtbU3JD80';
-        const { createClient } = supabase;
-        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log("Aprova Ai iniciando...");
 
-        // Estado Global
-        let state = { user: null, project: null, version: null, projectsCache: [], data: null, previousData: null, snapshot: [] };
-        let signaturePad = null;
-
-        // --- Helpers ---
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
         function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
@@ -460,570 +201,1133 @@
         function safeShow(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
         function safeHide(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
 
-        // --- Inicialização ---
+        window.onerror = function(msg) {
+            console.error("Erro detectado:", msg);
+            if (msg && (msg.includes('null') || msg.includes('undefined'))) return true;
+            document.getElementById('system-loader').style.display = 'none';
+            return false;
+        };
+
+        const SUPABASE_URL = 'https://outasfgohiiyndsjciau.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91dGFzZmdvaGlpeW5kc2pjaWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4MTk4ODIsImV4cCI6MjA4NTM5NTg4Mn0.4yvGfYbQYf806FJcs34yPGkuU_kVTYHW8mBtbU3JD80';
+        const { createClient } = supabase;
+        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let state = { user: null, project: null, version: null, projectsCache: [], data: { client: {}, location: {}, items: [], terms: {}, settings: {}, history: [], attachments: [], signature: null }, previousData: null, snapshot: [] };
+        let signaturePad = null;
+        let isDrawing = false;
+
+        function normalizeData(dbData) {
+            const schema = { 
+                client: { name: '', doc: '', email: '', phone: '', address: '', type: 'pj' }, 
+                location: { address: '', sameAsClient: true }, 
+                items: [], 
+                terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, 
+                settings: { myPhone: '', serviceType: 'Outros', providerName: '', providerDoc: '', providerAddr: '', providerPhone: '' }, 
+                history: [],
+                attachments: [],
+                signature: null 
+            };
+            
+            if (!dbData) return schema;
+            let rawItems = Array.isArray(dbData.items) ? dbData.items : (dbData.scope || []);
+            
+            const cleanItems = rawItems.map(i => ({ 
+                id: i.id || 'item_' + Math.random().toString(36).substr(2, 9), 
+                name: i.name || '', 
+                description: i.description || '', 
+                qty: parseFloat(i.qty) || 1, 
+                price: parseFloat(i.price) || 0, 
+                type: i.type || 'original',
+                optional: i.optional || false,
+                publicSelected: i.publicSelected || false 
+            }));
+            
+            return { 
+                client: { ...schema.client, ...(dbData.client || {}) }, 
+                location: { ...schema.location, ...(dbData.location || {}) }, 
+                items: cleanItems, 
+                terms: { ...schema.terms, ...(dbData.terms || {}) }, 
+                settings: { ...schema.settings, ...(dbData.settings || {}) }, 
+                history: Array.isArray(dbData.history) ? dbData.history : [],
+                attachments: Array.isArray(dbData.attachments) ? dbData.attachments : [],
+                signature: dbData.signature || null
+            };
+        }
+
+        function logHistory(action, user, detail) {
+            if (!state.data.history) state.data.history = [];
+            state.data.history.push({ date: new Date().toISOString(), action: action, user: user, detail: detail || '' });
+        }
+
         async function init() {
             try {
                 const params = new URLSearchParams(window.location.search);
                 const view = params.get('view') || 'login';
                 const id = params.get('id');
-                
                 document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
+                
                 const { data: { session } } = await db.auth.getSession();
                 state.user = session?.user;
 
                 if (view === 'public') {
                     if(!id) throw new Error("Link inválido.");
                     await loadPublicProposal(id);
+                    safeShow('view-public');
                 } else if (!state.user && view !== 'login') {
                     window.history.replaceState(null, '', '?view=login');
                     safeShow('view-login');
+                    initRotator();
                 } else if (state.user && view === 'login') {
                     goTo('dashboard');
                 } else {
                     if(view === 'dashboard') await loadDashboard();
                     if(view === 'editor' && id) await loadEditor(id);
-                    safeShow(`view-${view}`);
+                    if(view !== 'login') safeShow(`view-${view}`);
+                    else { safeShow('view-login'); initRotator(); }
                 }
-            } catch (e) {
-                console.error(e);
-                safeShow('fatal-error');
+                setTimeout(() => { const l = document.getElementById('system-loader'); if(l) l.style.display = 'none'; }, 500);
+            } catch (e) { 
+                const l = document.getElementById('system-loader'); if(l) l.style.display = 'none';
+                const f = document.getElementById('fatal-error'); if(f) f.style.display = 'flex';
                 safeText('error-msg', e.message);
-            } finally {
-                document.getElementById('system-loader').style.display = 'none';
             }
         }
 
-        // --- Dados ---
-        function normalizeData(dbData) {
-            const defaultSchema = { 
-                client: { name: '', doc: '', email: '', phone: '', address: '', type: 'pj' }, 
-                location: { address: '', sameAsClient: true }, 
-                items: [], 
-                terms: { paymentMode: 'single', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, 
-                settings: { myPhone: '', serviceType: 'Outros', providerName: '', providerDoc: '', providerAddr: '', providerPhone: '' }, 
-                history: [], attachments: [], signature: null 
-            };
-            
-            if (!dbData) return defaultSchema;
-            
-            // Tratamento robusto para itens e anexos
-            const items = (Array.isArray(dbData.items) ? dbData.items : (dbData.scope || [])).map(i => ({
-                id: i.id || 'item_' + Math.random().toString(36).substr(2, 9),
-                name: i.name || '', description: i.description || '',
-                qty: parseFloat(i.qty) || 1, price: parseFloat(i.price) || 0,
-                optional: i.optional || false, publicSelected: i.publicSelected || false
-            }));
-
-            const attachments = (Array.isArray(dbData.attachments) ? dbData.attachments : []).map(a => ({
-                name: a.name, url: a.url, type: a.type, description: a.description || ''
-            }));
-
-            return {
-                client: { ...defaultSchema.client, ...(dbData.client || {}) },
-                location: { ...defaultSchema.location, ...(dbData.location || {}) },
-                items: items,
-                attachments: attachments,
-                terms: { ...defaultSchema.terms, ...(dbData.terms || {}) },
-                settings: { ...defaultSchema.settings, ...(dbData.settings || {}) },
-                history: Array.isArray(dbData.history) ? dbData.history : [],
-                signature: dbData.signature || null
-            };
+        function initRotator() {
+            const words = ["Prestadores","Técnicos", "Mecânicos", "Fotógrafos"];
+            let idx = 0; const el = document.getElementById('rotator'); if(!el) return;
+            el.innerHTML = '';
+            words.forEach((w, i) => { const s = document.createElement('span'); s.className = `rotate-word ${i===0?'active':''}`; s.innerText = w; el.appendChild(s); });
+            setInterval(() => {
+                const spans = el.querySelectorAll('.rotate-word');
+                if(!spans.length) return;
+                spans[idx].classList.remove('active'); spans[idx].classList.add('exit');
+                idx = (idx + 1) % words.length;
+                spans[idx].classList.remove('exit'); spans[idx].classList.add('active');
+            }, 3000);
         }
 
-        // --- Login & Dashboard ---
         async function handleLogin() {
             const email = safeVal('email');
             const btn = document.getElementById('btn-login');
             if(!email) return alert("Digite o e-mail");
-            btn.innerHTML = 'Enviando...'; btn.disabled = true;
+            if(btn) { btn.innerHTML = 'Enviando...'; btn.disabled = true; }
             const { error } = await db.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href }});
-            if(error) { alert(error.message); btn.innerHTML = 'Tentar Novamente'; btn.disabled = false; }
-            else { btn.innerHTML = 'Link Enviado!'; alert('Verifique seu e-mail.'); }
+            if(error) { alert(error.message); if(btn) { btn.innerText = 'Tentar Novamente'; btn.disabled = false; } }
+            else { if(btn) btn.innerText = 'Enviado!'; alert('Verifique seu e-mail.'); }
         }
 
-        function goTo(view, id) { window.history.pushState(null, '', id ? `?view=${view}&id=${id}` : `?view=${view}`); init(); }
+        function goTo(view, id = null) { window.history.pushState(null, '', id ? `?view=${view}&id=${id}` : `?view=${view}`); init(); }
 
         async function loadDashboard() {
-            const { data } = await db.from('projects').select('*, versions(status, total_value)').eq('user_id', state.user.id).order('created_at', { ascending: false });
-            state.projectsCache = data || [];
+            setHTML('project-list', '<div class="col-span-full text-center py-10 text-slate-400">Carregando dados...</div>');
+            const { data: projects, error } = await db.from('projects').select('*, versions(status, total_value, version_number)').eq('user_id', state.user.id).order('created_at', { ascending: false });
+            if(error) return setHTML('project-list', 'Erro ao carregar.');
+            
+            if (projects) {
+                projects.forEach(p => {
+                    if (p.versions && p.versions.length > 0) {
+                        p.versions.sort((a, b) => b.version_number - a.version_number);
+                    }
+                });
+            }
+            
+            state.projectsCache = projects || [];
             renderDashboardList();
         }
 
         function renderDashboardList() {
             const list = document.getElementById('project-list');
-            const filter = safeVal('dash-filter');
+            if(!list) return;
             const search = safeVal('dash-search').toLowerCase();
-            
-            let html = '';
-            let stats = { open: 0, neg: 0, apr: 0, total: 0 };
+            const filterStatus = safeVal('dash-filter');
+            let totalRev = 0, totalAprov = 0, countAprov = 0, countNegoc = 0, countOpen = 0;
+
+            const filtered = state.projectsCache.filter(p => {
+                const v = p.versions?.[0] || { status: 'draft', total_value: 0 };
+                const matchSearch = p.name.toLowerCase().includes(search) || (p.client_name||'').toLowerCase().includes(search);
+                const matchStatus = filterStatus === 'all' || !filterStatus || v.status === filterStatus;
+                return matchSearch && matchStatus;
+            });
 
             state.projectsCache.forEach(p => {
                 const v = p.versions?.[0] || { status: 'draft', total_value: 0 };
-                // Stats
-                if(v.status === 'draft') stats.open++;
-                if(v.status === 'negotiating' || v.status === 'sent') stats.neg++;
-                if(v.status === 'approved') { stats.apr++; stats.total += (v.total_value || 0); }
-
-                // Filter
-                if(filter !== 'all' && v.status !== filter) return;
-                if(search && !p.name.toLowerCase().includes(search) && !(p.client_name || '').toLowerCase().includes(search)) return;
-
-                let badge = { class: 'st-draft', text: 'Em Aberto' };
-                if(v.status === 'sent') badge = { class: 'st-sent', text: 'Enviado' };
-                if(v.status === 'negotiating') badge = { class: 'st-negotiating', text: 'Negociação' };
-                if(v.status === 'approved') badge = { class: 'st-approved', text: 'Aprovado' };
-                if(v.status === 'canceled') badge = { class: 'st-canceled', text: 'Cancelado' };
-
-                html += `
-                <div onclick="goTo('editor', '${p.id}')" class="bg-white p-6 rounded-xl border border-slate-200 hover:border-blue-400 hover:shadow-lg transition-all cursor-pointer group">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="font-bold text-lg text-slate-800 group-hover:text-blue-600 transition-colors">${p.name}</h3>
-                            <p class="text-sm text-slate-500"><i class="far fa-user mr-1"></i> ${p.client_name || 'Novo Cliente'}</p>
-                        </div>
-                        <span class="status-badge ${badge.class}">${badge.text}</span>
-                    </div>
-                    <div class="pt-4 border-t border-slate-50 flex justify-between items-end">
-                        <div class="text-xs text-slate-400">${new Date(p.created_at).toLocaleDateString()}</div>
-                        <div class="text-lg font-bold text-slate-900">${(v.total_value||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</div>
-                    </div>
-                </div>`;
+                const val = parseFloat(v.total_value) || 0;
+                totalRev += val; 
+                if(v.status === 'approved') { totalAprov += val; countAprov++; }
+                if(v.status === 'negotiating' || v.status === 'sent') countNegoc++;
+                if(v.status === 'draft') countOpen++;
             });
 
-            list.innerHTML = html || '<div class="col-span-full text-center py-10 text-slate-400">Nenhum projeto encontrado.</div>';
-            
-            // Atualiza KPIs
-            safeText('kpi-count-open', stats.open);
-            safeText('kpi-count-neg', stats.neg);
-            safeText('kpi-count-apr', stats.apr);
-            safeText('kpi-total-apr', stats.total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
+            safeText('kpi-total-est', totalRev.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
+            safeText('kpi-total-apr', totalAprov.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
+            safeText('kpi-count-neg', countNegoc);
+            safeText('kpi-count-apr', countAprov);
+            safeText('kpi-count-open', countOpen);
+
+            let html = '';
+            if(filtered.length === 0) html = '<div class="col-span-full text-center py-20 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Nenhum orçamento encontrado.</div>';
+            else {
+                filtered.forEach(p => {
+                    const v = p.versions?.[0] || { total_value: 0, status: 'draft', version_number: 1 };
+                    const val = parseFloat(v.total_value) || 0;
+                    let badgeClass = 'st-draft'; let statusLabel = 'Em Aberto';
+                    if(v.status === 'sent') { badgeClass = 'st-sent'; statusLabel = 'Enviado'; }
+                    if(v.status === 'negotiating') { badgeClass = 'st-negotiating'; statusLabel = 'Em Negociação'; }
+                    if(v.status === 'approved') { badgeClass = 'st-approved'; statusLabel = 'Aprovado'; }
+                    if(v.status === 'canceled') { badgeClass = 'st-canceled'; statusLabel = 'Cancelado'; }
+
+                    html += `<div onclick="goTo('editor', '${p.id}')" class="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group relative flex flex-col justify-between">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1 pr-2">
+                                <h3 class="font-bold text-slate-800 text-lg group-hover:text-blue-600 transition-colors leading-tight">${p.name}</h3>
+                                <p class="text-xs text-slate-500 mt-1 truncate"><i class="far fa-user mr-1"></i> ${p.client_name || 'Novo Cliente'}</p>
+                            </div>
+                            <span class="status-badge ${badgeClass}">${statusLabel}</span>
+                        </div>
+                        <div class="border-t border-slate-100 pt-3 flex justify-between items-end mt-2">
+                            <div class="text-xs text-slate-400">V${v.version_number} • ${new Date(p.created_at).toLocaleDateString()}</div>
+                            <div class="flex items-center gap-3">
+                                <div class="text-lg font-bold text-slate-900">${val.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</div>
+                                <button onclick="deleteProject('${p.id}', event)" class="text-slate-300 hover:text-red-500 transition-colors p-1 opacity-0 group-hover:opacity-100" title="Excluir"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+            }
+            setHTML('project-list', html);
+        }
+
+        async function deleteProject(id, event) {
+            event.stopPropagation(); 
+            if(!confirm("Tem certeza que deseja EXCLUIR este orçamento permanentemente?")) return;
+            const { error } = await db.from('projects').delete().eq('id', id);
+            if(error) alert("Erro ao excluir: " + error.message);
+            else { state.projectsCache = state.projectsCache.filter(p => p.id !== id); renderDashboardList(); }
         }
 
         async function createProject() {
-            const name = prompt("Nome do Projeto:");
-            if(!name) return;
-            const { data: p } = await db.from('projects').insert({ name, user_id: state.user.id, client_name: 'Novo Cliente' }).select().single();
-            const d = normalizeData(null);
-            
-            // Preenche dados do prestador do cache local
-            ['providerName','providerDoc','providerAddr','providerPhone'].forEach(k => {
-                d.settings[k] = localStorage.getItem('cfg_'+k) || '';
-            });
+            const name = prompt("Nome do Orçamento:"); if(!name) return;
+            const { data: p, error } = await db.from('projects').insert({ name, user_id: state.user.id, client_name: 'Novo Cliente' }).select().single();
+            const d = normalizeData(null); 
+            d.settings.myPhone = localStorage.getItem('escopo_phone') || '';
+            d.settings.providerName = localStorage.getItem('prov_name') || '';
+            d.settings.providerDoc = localStorage.getItem('prov_doc') || '';
+            d.settings.providerAddr = localStorage.getItem('prov_addr') || '';
+            d.settings.providerPhone = localStorage.getItem('prov_phone') || '';
 
-            d.history.push({ date: new Date().toISOString(), action: 'created', user: 'provider', detail: 'Projeto criado.' });
-            
+            // ADICIONA O PRIMEIRO REGISTRO DE HISTÓRICO ANTES DE SALVAR
+            d.history.push({ date: new Date().toISOString(), action: 'created', user: 'provider', detail: 'Orçamento criado via painel.' });
+
             await db.from('versions').insert({ project_id: p.id, version_number: 1, items: d, total_value: 0, status: 'draft' });
             goTo('editor', p.id);
         }
 
-        // --- Editor Core ---
         async function loadEditor(id) {
-            safeShow('editor-loading'); safeHide('editor-content');
-            
+            safeHide('editor-content');
+            safeShow('editor-loading');
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
             state.project = proj;
             const { data: vers } = await db.from('versions').select('*').eq('project_id', id).order('version_number', { ascending: true });
-            
             state.version = vers[vers.length - 1];
             state.data = normalizeData(state.version.items);
-            state.snapshot = JSON.parse(JSON.stringify(state.data.items)); // Para diff check
             
-            // Verifica versão anterior para diff
+            // CRIA SNAPSHOT PARA COMPARAR MUDANÇAS FUTURAS
+            state.snapshot = JSON.parse(JSON.stringify(state.data.items));
+
             state.previousData = null;
             if (state.version.version_number > 1 && vers[vers.length - 2]) {
                 state.previousData = normalizeData(vers[vers.length - 2].items);
             }
-
+            if(state.version.notes && !state.data.terms.obs) state.data.terms.obs = state.version.notes;
+            if(!state.data.settings.myPhone) state.data.settings.myPhone = localStorage.getItem('escopo_phone') || '';
             renderEditor();
-            safeHide('editor-loading'); safeShow('editor-content');
+            safeHide('editor-loading');
+            safeShow('editor-content');
+        }
+
+        // LÓGICA DE UPLOAD
+        async function handleUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Validações
+            if (file.size > 5 * 1024 * 1024) return alert("Arquivo muito grande! Máximo 5MB.");
+            const ext = file.name.split('.').pop().toLowerCase();
+            if(!['pdf','png','jpg','jpeg'].includes(ext)) return alert("Formato não permitido. Use PDF, PNG ou JPG.");
+
+            // UI de carregando
+            const label = document.getElementById('upload-label');
+            const originalText = label.innerHTML;
+            label.innerText = "Enviando...";
+
+            try {
+                const path = `${state.project.id}/${Date.now()}_${file.name}`;
+                const { data, error } = await db.storage.from('attachments').upload(path, file);
+                
+                if (error) throw error;
+
+                const { data: pubData } = db.storage.from('attachments').getPublicUrl(path);
+                
+                if (!state.data.attachments) state.data.attachments = [];
+                state.data.attachments.push({ name: file.name, url: pubData.publicUrl, type: ext });
+                
+                await save();
+            } catch (err) {
+                alert("Erro no upload: " + err.message);
+                console.error(err);
+            } finally {
+                label.innerHTML = originalText;
+                e.target.value = ''; // Limpa input
+            }
+        }
+
+        async function deleteAttachment(idx) {
+            if(!confirm("Remover este anexo?")) return;
+            state.data.attachments.splice(idx, 1);
+            await save();
+        }
+
+        function setClientType(type) {
+            state.data.client.type = type;
+            renderEditor();
         }
 
         function renderEditor() {
-            const d = state.data;
-            const locked = state.version.status !== 'draft';
-
-            // Cabeçalho
+            const d = state.data; 
+            const isLocked = state.version.status !== 'draft'; 
+            
             safeText('ed-title', state.project.name);
             safeText('ed-ver', `V${state.version.version_number}`);
-            safeText('ed-status-badge', state.version.status === 'draft' ? 'EM EDIÇÃO' : state.version.status);
-
-            // Inputs Gerais
+            
+            const badge = document.getElementById('ed-status-badge');
+            if(badge) {
+                badge.className = `status-badge ml-2 ${state.version.status === 'approved' ? 'st-approved' : state.version.status === 'canceled' ? 'st-canceled' : 'st-draft'}`;
+                badge.innerText = state.version.status === 'draft' ? 'EM ABERTO' : state.version.status.toUpperCase();
+            }
+            
             setVal('p-name', d.settings.providerName); setVal('p-doc', d.settings.providerDoc);
-            setVal('p-phone', d.settings.providerPhone); setVal('p-addr', d.settings.providerAddr);
+            setVal('p-addr', d.settings.providerAddr); setVal('p-phone', d.settings.providerPhone);
+            setVal('c-name', d.client.name); setVal('c-doc', d.client.doc); setVal('c-phone', d.client.phone); setVal('c-email', d.client.email); setVal('c-addr', d.client.address);
             
-            // Toggle Cliente
-            const isPJ = d.client.type !== 'pf';
-            document.getElementById('cl-type-btns').innerHTML = `
-                <div class="flex bg-slate-100 p-1 rounded-lg w-full max-w-xs">
-                    <button onclick="setClientType('pj')" class="flex-1 py-1.5 text-xs font-bold rounded ${isPJ ? 'bg-white shadow text-blue-700' : 'text-slate-500'}">Pessoa Jurídica</button>
-                    <button onclick="setClientType('pf')" class="flex-1 py-1.5 text-xs font-bold rounded ${!isPJ ? 'bg-white shadow text-blue-700' : 'text-slate-500'}">Pessoa Física</button>
-                </div>`;
-            
-            safeText('lbl-c-name', isPJ ? 'Razão Social' : 'Nome Completo');
-            safeText('lbl-c-doc', isPJ ? 'CNPJ' : 'CPF');
-            
-            setVal('c-name', d.client.name); setVal('c-doc', d.client.doc);
-            setVal('c-phone', d.client.phone); setVal('c-email', d.client.email);
-            setVal('c-addr', d.client.address);
-
-            // Local
-            document.getElementById('loc-check').checked = d.location.sameAsClient;
-            document.getElementById('loc-custom-div').style.display = d.location.sameAsClient ? 'none' : 'block';
-            setVal('loc-addr', d.location.address);
-
-            // Itens Escopo
-            let itemsHtml = '';
-            let total = 0;
-            
-            d.items.forEach((i, idx) => {
-                const sub = (i.qty * i.price);
-                if(!i.optional) total += sub;
-                
-                // Diff Check logic simplificada
-                let diffBadge = '';
-                if(state.previousData) {
-                    const old = state.previousData.items.find(o => o.id === i.id);
-                    if(!old) diffBadge = '<span class="ml-2 text-[10px] bg-emerald-100 text-emerald-700 px-2 rounded-full font-bold">NOVO</span>';
-                    else if(old.price !== i.price || old.qty !== i.qty) diffBadge = '<span class="ml-2 text-[10px] bg-amber-100 text-amber-700 px-2 rounded-full font-bold">ALTERADO</span>';
-                }
-
-                itemsHtml += `
-                <div class="item-row ${i.optional ? 'item-optional' : ''}">
-                    ${!locked ? `<button onclick="rmItem(${idx})" class="absolute top-2 right-2 text-slate-300 hover:text-red-500"><i class="fas fa-trash"></i></button>` : ''}
-                    <div class="flex items-center mb-2">
-                        <span class="text-xs font-bold text-slate-400 uppercase mr-2">Item ${idx+1}</span>
-                        ${i.optional ? '<span class="text-[10px] bg-slate-600 text-white px-2 rounded uppercase font-bold">Opcional</span>' : ''}
-                        ${diffBadge}
+            // --- INICIO ALTERAÇÃO CLIENTE ---
+            const isPJ = d.client.type !== 'pf'; // Padrão PJ
+            const clBtns = document.getElementById('cl-type-btns');
+            if(clBtns) {
+                clBtns.innerHTML = `
+                    <div class="flex bg-slate-100 p-1 rounded-lg mb-4">
+                        <button onclick="setClientType('pj')" class="flex-1 py-2 text-sm font-bold rounded-md transition-all ${isPJ ? 'bg-white shadow text-blue-700' : 'text-slate-500 hover:text-slate-700'}">Pessoa Jurídica</button>
+                        <button onclick="setClientType('pf')" class="flex-1 py-2 text-sm font-bold rounded-md transition-all ${!isPJ ? 'bg-white shadow text-blue-700' : 'text-slate-500 hover:text-slate-700'}">Pessoa Física</button>
                     </div>
-                    <div class="grid grid-cols-12 gap-3">
-                        <div class="col-span-8">
-                            <input class="w-full font-bold text-slate-800 bg-transparent outline-none placeholder-slate-300" placeholder="Título do Item" value="${i.name}" oninput="upItem(${idx},'name',this.value)" ${locked?'disabled':''}>
-                            <textarea class="w-full text-xs text-slate-500 bg-transparent outline-none resize-none mt-1" rows="1" placeholder="Descrição técnica..." oninput="upItem(${idx},'description',this.value)" ${locked?'disabled':''}>${i.description}</textarea>
-                        </div>
-                        <div class="col-span-2">
-                            <input type="number" class="w-full text-center bg-slate-100 rounded py-1 text-sm font-bold" value="${i.qty}" onchange="upItem(${idx},'qty',this.value)" ${locked?'disabled':''}>
-                        </div>
-                        <div class="col-span-2">
-                            <input type="number" class="w-full text-right bg-slate-100 rounded py-1 text-sm font-bold" value="${i.price}" onchange="upItem(${idx},'price',this.value)" ${locked?'disabled':''}>
-                        </div>
-                    </div>
-                    ${!locked ? `<div class="mt-2 text-right"><button onclick="toggleOpt(${idx})" class="text-[10px] text-blue-500 font-bold hover:underline">${i.optional ? 'Tornar Obrigatório' : 'Marcar como Opcional'}</button></div>` : ''}
-                </div>`;
-            });
-            document.getElementById('ed-items').innerHTML = itemsHtml;
-            safeText('ed-total', total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
-
-            // Anexos (AGORA NO ESCOPO COM DESCRIÇÃO)
-            const attachList = document.getElementById('ed-attachments-list');
-            let attachHtml = '';
-            if(d.attachments.length > 0) {
-                d.attachments.forEach((att, idx) => {
-                    let icon = att.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500';
-                    attachHtml += `
-                    <div class="attach-item group">
-                        <div class="attach-icon"><i class="fas ${icon}"></i></div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-xs font-bold text-slate-700 truncate" title="${att.name}">${att.name}</span>
-                                <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
-                                    <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700"><i class="fas fa-eye"></i></a>
-                                    ${!locked ? `<button onclick="delAttach(${idx})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>` : ''}
-                                </div>
-                            </div>
-                            <input type="text" class="attach-input" placeholder="Adicione uma descrição (Ex: Planta Baixa)..." 
-                                value="${att.description}" onchange="upAttachDesc(${idx}, this.value)" ${locked?'disabled':''}>
-                        </div>
-                    </div>`;
-                });
-            } else {
-                attachHtml = '<div class="text-xs text-slate-400 text-center py-2">Nenhum anexo.</div>';
-            }
-            attachList.innerHTML = attachHtml;
-            document.getElementById('upload-area').style.display = locked ? 'none' : 'block';
-
-            // Financeiro e Histórico
-            setVal('t-deadline', d.terms.deadline); setVal('t-val', d.terms.validity); setVal('t-obs', d.terms.obs);
-            
-            let histHtml = '';
-            d.history.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(h => {
-                histHtml += `<div class="p-3 border-l-2 border-slate-200 ml-2 relative">
-                    <div class="absolute -left-[5px] top-4 w-2 h-2 rounded-full bg-slate-300"></div>
-                    <div class="text-[10px] text-slate-400">${new Date(h.date).toLocaleString()}</div>
-                    <div class="text-xs font-bold text-slate-700">${h.detail}</div>
-                </div>`;
-            });
-            document.getElementById('ed-history').innerHTML = histHtml;
-
-            // Botões de Ação
-            const actions = document.getElementById('ed-actions');
-            if(locked) {
-                actions.innerHTML = `<button onclick="createVersion()" class="btn btn-primary w-full bg-amber-500 hover:bg-amber-600 border-none">Criar Nova Revisão (V${state.version.version_number+1})</button>`;
-            } else {
-                actions.innerHTML = `<button onclick="save()" class="btn btn-primary w-full">Salvar Alterações</button>
-                                     <button onclick="cancelProject()" class="btn btn-danger w-full mt-2">Cancelar Orçamento</button>`;
-            }
-
-            // Bloqueio de Inputs
-            document.querySelectorAll('#view-editor input, #view-editor textarea, #view-editor select').forEach(el => {
-                if(el.id !== 'dash-search' && el.id !== 'dash-filter') el.disabled = locked;
-            });
-        }
-
-        // --- Ações do Editor ---
-        function setClientType(t) { state.data.client.type = t; renderEditor(); }
-        function toggleLoc(checked) { state.data.location.sameAsClient = checked; renderEditor(); }
-        
-        function upVal(k,v) { 
-            if(k.startsWith('c-')) state.data.client[k.substring(2)] = v;
-            else if(k.startsWith('t-')) state.data.terms[k.substring(2)] = v;
-        }
-        
-        function upSettings(k,v) { 
-            state.data.settings[k] = v; 
-            localStorage.setItem('cfg_'+k, v); 
-        }
-        
-        function upLoc(v) { state.data.location.address = v; }
-        
-        function upItem(idx, field, val) {
-            const item = state.data.items[idx];
-            if(field === 'qty' || field === 'price') item[field] = parseFloat(val) || 0;
-            else item[field] = val;
-            if(field === 'qty' || field === 'price') renderEditor(); // Recalcula total
-        }
-        
-        function addItem() { state.data.items.push({ id: Date.now(), name: '', description: '', qty: 1, price: 0 }); renderEditor(); }
-        function rmItem(idx) { if(confirm('Remover?')) { state.data.items.splice(idx,1); renderEditor(); } }
-        function toggleOpt(idx) { state.data.items[idx].optional = !state.data.items[idx].optional; renderEditor(); }
-
-        // Anexos Logic
-        async function handleUpload(e) {
-            const file = e.target.files[0];
-            if(!file) return;
-            const label = document.getElementById('upload-label');
-            label.innerText = 'Enviando...';
-            try {
-                const path = `${state.project.id}/${Date.now()}_${file.name}`;
-                const { error } = await db.storage.from('attachments').upload(path, file);
-                if(error) throw error;
-                const { data } = db.storage.from('attachments').getPublicUrl(path);
-                
-                const ext = file.name.split('.').pop().toLowerCase();
-                state.data.attachments.push({ name: file.name, url: data.publicUrl, type: ext, description: '' });
-                await save();
-            } catch(err) { alert('Erro no upload.'); console.error(err); }
-            finally { label.innerHTML = '<i class="fas fa-cloud-upload-alt text-3xl mb-2 block text-blue-300"></i> Clique aqui para anexar PDF ou Imagens'; e.target.value = ''; }
-        }
-        
-        function upAttachDesc(idx, val) { state.data.attachments[idx].description = val; }
-        async function delAttach(idx) { if(confirm('Excluir anexo?')) { state.data.attachments.splice(idx,1); await save(); } }
-
-        // --- Save & Versioning ---
-        function getChanges() {
-            // Lógica simples de diff
-            const now = state.data.items.length;
-            const before = state.snapshot.length;
-            if(now !== before) return 'Alterou quantidade de itens no escopo';
-            return 'Atualizou detalhes do orçamento';
-        }
-
-        async function save() {
-            if(state.data.client.name) await db.from('projects').update({client_name: state.data.client.name}).eq('id', state.project.id);
-            
-            const total = state.data.items.reduce((acc, i) => !i.optional ? acc + (i.qty*i.price) : acc, 0);
-            
-            // Log histórico apenas se houve mudança real (simplificado)
-            const logText = getChanges();
-            // logHistory('edited', 'provider', logText); -> Opcional, pode poluir
-
-            await db.from('versions').update({ items: state.data, total_value: total }).eq('id', state.version.id);
-            state.snapshot = JSON.parse(JSON.stringify(state.data.items));
-            renderEditor();
-        }
-
-        async function createVersion() {
-            if(!confirm('Criar nova revisão? Isso travará a versão atual.')) return;
-            const total = state.data.items.reduce((acc, i) => !i.optional ? acc + (i.qty*i.price) : acc, 0);
-            const nextVer = state.version.version_number + 1;
-            
-            // Adiciona log na nova versão
-            state.data.history.push({ date: new Date().toISOString(), action: 'created', user: 'provider', detail: `Revisão V${nextVer} criada.` });
-            
-            await db.from('versions').insert({
-                project_id: state.project.id,
-                version_number: nextVer,
-                items: state.data,
-                total_value: total,
-                status: 'draft'
-            });
-            loadEditor(state.project.id);
-        }
-
-        async function cancelProject() {
-            if(!confirm('Cancelar este orçamento?')) return;
-            await db.from('versions').update({status:'canceled'}).eq('id', state.version.id);
-            loadEditor(state.project.id);
-        }
-
-        function generatePayment() {
-            const total = state.data.items.reduce((acc, i) => !i.optional ? acc + (i.qty*i.price) : acc, 0);
-            if(total === 0) return alert('Adicione itens primeiro.');
-            const mode = document.getElementById('pay-mode').value;
-            let text = '';
-            
-            if(mode === 'single') {
-                text = `Pagamento à vista de ${total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}.`;
-            } else {
-                const p1 = total * 0.5; // Exemplo 50%
-                text = `Entrada de ${p1.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}\n+ Saldo na entrega.`;
-            }
-            state.data.terms.paymentText = text;
-            renderEditor();
-        }
-
-        // --- Compartilhamento ---
-        async function openShareModal() {
-            await save();
-            const url = `${window.location.origin}${window.location.pathname}?view=public&id=${state.version.id}`;
-            const msg = `Olá ${state.data.client.name || ''}. Segue o link do orçamento para aprovação: ${url}`;
-            
-            document.getElementById('btn-share-wa').onclick = () => {
-                const phone = (state.data.client.phone || '').replace(/\D/g, '');
-                window.open(`https://wa.me/${phone ? '55'+phone : ''}?text=${encodeURIComponent(msg)}`, '_blank');
-            };
-            
-            document.getElementById('btn-share-copy').onclick = () => {
-                navigator.clipboard.writeText(url);
-                alert('Link copiado!');
-            };
-            
-            document.getElementById('share-modal').classList.remove('hidden');
-        }
-
-        // --- Visão Pública (Cliente) ---
-        async function loadPublicProposal(id) {
-            safeShow('public-loading');
-            const { data: v, error } = await db.from('versions').select('*, projects(name)').eq('id', id).single();
-            if(error) throw new Error('Orçamento não encontrado.');
-            
-            state.version = v;
-            state.data = normalizeData(v.items);
-            const d = state.data;
-
-            // Renderiza Dados
-            if(d.settings.providerName) {
-                document.getElementById('doc-provider-info').innerHTML = `
-                    <h2 class="text-2xl font-bold">${d.settings.providerName}</h2>
-                    <p class="opacity-80">${d.settings.providerDoc || ''}</p>
                 `;
             }
             
-            safeText('doc-title', v.projects.name);
-            safeText('doc-id', `#${v.id.substr(0,4).toUpperCase()}`);
-            safeText('doc-date', new Date(v.created_at).toLocaleDateString());
+            const lblName = document.getElementById('lbl-c-name'); if(lblName) lblName.innerText = isPJ ? 'Razão Social' : 'Nome Completo';
+            const plName = document.getElementById('c-name'); if(plName) plName.placeholder = isPJ ? 'Nome da Empresa' : 'Nome do Cliente';
             
-            safeText('doc-c-name', d.client.name);
-            safeText('doc-c-doc', d.client.doc);
-            safeText('doc-c-addr', d.location.sameAsClient ? d.client.address : d.location.address);
+            const lblDoc = document.getElementById('lbl-c-doc'); if(lblDoc) lblDoc.innerText = isPJ ? 'CNPJ' : 'CPF';
+            const plDoc = document.getElementById('c-doc'); if(plDoc) plDoc.placeholder = isPJ ? '00.000.000/0000-00' : '000.000.000-00';
+            // --- FIM ALTERAÇÃO CLIENTE ---
 
-            // Itens
-            let itemsHtml = '';
-            let total = 0;
-            const isFrozen = v.status !== 'draft' && v.status !== 'negotiating' && v.status !== 'sent';
+            const svc = document.getElementById('s-type'); if(svc) svc.value = d.settings.serviceType || 'Outros';
             
-            d.items.forEach((i, idx) => {
-                let active = !i.optional || i.publicSelected;
-                if(active) total += (i.qty * i.price);
+            setVal('t-deadline', d.terms.deadline); 
+            setVal('t-val', d.terms.validity); setVal('t-obs', d.terms.obs);
+
+            // ENDEREÇO DO SERVIÇO
+            const locCheck = document.getElementById('loc-check');
+            if(locCheck) locCheck.checked = d.location.sameAsClient;
+            const locDiv = document.getElementById('loc-custom-div');
+            if(locDiv) locDiv.style.display = d.location.sameAsClient ? 'none' : 'block';
+            setVal('loc-addr', d.location.address);
+
+            // RENDERIZA LISTA DE ANEXOS NO EDITOR
+            const attachList = document.getElementById('ed-attachments-list');
+            if (attachList) {
+                let attHtml = '';
+                if (d.attachments && d.attachments.length > 0) {
+                    d.attachments.forEach((att, idx) => {
+                        let icon = att.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500';
+                        attHtml += `<div class="flex items-center justify-between bg-white border p-3 rounded mb-2 text-sm">
+                            <div class="flex items-center gap-2 overflow-hidden">
+                                <i class="fas ${icon}"></i> 
+                                <span class="truncate">${att.name}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700"><i class="fas fa-eye"></i></a>
+                                ${!isLocked ? `<button onclick="deleteAttachment(${idx})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>` : ''}
+                            </div>
+                        </div>`;
+                    });
+                } else {
+                    attHtml = '<div class="text-xs text-slate-400 italic text-center py-2">Nenhum arquivo anexado.</div>';
+                }
+                attachList.innerHTML = attHtml;
+            }
+
+            // CONTROLA INPUT DE UPLOAD
+            const uploadDiv = document.getElementById('upload-area');
+            if(uploadDiv) uploadDiv.style.display = isLocked ? 'none' : 'block';
+
+            // DESABILITA TODOS OS CAMPOS DE TEXTO E INPUTS SE ESTIVER BLOQUEADO
+            const staticInputs = ['p-name','p-doc','p-addr','p-phone','c-name','c-doc','c-phone','c-email','c-addr','s-type','pay-mode','t-deadline','t-val','t-obs', 'loc-check', 'loc-addr'];
+            staticInputs.forEach(id => { const el = document.getElementById(id); if(el) el.disabled = isLocked; });
+
+            // OCULTA BOTÃO DE ADICIONAR ITEM E CALCULADORA
+            const btnAdd = document.getElementById('btn-add-item');
+            if(btnAdd) btnAdd.style.display = isLocked ? 'none' : 'inline-block';
+            
+            const btnCalc = document.getElementById('btn-calc-pay');
+            if(btnCalc) btnCalc.style.display = isLocked ? 'none' : 'inline-block';
+
+
+            let html = ''; 
+            let total = 0;
+            const items = Array.isArray(d.items) ? d.items : [];
+            
+            items.forEach((i, x) => {
+                const t = (i.qty||0)*(i.price||0); 
+                if(!i.optional) total += t;
+
+                let diffHtml = '';
+                let cardClass = i.optional ? 'item-optional' : '';
                 
-                // Checkbox lógica para opcionais
-                let checkHtml = '';
-                if(i.optional) {
-                    if(!isFrozen) checkHtml = `<input type="checkbox" onchange="togglePublicOpt(${idx})" ${i.publicSelected ? 'checked' : ''} class="mr-2">`;
-                    else checkHtml = i.publicSelected ? '<i class="fas fa-check-square text-emerald-500 mr-2"></i>' : '<i class="far fa-square text-slate-300 mr-2"></i>';
+                if (state.previousData) {
+                    const oldItem = state.previousData.items.find(old => old.id === i.id);
+                    if (!oldItem) {
+                        cardClass += ' item-new';
+                        diffHtml = `<div class="diff-box"><span class="diff-tag">NOVO</span> Este item foi adicionado.</div>`;
+                    } else {
+                        let changes = [];
+                        if (oldItem.price !== i.price) changes.push(`Preço: <span class="old-val">R$${oldItem.price}</span> <i class="fas fa-arrow-right text-xs"></i> <span class="new-val">R$${i.price}</span>`);
+                        if (oldItem.qty !== i.qty) changes.push(`Qtd: <span class="old-val">${oldItem.qty}</span> <i class="fas fa-arrow-right text-xs"></i> <span class="new-val">${i.qty}</span>`);
+                        if (changes.length > 0) {
+                            cardClass += ' item-modified';
+                            diffHtml = `<div class="diff-box"><span class="diff-tag">ALTERADO</span> <span>${changes.join(' &bull; ')}</span></div>`;
+                        }
+                    }
                 }
 
-                itemsHtml += `
-                <tr class="border-b border-slate-100 last:border-0">
-                    <td class="py-3 pl-2">
-                        <div class="flex items-start">
-                            ${checkHtml}
+                html += `
+                <div class="bg-white border p-4 rounded-lg mb-2 relative group transition-all ${cardClass}">
+                    ${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-2">
+                        <div class="md:col-span-8">
+                            <label class="text-[10px] uppercase font-bold text-slate-400 flex items-center">
+                                Item 
+                                ${i.optional ? '<span class="optional-badge">Opcional</span>' : ''}
+                            </label>
+                            <input class="w-full font-bold bg-transparent outline-none" placeholder="Nome do Item..." value="${i.name}" oninput="upItem(${x},'name',this.value)" ${isLocked?'disabled':''}>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="text-[10px] uppercase font-bold text-slate-400 text-center block">Qtd</label>
+                            <input type="number" class="w-full text-center bg-slate-50 rounded" value="${i.qty}" onchange="upItem(${x},'qty',this.value)" ${isLocked?'disabled':''}>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="text-[10px] uppercase font-bold text-slate-400 text-right block">$$</label>
+                            <input type="number" class="w-full text-right bg-slate-50 rounded" value="${i.price}" onchange="upItem(${x},'price',this.value)" ${isLocked?'disabled':''}>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                         <textarea class="w-full text-xs text-slate-500 bg-transparent outline-none resize-none" rows="1" oninput="upItem(${x},'description',this.value)" placeholder="Descrição técnica..." ${isLocked?'disabled':''}>${i.description||''}</textarea>
+                         ${!isLocked ? `
+                            <button onclick="toggleOpt(${x})" class="text-[10px] font-bold px-2 py-1 rounded border ${i.optional ? 'bg-slate-600 text-white border-slate-600' : 'text-slate-400 border-slate-200 hover:border-slate-400'}" title="Marcar como opcional (não soma no total automaticamente)">
+                                ${i.optional ? 'OPCIONAL' : 'Opcional?'}
+                            </button>
+                         ` : ''}
+                    </div>
+                    ${diffHtml}
+                </div>`;
+            });
+            
+            setHTML('ed-items', html);
+            const totalOpt = items.reduce((acc, i) => i.optional ? acc + (i.qty * i.price) : acc, 0);
+            
+            let totalDisplay = total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+            if (totalOpt > 0) {
+                totalDisplay += `<div class="text-xs text-slate-400 font-normal mt-1">+ ${totalOpt.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} em opcionais</div>`;
+            }
+            setHTML('ed-total', totalDisplay);
+
+            let histHtml = '';
+            // CORREÇÃO: ORDENAÇÃO POR DATA ASCENDENTE (ANTIGO -> NOVO)
+            if(d.history && d.history.length > 0) {
+                d.history.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(h => {
+                    const date = new Date(h.date).toLocaleString('pt-BR');
+                    let icon = 'info-circle text-blue-400';
+                    let actionLabel = 'Visualizou';
+                    if (h.action === 'approved') { icon = 'check text-green-500'; actionLabel = 'Aprovou'; }
+                    else if (h.action === 'change_request') { icon = 'comment-dots text-amber-500'; actionLabel = 'Solicitou alteração'; }
+                    else if (h.action === 'canceled') { icon = 'times text-red-500'; actionLabel = 'Recusou/Cancelou'; }
+                    else if (h.action === 'created') { icon = 'plus-circle text-blue-600'; actionLabel = 'Criou o orçamento'; }
+                    else if (h.action === 'edited') { icon = 'pen text-indigo-500'; actionLabel = 'Alterou o escopo'; }
+
+                    histHtml += `<div class="timeline-item"><div class="timeline-date">${date} • ${h.user === 'provider' ? 'Você' : 'Cliente'}</div><div class="timeline-title flex items-center gap-2"><i class="fas fa-${icon}"></i> ${actionLabel}</div>${h.detail ? `<div class="timeline-desc ${h.action.includes('request')?'':'system'}">${h.detail}</div>` : ''}</div>`;
+                });
+            } else { histHtml = '<div class="text-xs text-slate-400 italic">Sem histórico registrado.</div>'; }
+            setHTML('ed-history', histHtml);
+
+            // CORREÇÃO: BOTÃO "CRIAR REVISÃO" RESTAURADO
+            const actions = document.getElementById('ed-actions');
+            if (actions) {
+                if (isLocked) { 
+                    actions.innerHTML = `<button onclick="createAddon()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg mb-2 shadow-lg"><i class="fas fa-copy mr-2"></i> Criar Revisão (V${state.version.version_number + 1})</button>`; 
+                } else { 
+                    actions.innerHTML = `<button onclick="save()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg mb-2 shadow-lg"><i class="fas fa-save mr-2"></i> Salvar Alterações</button><button onclick="changeStatus('canceled')" class="w-full py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-sm font-bold">Cancelar Orçamento</button>`; 
+                }
+            }
+        }
+
+        function upVal(k,v) { if(k.startsWith('c-')) state.data.client[k.substring(2)] = v; else if(k.startsWith('t-')) state.data.terms[k.substring(2)] = v; else if(k==='s-phone') { state.data.settings.myPhone=v; localStorage.setItem('escopo_phone',v); } else if(k==='s-type') { state.data.settings.serviceType = v; } }
+        function upSettings(k,v) { state.data.settings[k] = v; if(['providerName','providerDoc','providerAddr','providerPhone'].includes(k)) localStorage.setItem(k.replace('provider','prov_').toLowerCase(), v); }
+
+        function toggleLoc(checked) { state.data.location.sameAsClient = checked; renderEditor(); }
+        function upLoc(v) { state.data.location.address = v; }
+
+        function upItem(i,f,v) { 
+            const it=state.data.items[i]; 
+            if(f==='qty'||f==='price') { it[f]=parseFloat(v)||0; renderEditor(); } 
+            else { it[f]=v; }
+        }
+        
+        function toggleOpt(i) { state.data.items[i].optional = !state.data.items[i].optional; renderEditor(); }
+
+        function addItem() { 
+            if(!Array.isArray(state.data.items)) state.data.items = [];
+            state.data.items.push({ id: 'item_' + Date.now(), name: '', description: '', qty: 1, price: 0, type: state.version?.version_number > 1 ? 'addon' : 'original', optional: false }); 
+            renderEditor(); 
+        }
+        function rmItem(i) { if(confirm("Remover este item?")) { state.data.items.splice(i, 1); renderEditor(); } }
+        
+        function generatePayment() {
+            const total = state.data.items.reduce((acc, i) => (!i.optional ? acc + (i.qty * i.price) : acc), 0);
+            if(total === 0) return alert("Adicione valores (não opcionais) primeiro.");
+            const mode = document.getElementById('pay-mode').value;
+            let text = "";
+            if(mode === 'entry_installments') {
+                const entryP = prompt("Porcentagem de Entrada? (Ex: 30)", "30");
+                const inst = prompt("Restante em quantas vezes?", "2");
+                if(!entryP || !inst) return;
+                const entryVal = total * (parseInt(entryP)/100);
+                const restVal = (total - entryVal) / parseInt(inst);
+                text = `CRONOGRAMA:\n1. Entrada: ${entryVal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}\n`;
+                for(let i=1; i<=parseInt(inst); i++) text += `${i+1}. Parcela (30d): ${restVal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}\n`;
+            } else text = `Pagamento Único: ${total.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}`;
+            state.data.terms.paymentText = text;
+            renderEditor(); 
+            setVal('t-obs', text);
+        }
+
+        function getChanges(oldArr, newArr) {
+            let logs = [];
+            const oldMap = new Map(oldArr.map(i => [i.id, i]));
+            const newMap = new Map(newArr.map(i => [i.id, i]));
+            
+            newArr.forEach(i => {
+                if(!oldMap.has(i.id)) logs.push(`Adicionou: ${i.name || 'Item sem nome'}`);
+                else {
+                    const old = oldMap.get(i.id);
+                    if(old.name !== i.name) logs.push(`Renomeou: ${old.name || 'Sem nome'} -> ${i.name}`);
+                    if(old.price !== i.price || old.qty !== i.qty) logs.push(`Alterou valor/qtd: ${i.name}`);
+                }
+            });
+            oldArr.forEach(i => { if(!newMap.has(i.id)) logs.push(`Removeu: ${i.name}`); });
+            return logs.length ? logs.join('; ') : null;
+        }
+
+        async function save() {
+            const t = state.data.items.reduce((a,b)=> (!b.optional ? a+(b.qty*b.price) : a),0);
+            
+            const changes = getChanges(state.snapshot, state.data.items);
+            if(changes) {
+                logHistory('edited', 'provider', changes);
+                state.snapshot = JSON.parse(JSON.stringify(state.data.items)); 
+            }
+
+            if(state.data.client.name) await db.from('projects').update({client_name:state.data.client.name}).eq('id',state.project.id);
+            await db.from('versions').update({items:state.data, total_value:t, notes:state.data.terms.obs}).eq('id',state.version.id);
+            
+            renderEditor(); 
+        }
+
+        async function createAddon() {
+            if(!confirm("Criar nova versão (Aditivo)?")) return;
+            const t = state.data.items.reduce((a,b)=> (!b.optional ? a+(b.qty*b.price) : a),0);
+            logHistory('created', 'provider', 'Criou nova versão/aditivo.'); 
+            await db.from('versions').insert({project_id:state.project.id, version_number:state.version.version_number+1, items:state.data, total_value:t, status:'draft'});
+            loadEditor(state.project.id);
+        }
+
+        async function changeStatus(newStatus) {
+            if(!confirm(`Mudar status para ${newStatus}?`)) return;
+            await db.from('versions').update({status: newStatus}).eq('id',state.version.id);
+            logHistory(newStatus, 'provider', 'Alteração manual de status.');
+            save(); loadEditor(state.project.id);
+        }
+
+        async function openShareModal() {
+            await save();
+            if (!state.version?.id) return alert("Erro ao salvar versão.");
+
+            const url = `${window.location.origin}${window.location.pathname}?view=public&id=${state.version.id}`;
+            const clientName = state.data.client.name ? ` ${state.data.client.name}` : '';
+            const msg = `Olá${clientName}! Segue o link da proposta comercial para sua aprovação: ${url}`;
+
+            document.getElementById('btn-share-wa').onclick = function() {
+                let phone = (state.data.client.phone || '').replace(/\D/g, '');
+                let link = `https://wa.me/${phone.length >= 10 ? '55' + phone : ''}?text=${encodeURIComponent(msg)}`;
+                window.open(link, '_blank');
+                document.getElementById('share-modal').style.display = 'none';
+            };
+
+            document.getElementById('btn-share-copy').onclick = async function() {
+                try {
+                    await navigator.clipboard.writeText(url);
+                    alert("✅ Link copiado com sucesso!");
+                } catch (err) {
+                    const textArea = document.createElement("textarea");
+                    textArea.value = url;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(textArea);
+                    alert("✅ Link copiado!");
+                }
+                document.getElementById('share-modal').style.display = 'none';
+            };
+
+            document.getElementById('share-modal').style.display = 'flex';
+        }
+
+        // --- PUBLIC INTERACTION FLOW ---
+        async function loadPublicProposal(id) {
+            try {
+                safeShow('public-loading');
+                const { data: v, error } = await db.from('versions').select('*, projects(name)').eq('id', id).maybeSingle();
+                if (error || !v) throw new Error("Orçamento não encontrado.");
+                state.version = v; 
+                state.data = normalizeData(v.items);
+                const d = state.data;
+                
+                if(v.status === 'approved') document.getElementById('stamp-approved').style.display = 'block';
+
+                if(d.settings.providerName) {
+                    setHTML('doc-provider-info', `<div class="mb-4 pb-4 border-b border-slate-700"><h2 class="text-xl font-bold">${d.settings.providerName}</h2><p class="text-slate-400 text-sm">${d.settings.providerDoc || ''} • ${d.settings.providerPhone || ''}</p><p class="text-slate-400 text-xs">${d.settings.providerAddr || ''}</p></div>`);
+                }
+
+                safeText('doc-title', v.projects?.name);
+                safeText('doc-id', `#${v.project_id ? v.project_id.substr(0,4).toUpperCase() : 'XXXX'}-${v.version_number}`);
+                safeText('doc-c-name', d.client.name);
+                safeText('doc-c-doc', d.client.doc);
+                
+                const finalAddr = d.location.sameAsClient ? d.client.address : (d.location.address || 'Não informado');
+                safeText('doc-c-addr', finalAddr);
+                
+                renderPublicItems(); 
+
+                safeText('doc-payment', d.terms.paymentText); 
+                safeText('doc-deadline', d.terms.deadline); 
+                safeText('doc-validity', d.terms.validity); 
+                safeText('doc-obs', d.terms.obs);
+
+                if(d.attachments && d.attachments.length > 0) {
+                    let attHtml = '<h3 class="font-bold text-xs uppercase text-slate-400 mb-2 mt-8 tracking-wider">Documentos Anexos</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-2">';
+                    d.attachments.forEach(att => {
+                        let icon = att.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500';
+                        attHtml += `<a href="${att.url}" target="_blank" class="flex items-center gap-3 p-3 border rounded hover:bg-slate-50 transition-colors"><i class="fas ${icon} text-lg"></i><span class="text-sm font-medium text-slate-700 truncate">${att.name}</span></a>`;
+                    });
+                    attHtml += '</div>';
+                    setHTML('doc-attachments-area', attHtml);
+                } else {
+                    setHTML('doc-attachments-area', '');
+                }
+
+                if (d.signature) {
+                    setHTML('doc-signature-area', `<div class="mt-8 border-t border-dashed pt-4 w-64 text-center"><img src="${d.signature}" class="mx-auto h-16 mb-2" alt="Assinatura"><p class="text-xs text-slate-500 uppercase font-bold">Assinado Digitalmente</p></div>`);
+                }
+
+                const actions = document.getElementById('doc-actions');
+                if(actions) {
+                    if(v.status === 'approved' || v.status === 'canceled') {
+                        showSuccessScreen(v.status);
+                    } else {
+                        actions.innerHTML = `
+                            <button onclick="openModal('approve')" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 mb-3 transition-transform hover:scale-[1.01]">APROVAR PROPOSTA</button>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="openModal('change')" class="bg-amber-100 text-amber-700 font-bold py-3 rounded-xl hover:bg-amber-200">Solicitar Alteração</button>
+                                <button onclick="openModal('cancel')" class="bg-red-50 text-red-600 font-bold py-3 rounded-xl hover:bg-red-100">Recusar</button>
+                            </div>
+                        `;
+                    }
+                }
+                safeHide('public-loading');
+                safeShow('view-public');
+                safeShow('public-content');
+            } catch(e) { 
+                safeHide('public-loading');
+                safeText('error-msg', `Erro: ${e.message}`);
+                safeShow('fatal-error');
+            }
+        }
+
+        function renderPublicItems() {
+            let html = '';
+            let total = 0;
+            const items = state.data.items;
+            const isFrozen = state.version.status !== 'sent' && state.version.status !== 'negotiating' && state.version.status !== 'draft';
+
+            items.forEach((i, idx) => {
+                let isActive = !i.optional; 
+                if (i.optional && i.publicSelected) isActive = true; 
+                
+                if(i.optional && typeof i.publicSelected === 'undefined') i.publicSelected = false;
+
+                if (!i.optional || i.publicSelected) {
+                    total += (i.qty * i.price);
+                }
+
+                html += `<tr class="border-b border-slate-100 ${i.optional ? 'bg-slate-50' : ''}">
+                    <td class="py-4 pl-4">
+                        <div class="flex items-start gap-3">
+                            ${i.optional && !isFrozen ? `<input type="checkbox" onchange="togglePublicOpt(${idx})" ${i.publicSelected ? 'checked' : ''} class="mt-1 w-5 h-5 cursor-pointer accent-green-600">` : ''}
+                            ${i.optional && isFrozen ? (i.publicSelected ? '<i class="fas fa-check-square text-green-600 mt-1"></i>' : '<i class="far fa-square text-slate-400 mt-1"></i>') : ''}
                             <div>
-                                <div class="font-bold text-slate-800">${i.name} ${i.optional ? '<span class="text-[10px] bg-slate-200 px-1 rounded">OPCIONAL</span>' : ''}</div>
-                                <div class="text-xs text-slate-500">${i.description}</div>
+                                <div class="font-bold text-slate-800 ${i.optional ? 'text-slate-600' : ''}">
+                                    ${i.name} ${i.optional ? '<span class="text-[10px] bg-slate-200 text-slate-600 px-1 rounded uppercase ml-2">Opcional</span>' : ''}
+                                </div>
+                                <span class="font-normal text-xs text-slate-500">${i.description}</span>
                             </div>
                         </div>
                     </td>
-                    <td class="text-center">${i.qty}</td>
-                    <td class="text-right">${i.price.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
-                    <td class="text-right pr-2 font-bold ${!active ? 'line-through text-slate-300' : 'text-slate-800'}">
-                        ${(i.qty*i.price).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+                    <td class="text-center text-sm">${i.qty}</td>
+                    <td class="text-right text-sm text-slate-500">R$ ${i.price.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+                    <td class="text-right pr-4 font-bold text-sm ${i.optional && !i.publicSelected ? 'text-slate-400 decoration-slate-400 line-through' : 'text-slate-800'}">
+                        R$ ${(i.qty*i.price).toLocaleString('pt-BR',{minimumFractionDigits:2})}
                     </td>
-                </tr>`;
+                </tr>`; 
             });
-            document.getElementById('doc-items-body').innerHTML = itemsHtml;
-            safeText('doc-total', total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
-
-            // Anexos Públicos
-            let attachHtml = '';
-            if(d.attachments.length > 0) {
-                attachHtml = '<h4 class="font-bold text-xs uppercase text-slate-400 mb-3 mt-8">Anexos</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
-                d.attachments.forEach(att => {
-                    attachHtml += `
-                    <a href="${att.url}" target="_blank" class="flex items-center gap-3 p-3 bg-slate-50 border rounded-lg hover:bg-white hover:shadow transition-all">
-                        <div class="w-10 h-10 bg-white rounded flex items-center justify-center border text-blue-500"><i class="fas fa-file-alt"></i></div>
-                        <div>
-                            <div class="text-sm font-bold text-slate-700 truncate w-48">${att.name}</div>
-                            ${att.description ? `<div class="text-xs text-slate-500 italic">"${att.description}"</div>` : ''}
-                        </div>
-                    </a>`;
-                });
-                attachHtml += '</div>';
-            }
-            document.getElementById('doc-attachments-area').innerHTML = attachHtml;
-
-            // Rodapé
-            safeText('doc-payment', d.terms.paymentText);
-            safeText('doc-deadline', d.terms.deadline);
-            safeText('doc-validity', d.terms.validity);
-            safeText('doc-obs', d.terms.obs);
-
-            // Ações / Status
-            const actionsDiv = document.getElementById('doc-actions');
-            if(v.status === 'approved') {
-                document.getElementById('stamp-approved').classList.remove('hidden');
-                actionsDiv.innerHTML = '<div class="text-center text-emerald-600 font-bold p-4 bg-emerald-50 rounded-lg">Proposta Aprovada com Sucesso</div>';
-            } else if(v.status === 'canceled') {
-                actionsDiv.innerHTML = '<div class="text-center text-red-600 font-bold p-4 bg-red-50 rounded-lg">Proposta Recusada/Cancelada</div>';
-            } else {
-                actionsDiv.innerHTML = `
-                    <button onclick="openModal('approve')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg mb-3 text-lg">
-                        <i class="fas fa-check-circle mr-2"></i> APROVAR PROPOSTA
-                    </button>
-                    <div class="grid grid-cols-2 gap-4">
-                        <button onclick="openModal('change')" class="py-3 bg-amber-100 text-amber-800 font-bold rounded-xl hover:bg-amber-200">Solicitar Ajuste</button>
-                        <button onclick="openModal('cancel')" class="py-3 bg-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-300">Recusar</button>
-                    </div>`;
-            }
-
-            safeHide('public-loading'); safeShow('view-public'); safeShow('public-content');
+            setHTML('doc-items-body', html);
+            safeText('doc-total', total.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}));
         }
 
         function togglePublicOpt(idx) {
             state.data.items[idx].publicSelected = !state.data.items[idx].publicSelected;
-            // Atualiza visualmente sem salvar no banco ainda (salva ao aprovar)
-            loadPublicProposal(state.version.id).then(() => {
-               // Re-renderiza localmente para refletir total
-               // Nota: Idealmente separar render de fetch, mas para simplificar:
-               // A função loadPublicProposal já faz o render.
-               // Só precisamos garantir que state.data não seja sobrescrito pelo fetch se não salvamos.
-               // Correção rápida: apenas recalcula DOM local.
+            renderPublicItems();
+        }
+
+        function downloadPDF() {
+            const element = document.getElementById('public-content');
+            const btn = document.getElementById('btn-download-pdf');
+            if(btn) btn.innerText = "Gerando PDF...";
+            const stamp = document.getElementById('stamp-approved');
+            const originalDisplay = stamp.style.display;
+            stamp.style.display = 'block';
+            document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
+            const opt = { margin: 0, filename: `Comprovante_${state.project?.name}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            html2pdf().set(opt).from(element).save().then(() => {
+                 if(btn) btn.innerText = "Baixar Comprovante PDF";
+                 document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
+                 stamp.style.display = originalDisplay;
             });
         }
 
-        // --- Inicialização ---
+        function showSuccessScreen(type) {
+            safeHide('view-public');
+            safeShow('view-success');
+            const icon = document.getElementById('success-icon');
+            const title = document.getElementById('success-title');
+            const desc = document.getElementById('success-desc');
+            const actions = document.getElementById('success-actions');
+            actions.innerHTML = ''; 
+
+            if(type === 'approved' || type === 'approve') {
+                if(icon) icon.className = "fas fa-check-circle text-6xl text-green-500 mb-4";
+                if(title) title.innerText = "Orçamento Aprovado!";
+                if(desc) desc.innerText = "Obrigado pela confiança. O comprovante foi gerado.";
+                actions.innerHTML = `<button id="btn-download-pdf" onclick="loadPublicProposal('${state.version.id}').then(() => setTimeout(downloadPDF, 1000))" class="px-6 py-3 bg-slate-800 text-white rounded-lg font-bold shadow hover:bg-slate-700"><i class="fas fa-file-pdf mr-2"></i> Baixar Comprovante PDF</button>`;
+            } else if (type === 'negotiating' || type === 'change_request') {
+                if(icon) icon.className = "fas fa-clock text-6xl text-amber-500 mb-4";
+                if(title) title.innerText = "Solicitação Enviada";
+                if(desc) desc.innerText = "Aguarde o retorno.";
+            } else {
+                if(icon) icon.className = "fas fa-times-circle text-6xl text-slate-400 mb-4";
+                if(title) title.innerText = "Orçamento Recusado";
+                if(desc) desc.innerText = "O orçamento foi marcado como recusado.";
+            }
+        }
+
+        function initSignaturePad() {
+            const canvas = document.getElementById('signature-pad');
+            const ctx = canvas.getContext('2d');
+            function resizeCanvas() {
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                canvas.width = canvas.offsetWidth * ratio;
+                canvas.height = canvas.offsetHeight * ratio;
+                ctx.scale(ratio, ratio);
+            }
+            resizeCanvas();
+            let painting = false;
+            function startPosition(e) { painting = true; draw(e); }
+            function endPosition() { painting = false; ctx.beginPath(); }
+            function draw(e) {
+                if (!painting) return;
+                e.preventDefault(); 
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#0f172a';
+                ctx.lineTo(x, y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y);
+            }
+            canvas.addEventListener('mousedown', startPosition); canvas.addEventListener('mouseup', endPosition); canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('touchstart', startPosition); canvas.addEventListener('touchend', endPosition); canvas.addEventListener('touchmove', draw);
+            document.getElementById('clear-sig').onclick = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); };
+        }
+
+        function openModal(type) {
+            const modal = document.getElementById('interaction-modal');
+            const title = document.getElementById('modal-title');
+            const desc = document.getElementById('modal-desc');
+            const input = document.getElementById('modal-input');
+            const sigArea = document.getElementById('modal-sig-area');
+            const btn = document.getElementById('modal-btn');
+            
+            modal.style.display = 'flex';
+            input.value = '';
+            input.style.display = 'none';
+            sigArea.style.display = 'none';
+            
+            if(type === 'approve') {
+                title.innerText = 'Assinar e Aprovar';
+                desc.innerText = 'Por favor, assine abaixo para confirmar a aprovação.';
+                sigArea.style.display = 'block';
+                btn.innerText = 'Confirmar Aprovação';
+                btn.className = "w-full py-3 bg-green-600 text-white rounded font-bold hover:bg-green-700";
+                btn.onclick = () => executeAction('approve');
+                setTimeout(initSignaturePad, 100); 
+            } else if(type === 'change') {
+                title.innerText = 'O que deseja alterar?';
+                desc.innerText = 'Descreva as mudanças desejadas:';
+                input.style.display = 'block';
+                btn.innerText = 'Enviar Solicitação';
+                btn.className = "w-full py-3 bg-amber-600 text-white rounded font-bold hover:bg-amber-700";
+                btn.onclick = () => executeAction('change');
+            } else if(type === 'cancel') {
+                title.innerText = 'Recusar Orçamento';
+                desc.innerText = 'Motivo (Opcional):';
+                input.style.display = 'block';
+                btn.innerText = 'Confirmar Recusa';
+                btn.className = "w-full py-3 bg-red-600 text-white rounded font-bold hover:bg-red-700";
+                btn.onclick = () => executeAction('cancel');
+            }
+        }
+
+        async function executeAction(type) {
+            const inputVal = safeVal('modal-input');
+            const btn = document.getElementById('modal-btn');
+            btn.innerText = "Processando...";
+            btn.disabled = true;
+
+            if (type === 'approve') {
+                const canvas = document.getElementById('signature-pad');
+                const signatureData = canvas.toDataURL();
+                state.data.signature = signatureData;
+                await approveLogic();
+            } else if (type === 'change') {
+                if(!inputVal) { alert("Escreva o que deseja alterar."); btn.disabled = false; btn.innerText = "Enviar"; return; }
+                await sendLogic('change_request', 'negotiating', inputVal);
+            } else if (type === 'cancel') {
+                await sendLogic('canceled', 'canceled', inputVal || 'Recusado pelo cliente');
+            }
+        }
+
+        async function sendLogic(action, newStatus, text) {
+            logHistory(action, 'client', text);
+            await db.from('versions').update({ status: newStatus, items: state.data }).eq('id', state.version.id);
+            document.getElementById('interaction-modal').style.display = 'none';
+            showSuccessScreen(action);
+        }
+
+        async function approveLogic() {
+            let ip = 'IP'; try { const r = await fetch('https://api.ipify.org?format=json'); const j = await r.json(); ip = j.ip; } catch(e){}
+            logHistory('approved', 'client', 'Aprovado via link com assinatura');
+            const items = state.data.items;
+            const finalTotal = items.reduce((acc, i) => (!i.optional || i.publicSelected ? acc + (i.qty * i.price) : acc), 0);
+            await db.from('versions').update({ status: 'approved', approved_at: new Date(), approved_by_ip: ip, items: state.data, total_value: finalTotal }).eq('id', state.version.id);
+            const phone = state.data.settings?.myPhone;
+            if(phone) {
+                const msg = `✅ O cliente APROVOU o orçamento ${state.version.projects.name}!`;
+                window.open(`https://wa.me/${phone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
+            }
+            document.getElementById('interaction-modal').style.display = 'none';
+            showSuccessScreen('approved');
+        }
+
         window.onload = init;
         window.onpopstate = init;
-
     </script>
+
+    <section id="view-success" class="hidden min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
+        <div class="max-w-md w-full">
+            <i id="success-icon" class="fas fa-check-circle text-6xl text-green-500 mb-6 anim-entry"></i>
+            <h2 id="success-title" class="text-3xl font-bold text-slate-900 mb-4 anim-entry delay-100">Tudo Certo!</h2>
+            <p id="success-desc" class="text-slate-600 text-lg anim-entry delay-200">Sua resposta foi registrada com sucesso.</p>
+            <div id="success-actions" class="mt-8 anim-entry delay-300"></div>
+            <div class="mt-8 text-xs text-slate-400">Pode fechar esta janela.</div>
+        </div>
+    </section>
+
+    <section id="view-login" class="hidden split-screen">
+        <div class="left-area">
+            <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
+            <div class="relative z-10 anim-entry">
+                <div class="mb-4">
+                    <img src="logo.png" alt="Aprova Ai" class="h-16">
+                </div>
+                <h1 class="text-5xl font-extrabold leading-tight mb-2 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">Garantem sua segurança</span></h1>
+                <div class="ideal-para-container"><span>Ideal para:</span><span id="rotator" class="rotating-wrapper"></span></div>
+                <div class="space-y-4">
+                    <div class="benefit-item delay-100"><div class="icon-circle bg-blue-600 text-white"><i class="fas fa-shield-alt"></i></div><div><h3 class="font-bold text-lg">Evite prejuízos</h3><p class="text-sm text-indigo-100 opacity-80">Registre mudanças de escopo.</p></div></div>
+                    <div class="benefit-item delay-200"><div class="icon-circle bg-emerald-500 text-white"><i class="fas fa-check"></i></div><div><h3 class="font-bold text-lg">Aprovação</h3><p class="text-sm text-indigo-100 opacity-80">Link direto e histórico.</p></div></div>
+                    <div class="benefit-item delay-300"><div class="icon-circle bg-purple-500 text-white"><i class="fas fa-file-contract"></i></div><div><h3 class="font-bold text-lg">Sem discussão</h3><p class="text-sm text-indigo-100 opacity-80">Tudo documentado.</p></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="right-area">
+            <div class="login-card anim-entry delay-300">
+                <div class="avatar-circle flex justify-center mb-4">
+                    <img src="logo.png" alt="Logo" class="h-12">
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900 mb-2 font-heading">Acesse sua conta</h2>
+                <p class="text-slate-500 mb-8 text-sm">Digite seu e-mail para entrar.</p>
+                <input type="email" id="email" placeholder="E-mail" class="input-pro">
+                <button onclick="handleLogin()" id="btn-login" class="btn-pro">Enviar link de acesso</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-dashboard" class="hidden flex-1">
+        <div class="app-header bg-slate-900">
+            <img src="logo.png" alt="Aprova Ai" class="h-10">
+            <div class="flex gap-3">
+                <button onclick="createProject()" class="btn btn-primary bg-white text-slate-900 hover:bg-slate-100 text-xs border-white"><i class="fas fa-plus"></i> Novo Projeto</button>
+                <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="text-slate-400 hover:text-white px-2"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+        <div class="max-w-6xl mx-auto p-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div class="kpi-card border-emerald-200"><div class="text-emerald-600 font-bold uppercase text-xs">Faturamento Aprovado</div><div class="text-3xl font-bold" id="kpi-total-apr">R$ 0,00</div></div>
+                <div class="kpi-card border-amber-200"><div class="text-amber-600 font-bold uppercase text-xs">Pipeline</div><div class="text-3xl font-bold" id="kpi-total-est">R$ 0,00</div></div>
+            </div>
+            <div class="flex gap-4 mb-4">
+                <div class="kpi-card bg-amber-50 border-amber-200 flex-1"><div class="kpi-label text-amber-700">Em Negociação</div><div class="kpi-value text-amber-700" id="kpi-count-neg">0</div></div>
+                <div class="kpi-card bg-emerald-50 border-emerald-200 flex-1"><div class="kpi-label text-emerald-700">Aprovados</div><div class="kpi-value text-emerald-700" id="kpi-count-apr">0</div></div>
+                <div class="kpi-card bg-blue-50 border-blue-200 flex-1"><div class="kpi-label text-blue-700">Em Aberto</div><div class="kpi-value text-blue-700" id="kpi-count-open">0</div></div>
+            </div>
+            <div class="flex flex-col md:flex-row gap-4 mb-6 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex-1 w-full relative"><i class="fas fa-search absolute left-3 top-3 text-slate-400"></i><input id="dash-search" onkeyup="renderDashboardList()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Buscar cliente ou projeto..."></div>
+                <select id="dash-filter" onchange="renderDashboardList()" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none"><option value="all">Todos os Status</option><option value="draft">Em Aberto</option><option value="sent">Enviados</option><option value="negotiating">Em Negociação</option><option value="approved">Aprovados</option><option value="canceled">Cancelados</option></select>
+            </div>
+            <div id="project-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+    </section>
+
+    <section id="view-editor" class="hidden flex-1 bg-slate-50 h-screen flex flex-col">
+        <div id="editor-loading" class="flex-1 flex items-center justify-center bg-slate-50"><div class="loader-spin"></div></div>
+        <div id="editor-content" class="hidden flex flex-col h-full">
+            <div class="app-header bg-slate-900 justify-between">
+                <div class="flex items-center gap-4">
+                    <button onclick="goTo('dashboard')" class="text-slate-400 hover:text-white"><i class="fas fa-arrow-left"></i></button>
+                    <div><h2 id="ed-title" class="font-bold leading-none text-lg text-white">...</h2><span id="ed-ver" class="text-[10px] text-slate-400 uppercase font-bold">V1</span><span id="ed-status-badge" class="ml-2 text-[10px] uppercase font-bold bg-white text-slate-900 px-2 py-1 rounded"></span></div>
+                </div>
+                <button onclick="openShareModal()" class="btn btn-secondary bg-slate-800 border-slate-700 text-white hover:bg-slate-700 text-xs"><i class="fas fa-link"></i> Link Cliente</button>
+            </div>
+            
+            <div class="panel-grid">
+                <div class="left-col-scroll no-scrollbar">
+                    <div class="editor-section">
+                        <div class="editor-header bg-slate-100 text-blue-700"><i class="fas fa-id-card"></i> Seus Dados (Prestador)</div>
+                        <div class="editor-body">
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                <div class="md:col-span-6">
+                                    <label class="input-label">Nome / Razão Social</label>
+                                    <input id="p-name" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Nome da sua empresa" onchange="upSettings('providerName',this.value)">
+                                </div>
+                                <div class="md:col-span-3">
+                                    <label class="input-label">CNPJ / CPF</label>
+                                    <input id="p-doc" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="000.000.000-00" onchange="upSettings('providerDoc',this.value)">
+                                </div>
+                                <div class="md:col-span-3">
+                                    <label class="input-label">Telefone</label>
+                                    <input id="p-phone" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="(00) 00000-0000" onchange="upSettings('providerPhone',this.value)">
+                                </div>
+                                <div class="md:col-span-12">
+                                    <label class="input-label">Endereço</label>
+                                    <input id="p-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Endereço da sua empresa" onchange="upSettings('providerAddr',this.value)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="editor-section">
+                        <div class="editor-header"><i class="fas fa-user-tie"></i> Dados do Cliente</div>
+                        <div class="editor-body">
+                            <div id="cl-type-btns"></div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                <div class="md:col-span-6">
+                                    <label class="input-label" id="lbl-c-name">Nome</label>
+                                    <input id="c-name" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Nome do Cliente / Empresa" onchange="upVal('c-name',this.value)">
+                                </div>
+                                <div class="md:col-span-3">
+                                    <label class="input-label" id="lbl-c-doc">Doc</label>
+                                    <input id="c-doc" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="CPF/CNPJ" onchange="upVal('c-doc',this.value)">
+                                </div>
+                                <div class="md:col-span-3">
+                                    <label class="input-label">Tel</label>
+                                    <input id="c-phone" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Telefone" onchange="upVal('c-phone',this.value)">
+                                </div>
+                                
+                                <div class="md:col-span-6">
+                                    <label class="input-label">Email</label>
+                                    <input id="c-email" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="E-mail" onchange="upVal('c-email',this.value)">
+                                </div>
+
+                                <div class="md:col-span-6">
+                                    <label class="input-label">Endereço do Cliente</label>
+                                    <input id="c-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Endereço Completo" onchange="upVal('c-addr',this.value)">
+                                </div>
+                                
+                                <div class="md:col-span-12 pt-4 border-t border-dashed">
+                                    <label class="flex items-center gap-2 text-sm text-slate-600 mb-2 cursor-pointer">
+                                        <input type="checkbox" id="loc-check" onchange="toggleLoc(this.checked)" class="accent-blue-600">
+                                        Endereço do serviço é o mesmo do cliente?
+                                    </label>
+                                    <div id="loc-custom-div">
+                                        <label class="input-label">Endereço do Serviço/Obra</label>
+                                        <input id="loc-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Onde será realizado o serviço?" onchange="upLoc(this.value)">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="editor-section" style="margin-bottom: 80px;">
+                        <div class="editor-header justify-between"><span><i class="fas fa-list-ol"></i> Escopo</span><button id="btn-add-item" onclick="addItem()" class="btn btn-primary text-xs py-1 px-3 bg-slate-800 border-none">+ Item</button></div>
+                        <div class="editor-body bg-slate-50 min-h-[300px]"><div id="ed-items"></div></div>
+                    </div>
+                </div>
+
+                <div class="right-col-fixed">
+                    <div class="finance-section">
+                        <div class="editor-header"><i class="fas fa-coins"></i> Financeiro</div>
+                        <div class="editor-body">
+                            <div class="bg-slate-900 text-white p-6 rounded-lg text-center mb-6"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Global</div><div id="ed-total" class="text-3xl font-bold">R$ 0,00</div></div>
+                            <div class="input-group"><div class="flex gap-2 mb-2"><select id="pay-mode" class="input-field"><option value="entry_installments">Entrada + Parcelas</option><option value="single">Único</option></select><button id="btn-calc-pay" onclick="generatePayment()" class="btn btn-secondary px-3"><i class="fas fa-calculator"></i></button></div><div id="payment-display" class="text-xs bg-slate-50 p-3 rounded border border-slate-200 text-slate-600 whitespace-pre-line min-h-[60px]">...</div></div>
+                            
+                            <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Entrega</label><input id="t-deadline" class="border p-2 rounded text-sm" placeholder="Prazo" onchange="upVal('t-deadline',this.value)"></div><div class="input-group"><label class="input-label">Validade</label><input id="t-val" class="border p-2 rounded text-sm" placeholder="Validade" onchange="upVal('t-val',this.value)"></div></div>
+                            
+                            <div class="mt-4 pt-4 border-t border-dashed">
+                                <label class="input-label">Anexos (PDF/Img)</label>
+                                <div id="ed-attachments-list"></div>
+                                <div id="upload-area" class="mt-2">
+                                    <label for="file-upload" id="upload-label" class="cursor-pointer block w-full text-center p-3 border-2 border-dashed border-slate-300 rounded hover:bg-slate-50 text-xs text-slate-500 font-bold uppercase">
+                                        <i class="fas fa-paperclip mr-2"></i> Adicionar Arquivo
+                                    </label>
+                                    <input id="file-upload" type="file" class="hidden" accept=".pdf, .png, .jpg, .jpeg" onchange="handleUpload(event)">
+                                </div>
+                            </div>
+
+                            <div class="input-group mt-4"><label class="input-label">Obs</label><textarea id="t-obs" class="w-full border p-2 rounded text-sm h-20 mb-4 bg-slate-50" placeholder="Condições de pagamento..." onchange="upVal('t-obs',this.value)"></textarea></div>
+                            <div id="ed-actions" class="mt-6"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="history-section">
+                        <div class="editor-header"><i class="fas fa-history"></i> Histórico</div>
+                        <div id="ed-history" class="history-content-scroll space-y-4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10 overflow-y-auto print:p-0">
+        <div id="public-loading" class="flex justify-center mt-20"><div class="spinner border-slate-900"></div></div>
+        <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col">
+            <div id="stamp-approved" class="hidden absolute top-10 right-10 border-4 border-emerald-600 text-emerald-600 font-bold text-3xl px-6 py-2 uppercase opacity-30 transform -rotate-12 z-20">APROVADO</div>
+            <div class="bg-slate-900 text-white p-12 print:bg-white print:text-black print:border-b-2">
+                <div id="doc-provider-info"></div>
+                <div class="flex justify-between items-start mt-4">
+                    <div><h1 id="doc-title" class="text-3xl font-bold mb-2">Projeto</h1><p class="text-xs uppercase tracking-widest text-slate-400">Proposta Técnica</p></div>
+                    <div class="text-right"><div id="doc-id" class="font-bold text-lg">#REF</div><div id="doc-date" class="text-sm opacity-70">--/--/--</div></div>
+                </div>
+            </div>
+            <div class="p-12 flex-1">
+                <div class="flex gap-12 mb-12 text-sm"><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Contratante</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div><div id="doc-c-doc" class="text-slate-500"></div></div><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Local</h3><div id="doc-c-addr" class="text-slate-600"></div></div></div>
+                <div class="mb-12">
+                    <h3 class="font-bold text-xs uppercase text-slate-400 mb-4 tracking-wider">Escopo</h3>
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-left text-xs uppercase text-slate-400 border-b">
+                                <th class="pb-2 pl-4">Item</th>
+                                <th class="pb-2 text-center">Qtd</th>
+                                <th class="pb-2 text-right">Unit.</th>
+                                <th class="pb-2 text-right pr-4">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="doc-items-body"></tbody>
+                    </table>
+                </div>
+                
+                <div id="doc-attachments-area"></div>
+
+                <div class="bg-slate-50 border border-slate-100 rounded-lg p-8 mb-12 flex gap-12 mt-8">
+                    <div class="flex-1"><h4 class="font-bold text-xs uppercase text-slate-400 mb-2">Pagamento</h4><div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line"></div><div class="mt-4 flex gap-6 text-sm"><div><span class="font-bold text-xs uppercase text-slate-400 block">Entrega</span><span id="doc-deadline"></span></div><div><span class="font-bold text-xs uppercase text-slate-400 block">Validade</span><span id="doc-validity"></span></div></div></div>
+                    <div class="text-right"><h4 class="font-bold text-xs uppercase text-slate-400 mb-1">Total</h4><div id="doc-total" class="text-3xl font-bold text-slate-900">R$ 0,00</div></div>
+                </div>
+                <div id="doc-obs" class="text-xs text-slate-500 italic text-justify"></div>
+                <div id="doc-signature-area"></div>
+                <div id="doc-actions" class="no-print mt-12"></div>
+            </div>
+            <div class="bg-slate-50 p-4 text-center border-t no-print"><button onclick="window.print()" class="text-xs font-bold text-slate-400 uppercase hover:text-slate-600"><i class="fas fa-print"></i> PDF</button></div>
+        </div>
+    </section>
+
+    <div id="interaction-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modal-title" class="text-xl font-bold mb-2 text-slate-800"></h3>
+            <p id="modal-desc" class="text-sm text-slate-500 mb-4"></p>
+            <textarea id="modal-input" class="w-full border p-3 rounded-lg mb-4 h-24 text-sm bg-slate-50" placeholder="Digite aqui..."></textarea>
+            
+            <div id="modal-sig-area" class="mb-4 hidden">
+                <canvas id="signature-pad"></canvas>
+                <div class="text-right mt-1"><button id="clear-sig" class="text-xs text-red-500 underline">Limpar Assinatura</button></div>
+            </div>
+
+            <div class="flex gap-3"><button onclick="document.getElementById('interaction-modal').style.display='none'" class="flex-1 py-3 border rounded text-slate-500 font-bold hover:bg-slate-50">Cancelar</button><button id="modal-btn" class="flex-1 py-3 rounded text-white font-bold"></button></div>
+        </div>
+    </div>
+
+    <div id="share-modal" class="modal-overlay" style="z-index: 70;">
+        <div class="modal-box text-center max-w-sm">
+            <h3 class="text-xl font-bold mb-6 text-slate-800"><i class="fas fa-share-alt mr-2 text-blue-600"></i>Enviar Proposta</h3>
+            
+            <div class="space-y-3">
+                <button id="btn-share-wa" class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-3 transition-transform hover:scale-[1.02] shadow-lg shadow-emerald-100">
+                    <i class="fab fa-whatsapp text-2xl"></i> 
+                    <span>Enviar no WhatsApp</span>
+                </button>
+
+                <button id="btn-share-copy" class="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl font-bold flex items-center justify-center gap-3 transition-colors">
+                    <i class="fas fa-link text-lg"></i> 
+                    <span>Copiar Link Apenas</span>
+                </button>
+            </div>
+
+            <button onclick="document.getElementById('share-modal').style.display='none'" class="mt-6 text-sm text-slate-400 hover:text-slate-600 underline">Cancelar</button>
+        </div>
+    </div>
+
 </body>
 </html>
