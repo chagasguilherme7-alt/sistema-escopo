@@ -242,6 +242,17 @@
     <script>
         console.log("Aprova Ai iniciando...");
 
+        // --- DESTRAVE DE EMERGÊNCIA ---
+        // Se em 4 segundos nada acontecer, remove a tela de carregamento na força
+        setTimeout(() => {
+            const loader = document.getElementById('system-loader');
+            if(loader && loader.style.display !== 'none') {
+                console.warn("Carregamento forçado por demora.");
+                loader.style.display = 'none';
+            }
+        }, 4000);
+
+        // Funções Utilitárias
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
         function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
@@ -251,20 +262,26 @@
 
         window.onerror = function(msg) {
             console.error("Erro detectado:", msg);
-            if (msg && (msg.includes('null') || msg.includes('undefined'))) return true;
-            document.getElementById('system-loader').style.display = 'none';
+            // Remove o loader se houver erro para não travar a tela
+            const l = document.getElementById('system-loader');
+            if(l) l.style.display = 'none';
+            
+            const f = document.getElementById('fatal-error');
+            if(f) {
+                f.style.display = 'flex';
+                safeText('error-msg', "Erro de Script: " + msg);
+            }
             return false;
         };
 
+        // --- ATENÇÃO: COLOQUE SUAS CHAVES REAIS AQUI ---
         const SUPABASE_URL = 'https://outasfgohiiyndsjciau.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91dGFzZmdvaGlpeW5kc2pjaWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4MTk4ODIsImV4cCI6MjA4NTM5NTg4Mn0.4yvGfYbQYf806FJcs34yPGkuU_kVTYHW8mBtbU3JD80';
-        const { createClient } = supabase;
-        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+        // ------------------------------------------------
 
+        let db = null;
         let state = { user: null, project: null, version: null, projectsCache: [], data: { client: {}, location: {}, items: [], terms: {}, settings: {}, history: [], attachments: [], signature: null }, previousData: null, snapshot: [] };
-        let signaturePad = null;
-        let isDrawing = false;
-
+        
         function normalizeData(dbData) {
             const schema = { 
                 client: { name: '', doc: '', email: '', phone: '', address: '', type: 'pj' }, 
@@ -291,14 +308,13 @@
                 publicSelected: i.publicSelected || false 
             }));
 
-            // Normaliza anexos para garantir que tenham descrição
             let cleanAttachments = [];
             if (Array.isArray(dbData.attachments)) {
                 cleanAttachments = dbData.attachments.map(a => ({
                     name: a.name || 'Arquivo',
                     url: a.url || '',
                     type: a.type || 'pdf',
-                    description: a.description || '' // Garante o campo descrição
+                    description: a.description || '' 
                 }));
             }
             
@@ -321,12 +337,17 @@
 
         async function init() {
             try {
+                if(typeof supabase === 'undefined') throw new Error("A biblioteca do Supabase não carregou.");
+                
+                const { createClient } = supabase;
+                if(!db) db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
                 const params = new URLSearchParams(window.location.search);
                 const view = params.get('view') || 'login';
                 const id = params.get('id');
                 document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
                 
-                const { data: { session } } = await db.auth.getSession();
+                const { data: { session }, error } = await db.auth.getSession();
                 state.user = session?.user;
 
                 if (view === 'public') {
@@ -347,9 +368,10 @@
                 }
                 setTimeout(() => { const l = document.getElementById('system-loader'); if(l) l.style.display = 'none'; }, 500);
             } catch (e) { 
+                console.error(e);
                 const l = document.getElementById('system-loader'); if(l) l.style.display = 'none';
                 const f = document.getElementById('fatal-error'); if(f) f.style.display = 'flex';
-                safeText('error-msg', e.message);
+                safeText('error-msg', e.message || "Erro desconhecido. Verifique o Console (F12).");
             }
         }
 
@@ -382,7 +404,7 @@
         async function loadDashboard() {
             setHTML('project-list', '<div class="col-span-full text-center py-10 text-slate-400">Carregando dados...</div>');
             const { data: projects, error } = await db.from('projects').select('*, versions(status, total_value, version_number)').eq('user_id', state.user.id).order('created_at', { ascending: false });
-            if(error) return setHTML('project-list', 'Erro ao carregar.');
+            if(error) return setHTML('project-list', 'Erro ao carregar ou Banco de Dados vazio.');
             
             if (projects) {
                 projects.forEach(p => {
@@ -469,6 +491,8 @@
         async function createProject() {
             const name = prompt("Nome do Orçamento:"); if(!name) return;
             const { data: p, error } = await db.from('projects').insert({ name, user_id: state.user.id, client_name: 'Novo Cliente' }).select().single();
+            if(error) return alert("Erro ao criar projeto: " + error.message);
+            
             const d = normalizeData(null); 
             d.settings.myPhone = localStorage.getItem('escopo_phone') || '';
             d.settings.providerName = localStorage.getItem('prov_name') || '';
@@ -476,7 +500,6 @@
             d.settings.providerAddr = localStorage.getItem('prov_addr') || '';
             d.settings.providerPhone = localStorage.getItem('prov_phone') || '';
 
-            // ADICIONA O PRIMEIRO REGISTRO DE HISTÓRICO ANTES DE SALVAR
             d.history.push({ date: new Date().toISOString(), action: 'created', user: 'provider', detail: 'Orçamento criado via painel.' });
 
             await db.from('versions').insert({ project_id: p.id, version_number: 1, items: d, total_value: 0, status: 'draft' });
@@ -492,7 +515,6 @@
             state.version = vers[vers.length - 1];
             state.data = normalizeData(state.version.items);
             
-            // CRIA SNAPSHOT PARA COMPARAR MUDANÇAS FUTURAS
             state.snapshot = JSON.parse(JSON.stringify(state.data.items));
 
             state.previousData = null;
@@ -506,17 +528,14 @@
             safeShow('editor-content');
         }
 
-        // LÓGICA DE UPLOAD
         async function handleUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
             
-            // Validações
             if (file.size > 5 * 1024 * 1024) return alert("Arquivo muito grande! Máximo 5MB.");
             const ext = file.name.split('.').pop().toLowerCase();
             if(!['pdf','png','jpg','jpeg'].includes(ext)) return alert("Formato não permitido. Use PDF, PNG ou JPG.");
 
-            // UI de carregando
             const label = document.getElementById('upload-label');
             const originalText = label.innerHTML;
             label.innerText = "Enviando...";
@@ -530,7 +549,6 @@
                 const { data: pubData } = db.storage.from('attachments').getPublicUrl(path);
                 
                 if (!state.data.attachments) state.data.attachments = [];
-                // Adiciona o anexo com campo de descrição vazio
                 state.data.attachments.push({ name: file.name, url: pubData.publicUrl, type: ext, description: '' });
                 
                 await save();
@@ -539,7 +557,7 @@
                 console.error(err);
             } finally {
                 label.innerHTML = originalText;
-                e.target.value = ''; // Limpa input
+                e.target.value = ''; 
                 renderEditor();
             }
         }
@@ -576,7 +594,7 @@
             setVal('p-addr', d.settings.providerAddr); setVal('p-phone', d.settings.providerPhone);
             setVal('c-name', d.client.name); setVal('c-doc', d.client.doc); setVal('c-phone', d.client.phone); setVal('c-email', d.client.email); setVal('c-addr', d.client.address);
             
-            const isPJ = d.client.type !== 'pf'; // Padrão PJ
+            const isPJ = d.client.type !== 'pf'; 
             const clBtns = document.getElementById('cl-type-btns');
             if(clBtns) {
                 clBtns.innerHTML = `
@@ -598,14 +616,12 @@
             setVal('t-deadline', d.terms.deadline); 
             setVal('t-val', d.terms.validity); setVal('t-obs', d.terms.obs);
 
-            // ENDEREÇO DO SERVIÇO
             const locCheck = document.getElementById('loc-check');
             if(locCheck) locCheck.checked = d.location.sameAsClient;
             const locDiv = document.getElementById('loc-custom-div');
             if(locDiv) locDiv.style.display = d.location.sameAsClient ? 'none' : 'block';
             setVal('loc-addr', d.location.address);
 
-            // --- RENDERIZA LISTA DE ANEXOS NA NOVA SEÇÃO (FORA DO FINANCEIRO) ---
             const attachList = document.getElementById('ed-attachments-list');
             if (attachList) {
                 let attHtml = '';
@@ -637,11 +653,9 @@
                 attachList.innerHTML = attHtml;
             }
 
-            // CONTROLA INPUT DE UPLOAD
             const uploadDiv = document.getElementById('upload-area');
             if(uploadDiv) uploadDiv.style.display = isLocked ? 'none' : 'block';
 
-            // DESABILITA TODOS OS CAMPOS SE ESTIVER BLOQUEADO
             const staticInputs = ['p-name','p-doc','p-addr','p-phone','c-name','c-doc','c-phone','c-email','c-addr','s-type','pay-mode','t-deadline','t-val','t-obs', 'loc-check', 'loc-addr'];
             staticInputs.forEach(id => { const el = document.getElementById(id); if(el) el.disabled = isLocked; });
 
@@ -768,7 +782,9 @@
         function rmItem(i) { if(confirm("Remover este item?")) { state.data.items.splice(i, 1); renderEditor(); } }
         
         function generatePayment() {
-            const total = state.data.items.reduce((acc, i) => (!i.optional ? acc + (i.qty * i.price) : acc, 0);
+            // CORREÇÃO FEITA AQUI: Adicionado parêntese faltante
+            const total = state.data.items.reduce((acc, i) => (!i.optional ? acc + (i.qty * i.price) : acc), 0);
+            
             if(total === 0) return alert("Adicione valores (não opcionais) primeiro.");
             const mode = document.getElementById('pay-mode').value;
             let text = "";
