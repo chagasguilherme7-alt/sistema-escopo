@@ -225,7 +225,7 @@
 
         function normalizeData(dbData) {
             const schema = { 
-                client: { name: '', doc: '', email: '', phone: '', address: '' }, 
+                client: { name: '', doc: '', email: '', phone: '', address: '', type: 'pj' }, // Added type default PJ
                 location: { address: '', sameAsClient: true }, 
                 items: [], 
                 terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, 
@@ -495,6 +495,11 @@
             await save();
         }
 
+        function setClientType(type) {
+            state.data.client.type = type;
+            renderEditor();
+        }
+
         function renderEditor() {
             const d = state.data; 
             const isLocked = state.version.status !== 'draft'; 
@@ -510,7 +515,27 @@
             
             setVal('p-name', d.settings.providerName); setVal('p-doc', d.settings.providerDoc);
             setVal('p-addr', d.settings.providerAddr); setVal('p-phone', d.settings.providerPhone);
-            setVal('c-name', d.client.name); setVal('c-doc', d.client.doc); setVal('c-phone', d.client.phone); setVal('c-email', d.client.email); setVal('c-addr', d.client.address); setVal('in-s-myphone', d.settings.myPhone);
+            setVal('c-name', d.client.name); setVal('c-doc', d.client.doc); setVal('c-phone', d.client.phone); setVal('c-email', d.client.email); setVal('c-addr', d.client.address);
+            
+            // --- INICIO ALTERAÇÃO CLIENTE ---
+            const isPJ = d.client.type !== 'pf'; // Padrão PJ
+            const clBtns = document.getElementById('cl-type-btns');
+            if(clBtns) {
+                clBtns.innerHTML = `
+                    <div class="flex bg-slate-100 p-1 rounded-lg mb-4">
+                        <button onclick="setClientType('pj')" class="flex-1 py-2 text-sm font-bold rounded-md transition-all ${isPJ ? 'bg-white shadow text-blue-700' : 'text-slate-500 hover:text-slate-700'}">Pessoa Jurídica</button>
+                        <button onclick="setClientType('pf')" class="flex-1 py-2 text-sm font-bold rounded-md transition-all ${!isPJ ? 'bg-white shadow text-blue-700' : 'text-slate-500 hover:text-slate-700'}">Pessoa Física</button>
+                    </div>
+                `;
+            }
+            
+            const lblName = document.getElementById('lbl-c-name'); if(lblName) lblName.innerText = isPJ ? 'Razão Social' : 'Nome Completo';
+            const plName = document.getElementById('c-name'); if(plName) plName.placeholder = isPJ ? 'Nome da Empresa' : 'Nome do Cliente';
+            
+            const lblDoc = document.getElementById('lbl-c-doc'); if(lblDoc) lblDoc.innerText = isPJ ? 'CNPJ' : 'CPF';
+            const plDoc = document.getElementById('c-doc'); if(plDoc) plDoc.placeholder = isPJ ? '00.000.000/0000-00' : '000.000.000-00';
+            // --- FIM ALTERAÇÃO CLIENTE ---
+
             const svc = document.getElementById('s-type'); if(svc) svc.value = d.settings.serviceType || 'Outros';
             
             setVal('t-deadline', d.terms.deadline); 
@@ -552,7 +577,7 @@
             if(uploadDiv) uploadDiv.style.display = isLocked ? 'none' : 'block';
 
             // DESABILITA TODOS OS CAMPOS DE TEXTO E INPUTS SE ESTIVER BLOQUEADO
-            const staticInputs = ['p-name','p-doc','p-addr','p-phone','c-name','c-doc','c-phone','c-email','c-addr','in-s-myphone','s-type','pay-mode','t-deadline','t-val','t-obs', 'loc-check', 'loc-addr'];
+            const staticInputs = ['p-name','p-doc','p-addr','p-phone','c-name','c-doc','c-phone','c-email','c-addr','s-type','pay-mode','t-deadline','t-val','t-obs', 'loc-check', 'loc-addr'];
             staticInputs.forEach(id => { const el = document.getElementById(id); if(el) el.disabled = isLocked; });
 
             // OCULTA BOTÃO DE ADICIONAR ITEM E CALCULADORA
@@ -1140,8 +1165,10 @@
                     <div class="editor-section">
                         <div class="editor-header"><i class="fas fa-user-tie"></i> Dados do Cliente</div>
                         <div class="editor-body">
-                            <div class="input-group"><label class="input-label">Nome</label><input id="c-name" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Nome do Cliente / Empresa" onchange="upVal('c-name',this.value)"></div>
-                            <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Doc</label><input id="c-doc" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="CPF/CNPJ" onchange="upVal('c-doc',this.value)"></div><div class="input-group"><label class="input-label">Tel</label><input id="c-phone" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Telefone" onchange="upVal('c-phone',this.value)"></div></div>
+                            <div id="cl-type-btns"></div>
+
+                            <div class="input-group"><label class="input-label" id="lbl-c-name">Nome</label><input id="c-name" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Nome do Cliente / Empresa" onchange="upVal('c-name',this.value)"></div>
+                            <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label" id="lbl-c-doc">Doc</label><input id="c-doc" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="CPF/CNPJ" onchange="upVal('c-doc',this.value)"></div><div class="input-group"><label class="input-label">Tel</label><input id="c-phone" class="border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Telefone" onchange="upVal('c-phone',this.value)"></div></div>
                             <div class="input-group"><label class="input-label">Email</label><input id="c-email" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="E-mail" onchange="upVal('c-email',this.value)"></div>
                             <div class="input-group"><label class="input-label">Endereço do Cliente</label><input id="c-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Endereço Completo" onchange="upVal('c-addr',this.value)"></div>
                             
@@ -1155,8 +1182,6 @@
                                     <input id="loc-addr" class="w-full border p-3 rounded-lg bg-slate-50 text-sm" placeholder="Onde será realizado o serviço?" onchange="upLoc(this.value)">
                                 </div>
                             </div>
-
-                            <div class="mt-4 pt-4 border-t"><label class="input-label text-blue-600">Seu WhatsApp (Para Notificações)</label><input id="in-s-myphone" onchange="upSettings('myPhone', this.value)" class="input-field bg-blue-50 border-blue-200"></div>
                         </div>
                     </div>
                     <div class="editor-section" style="margin-bottom: 80px;">
