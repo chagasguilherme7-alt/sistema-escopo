@@ -730,7 +730,6 @@
             await db.from('versions').update({items:state.data, total_value:t, notes:state.data.terms.obs}).eq('id',state.version.id);
             
             renderEditor(); 
-            alert("Salvo com sucesso!");
         }
 
         async function createAddon() {
@@ -748,18 +747,38 @@
             save(); loadEditor(state.project.id);
         }
 
-        async function share() {
+        async function openShareModal() {
             await save();
-            if (!state.version?.id) return alert("Erro ao salvar.");
+            if (!state.version?.id) return alert("Erro ao salvar versão.");
+
             const url = `${window.location.origin}${window.location.pathname}?view=public&id=${state.version.id}`;
-            try {
-                await navigator.clipboard.writeText(url);
-                alert("✅ Link copiado! Envie para o cliente.");
-            } catch (err) {
-                const textArea = document.createElement('textarea'); textArea.value = url;
-                document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea);
-                alert("✅ Link copiado!");
-            }
+            const clientName = state.data.client.name ? ` ${state.data.client.name}` : '';
+            const msg = `Olá${clientName}! Segue o link da proposta comercial para sua aprovação: ${url}`;
+
+            document.getElementById('btn-share-wa').onclick = function() {
+                let phone = (state.data.client.phone || '').replace(/\D/g, '');
+                let link = `https://wa.me/${phone.length >= 10 ? '55' + phone : ''}?text=${encodeURIComponent(msg)}`;
+                window.open(link, '_blank');
+                document.getElementById('share-modal').style.display = 'none';
+            };
+
+            document.getElementById('btn-share-copy').onclick = async function() {
+                try {
+                    await navigator.clipboard.writeText(url);
+                    alert("✅ Link copiado com sucesso!");
+                } catch (err) {
+                    const textArea = document.createElement("textarea");
+                    textArea.value = url;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(textArea);
+                    alert("✅ Link copiado!");
+                }
+                document.getElementById('share-modal').style.display = 'none';
+            };
+
+            document.getElementById('share-modal').style.display = 'flex';
         }
 
         // --- PUBLIC INTERACTION FLOW ---
@@ -1102,7 +1121,7 @@
                     <button onclick="goTo('dashboard')" class="text-slate-400 hover:text-white"><i class="fas fa-arrow-left"></i></button>
                     <div><h2 id="ed-title" class="font-bold leading-none text-lg text-white">...</h2><span id="ed-ver" class="text-[10px] text-slate-400 uppercase font-bold">V1</span><span id="ed-status-badge" class="ml-2 text-[10px] uppercase font-bold bg-white text-slate-900 px-2 py-1 rounded"></span></div>
                 </div>
-                <button onclick="share()" class="btn btn-secondary bg-slate-800 border-slate-700 text-white hover:bg-slate-700 text-xs"><i class="fas fa-link"></i> Link Cliente</button>
+                <button onclick="openShareModal()" class="btn btn-secondary bg-slate-800 border-slate-700 text-white hover:bg-slate-700 text-xs"><i class="fas fa-link"></i> Link Cliente</button>
             </div>
             
             <div class="panel-grid">
@@ -1234,6 +1253,26 @@
             </div>
 
             <div class="flex gap-3"><button onclick="document.getElementById('interaction-modal').style.display='none'" class="flex-1 py-3 border rounded text-slate-500 font-bold hover:bg-slate-50">Cancelar</button><button id="modal-btn" class="flex-1 py-3 rounded text-white font-bold"></button></div>
+        </div>
+    </div>
+
+    <div id="share-modal" class="modal-overlay" style="z-index: 70;">
+        <div class="modal-box text-center max-w-sm">
+            <h3 class="text-xl font-bold mb-6 text-slate-800"><i class="fas fa-share-alt mr-2 text-blue-600"></i>Enviar Proposta</h3>
+            
+            <div class="space-y-3">
+                <button id="btn-share-wa" class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-3 transition-transform hover:scale-[1.02] shadow-lg shadow-emerald-100">
+                    <i class="fab fa-whatsapp text-2xl"></i> 
+                    <span>Enviar no WhatsApp</span>
+                </button>
+
+                <button id="btn-share-copy" class="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl font-bold flex items-center justify-center gap-3 transition-colors">
+                    <i class="fas fa-link text-lg"></i> 
+                    <span>Copiar Link Apenas</span>
+                </button>
+            </div>
+
+            <button onclick="document.getElementById('share-modal').style.display='none'" class="mt-6 text-sm text-slate-400 hover:text-slate-600 underline">Cancelar</button>
         </div>
     </div>
 
