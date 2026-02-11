@@ -217,7 +217,7 @@
         const { createClient } = supabase;
         const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let state = { user: null, project: null, version: null, projectsCache: [], data: { client: {}, location: {}, items: [], terms: {}, settings: {}, history: [], signature: null }, previousData: null, snapshot: [] };
+        let state = { user: null, project: null, version: null, projectsCache: [], data: { client: {}, location: {}, items: [], terms: {}, settings: {}, history: [], attachments: [], signature: null }, previousData: null, snapshot: [] };
         let signaturePad = null;
         let isDrawing = false;
 
@@ -226,9 +226,10 @@
                 client: { name: '', doc: '', email: '', phone: '', address: '' }, 
                 location: { address: '', sameAsClient: true }, 
                 items: [], 
-                terms: { paymentMode: 'custom', paymentText: '', deadline: '', obs: '' }, 
+                terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, 
                 settings: { myPhone: '', serviceType: 'Outros', providerName: '', providerDoc: '', providerAddr: '', providerPhone: '' }, 
                 history: [],
+                attachments: [],
                 signature: null 
             };
             
@@ -253,6 +254,7 @@
                 terms: { ...schema.terms, ...(dbData.terms || {}) }, 
                 settings: { ...schema.settings, ...(dbData.settings || {}) }, 
                 history: Array.isArray(dbData.history) ? dbData.history : [],
+                attachments: Array.isArray(dbData.attachments) ? dbData.attachments : [],
                 signature: dbData.signature || null
             };
         }
@@ -447,10 +449,50 @@
             safeShow('editor-content');
         }
 
+        // LÓGICA DE UPLOAD
+        async function handleUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Validações
+            if (file.size > 5 * 1024 * 1024) return alert("Arquivo muito grande! Máximo 5MB.");
+            const ext = file.name.split('.').pop().toLowerCase();
+            if(!['pdf','png','jpg','jpeg'].includes(ext)) return alert("Formato não permitido. Use PDF, PNG ou JPG.");
+
+            // UI de carregando
+            const label = document.getElementById('upload-label');
+            const originalText = label.innerHTML;
+            label.innerText = "Enviando...";
+
+            try {
+                const path = `${state.project.id}/${Date.now()}_${file.name}`;
+                const { data, error } = await db.storage.from('attachments').upload(path, file);
+                
+                if (error) throw error;
+
+                const { data: pubData } = db.storage.from('attachments').getPublicUrl(path);
+                
+                if (!state.data.attachments) state.data.attachments = [];
+                state.data.attachments.push({ name: file.name, url: pubData.publicUrl, type: ext });
+                
+                await save();
+            } catch (err) {
+                alert("Erro no upload: " + err.message);
+                console.error(err);
+            } finally {
+                label.innerHTML = originalText;
+                e.target.value = ''; // Limpa input
+            }
+        }
+
+        async function deleteAttachment(idx) {
+            if(!confirm("Remover este anexo?")) return;
+            state.data.attachments.splice(idx, 1);
+            await save();
+        }
+
         function renderEditor() {
             const d = state.data; 
-            
-            // LÓGICA DE BLOQUEIO RIGOROSA: Bloqueia se NÃO for rascunho.
             const isLocked = state.version.status !== 'draft'; 
             
             safeText('ed-title', state.project.name);
@@ -476,6 +518,34 @@
             const locDiv = document.getElementById('loc-custom-div');
             if(locDiv) locDiv.style.display = d.location.sameAsClient ? 'none' : 'block';
             setVal('loc-addr', d.location.address);
+
+            // RENDERIZA LISTA DE ANEXOS NO EDITOR
+            const attachList = document.getElementById('ed-attachments-list');
+            if (attachList) {
+                let attHtml = '';
+                if (d.attachments && d.attachments.length > 0) {
+                    d.attachments.forEach((att, idx) => {
+                        let icon = att.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500';
+                        attHtml += `<div class="flex items-center justify-between bg-white border p-3 rounded mb-2 text-sm">
+                            <div class="flex items-center gap-2 overflow-hidden">
+                                <i class="fas ${icon}"></i> 
+                                <span class="truncate">${att.name}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700"><i class="fas fa-eye"></i></a>
+                                ${!isLocked ? `<button onclick="deleteAttachment(${idx})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>` : ''}
+                            </div>
+                        </div>`;
+                    });
+                } else {
+                    attHtml = '<div class="text-xs text-slate-400 italic text-center py-2">Nenhum arquivo anexado.</div>';
+                }
+                attachList.innerHTML = attHtml;
+            }
+
+            // CONTROLA INPUT DE UPLOAD
+            const uploadDiv = document.getElementById('upload-area');
+            if(uploadDiv) uploadDiv.style.display = isLocked ? 'none' : 'block';
 
             // DESABILITA TODOS OS CAMPOS DE TEXTO E INPUTS SE ESTIVER BLOQUEADO
             const staticInputs = ['p-name','p-doc','p-addr','p-phone','c-name','c-doc','c-phone','c-email','c-addr','in-s-myphone','s-type','pay-mode','t-deadline','t-val','t-obs', 'loc-check', 'loc-addr'];
@@ -516,7 +586,6 @@
                     }
                 }
 
-                // CORREÇÃO: USANDO ONINPUT E NOME VAZIO
                 html += `
                 <div class="bg-white border p-4 rounded-lg mb-2 relative group transition-all ${cardClass}">
                     ${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}
@@ -560,7 +629,6 @@
 
             let histHtml = '';
             if(d.history && d.history.length > 0) {
-                // CORREÇÃO: ORDENAÇÃO POR DATA ANTES DE INVERTER PARA GARANTIR ORDEM CORRETA
                 d.history.sort((a,b) => new Date(a.date) - new Date(b.date)).slice().reverse().forEach(h => {
                     const date = new Date(h.date).toLocaleString('pt-BR');
                     
@@ -588,32 +656,17 @@
         function upVal(k,v) { if(k.startsWith('c-')) state.data.client[k.substring(2)] = v; else if(k.startsWith('t-')) state.data.terms[k.substring(2)] = v; else if(k==='s-phone') { state.data.settings.myPhone=v; localStorage.setItem('escopo_phone',v); } else if(k==='s-type') { state.data.settings.serviceType = v; } }
         function upSettings(k,v) { state.data.settings[k] = v; if(['providerName','providerDoc','providerAddr','providerPhone'].includes(k)) localStorage.setItem(k.replace('provider','prov_').toLowerCase(), v); }
 
-        // LOGICA DE LOCALIZAÇÃO
-        function toggleLoc(checked) {
-            state.data.location.sameAsClient = checked;
-            renderEditor();
-        }
-        function upLoc(v) {
-            state.data.location.address = v;
-        }
+        function toggleLoc(checked) { state.data.location.sameAsClient = checked; renderEditor(); }
+        function upLoc(v) { state.data.location.address = v; }
 
-        // CORREÇÃO: SÓ RENDERIZA SE FOR NUMÉRICO PARA ATUALIZAR TOTAL. TEXTO SÓ ATUALIZA ESTADO.
         function upItem(i,f,v) { 
             const it=state.data.items[i]; 
-            if(f==='qty'||f==='price') {
-                it[f]=parseFloat(v)||0; 
-                renderEditor(); 
-            } else {
-                it[f]=v; 
-            }
+            if(f==='qty'||f==='price') { it[f]=parseFloat(v)||0; renderEditor(); } 
+            else { it[f]=v; }
         }
         
-        function toggleOpt(i) {
-            state.data.items[i].optional = !state.data.items[i].optional;
-            renderEditor();
-        }
+        function toggleOpt(i) { state.data.items[i].optional = !state.data.items[i].optional; renderEditor(); }
 
-        // CORREÇÃO: NOME VAZIO POR PADRÃO
         function addItem() { 
             if(!Array.isArray(state.data.items)) state.data.items = [];
             state.data.items.push({ id: 'item_' + Date.now(), name: '', description: '', qty: 1, price: 0, type: state.version?.version_number > 1 ? 'addon' : 'original', optional: false }); 
@@ -640,13 +693,11 @@
             setVal('t-obs', text);
         }
 
-        // FUNÇÃO DE DETECÇÃO DE MUDANÇAS
         function getChanges(oldArr, newArr) {
             let logs = [];
             const oldMap = new Map(oldArr.map(i => [i.id, i]));
             const newMap = new Map(newArr.map(i => [i.id, i]));
             
-            // Verificando Adições e Modificações
             newArr.forEach(i => {
                 if(!oldMap.has(i.id)) logs.push(`Adicionou: ${i.name || 'Item sem nome'}`);
                 else {
@@ -655,29 +706,23 @@
                     if(old.price !== i.price || old.qty !== i.qty) logs.push(`Alterou valor/qtd: ${i.name}`);
                 }
             });
-            
-            // Verificando Remoções
-            oldArr.forEach(i => {
-                if(!newMap.has(i.id)) logs.push(`Removeu: ${i.name}`);
-            });
-            
+            oldArr.forEach(i => { if(!newMap.has(i.id)) logs.push(`Removeu: ${i.name}`); });
             return logs.length ? logs.join('; ') : null;
         }
 
         async function save() {
             const t = state.data.items.reduce((a,b)=> (!b.optional ? a+(b.qty*b.price) : a),0);
             
-            // DETECTA MUDANÇAS E REGISTRA NO HISTÓRICO
             const changes = getChanges(state.snapshot, state.data.items);
             if(changes) {
                 logHistory('edited', 'provider', changes);
-                state.snapshot = JSON.parse(JSON.stringify(state.data.items)); // Atualiza o snapshot para não duplicar log
+                state.snapshot = JSON.parse(JSON.stringify(state.data.items)); 
             }
 
             if(state.data.client.name) await db.from('projects').update({client_name:state.data.client.name}).eq('id',state.project.id);
             await db.from('versions').update({items:state.data, total_value:t, notes:state.data.terms.obs}).eq('id',state.version.id);
             
-            renderEditor(); // Re-renderiza para mostrar o novo histórico imediatamente
+            renderEditor(); 
             alert("Salvo com sucesso!");
         }
 
@@ -731,7 +776,6 @@
                 safeText('doc-c-name', d.client.name);
                 safeText('doc-c-doc', d.client.doc);
                 
-                // LOGICA DE EXIBIÇÃO DE ENDEREÇO
                 const finalAddr = d.location.sameAsClient ? d.client.address : (d.location.address || 'Não informado');
                 safeText('doc-c-addr', finalAddr);
                 
@@ -741,6 +785,19 @@
                 safeText('doc-deadline', d.terms.deadline); 
                 safeText('doc-validity', d.terms.validity); 
                 safeText('doc-obs', d.terms.obs);
+
+                // RENDERIZAR ANEXOS PUBLICOS
+                if(d.attachments && d.attachments.length > 0) {
+                    let attHtml = '<h3 class="font-bold text-xs uppercase text-slate-400 mb-2 mt-8 tracking-wider">Documentos Anexos</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-2">';
+                    d.attachments.forEach(att => {
+                        let icon = att.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500';
+                        attHtml += `<a href="${att.url}" target="_blank" class="flex items-center gap-3 p-3 border rounded hover:bg-slate-50 transition-colors"><i class="fas ${icon} text-lg"></i><span class="text-sm font-medium text-slate-700 truncate">${att.name}</span></a>`;
+                    });
+                    attHtml += '</div>';
+                    setHTML('doc-attachments-area', attHtml);
+                } else {
+                    setHTML('doc-attachments-area', '');
+                }
 
                 if (d.signature) {
                     setHTML('doc-signature-area', `<div class="mt-8 border-t border-dashed pt-4 w-64 text-center"><img src="${d.signature}" class="mx-auto h-16 mb-2" alt="Assinatura"><p class="text-xs text-slate-500 uppercase font-bold">Assinado Digitalmente</p></div>`);
@@ -1090,9 +1147,20 @@
                             <div class="bg-slate-900 text-white p-6 rounded-lg text-center mb-6"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Global</div><div id="ed-total" class="text-3xl font-bold">R$ 0,00</div></div>
                             <div class="input-group"><div class="flex gap-2 mb-2"><select id="pay-mode" class="input-field"><option value="entry_installments">Entrada + Parcelas</option><option value="single">Único</option></select><button id="btn-calc-pay" onclick="generatePayment()" class="btn btn-secondary px-3"><i class="fas fa-calculator"></i></button></div><div id="payment-display" class="text-xs bg-slate-50 p-3 rounded border border-slate-200 text-slate-600 whitespace-pre-line min-h-[60px]">...</div></div>
                             
-                            <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Prazo para entrega (dias)</label><input id="t-deadline" class="border p-2 rounded text-sm" placeholder="Prazo" onchange="upVal('t-deadline',this.value)"></div><div class="input-group"><label class="input-label">Validade da proposta (dias)</label><input id="t-val" class="border p-2 rounded text-sm" placeholder="Validade da proposta (dias)" onchange="upVal('t-val',this.value)"></div></div>
+                            <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Entrega</label><input id="t-deadline" class="border p-2 rounded text-sm" placeholder="Prazo" onchange="upVal('t-deadline',this.value)"></div><div class="input-group"><label class="input-label">Validade</label><input id="t-val" class="border p-2 rounded text-sm" placeholder="Validade" onchange="upVal('t-val',this.value)"></div></div>
                             
-                            <div class="input-group"><label class="input-label">Obs</label><textarea id="t-obs" class="w-full border p-2 rounded text-sm h-20 mb-4 bg-slate-50" placeholder="Condições de pagamento..." onchange="upVal('t-obs',this.value)"></textarea></div>
+                            <div class="mt-4 pt-4 border-t border-dashed">
+                                <label class="input-label">Anexos (PDF/Img)</label>
+                                <div id="ed-attachments-list"></div>
+                                <div id="upload-area" class="mt-2">
+                                    <label for="file-upload" id="upload-label" class="cursor-pointer block w-full text-center p-3 border-2 border-dashed border-slate-300 rounded hover:bg-slate-50 text-xs text-slate-500 font-bold uppercase">
+                                        <i class="fas fa-paperclip mr-2"></i> Adicionar Arquivo
+                                    </label>
+                                    <input id="file-upload" type="file" class="hidden" accept=".pdf, .png, .jpg, .jpeg" onchange="handleUpload(event)">
+                                </div>
+                            </div>
+
+                            <div class="input-group mt-4"><label class="input-label">Obs</label><textarea id="t-obs" class="w-full border p-2 rounded text-sm h-20 mb-4 bg-slate-50" placeholder="Condições de pagamento..." onchange="upVal('t-obs',this.value)"></textarea></div>
                             <div id="ed-actions" class="mt-6"></div>
                         </div>
                     </div>
@@ -1133,8 +1201,11 @@
                         <tbody id="doc-items-body"></tbody>
                     </table>
                 </div>
-                <div class="bg-slate-50 border border-slate-100 rounded-lg p-8 mb-12 flex gap-12">
-                    <div class="flex-1"><h4 class="font-bold text-xs uppercase text-slate-400 mb-2">Pagamento</h4><div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line"></div><div class="mt-4 flex gap-6 text-sm"><div><span class="font-bold text-xs uppercase text-slate-400 block">Prazo para entrega (dias)</span><span id="doc-deadline"></span></div><div><span class="font-bold text-xs uppercase text-slate-400 block">Validade da proposta (dias)</span><span id="doc-validity"></span></div></div></div>
+                
+                <div id="doc-attachments-area"></div>
+
+                <div class="bg-slate-50 border border-slate-100 rounded-lg p-8 mb-12 flex gap-12 mt-8">
+                    <div class="flex-1"><h4 class="font-bold text-xs uppercase text-slate-400 mb-2">Pagamento</h4><div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line"></div><div class="mt-4 flex gap-6 text-sm"><div><span class="font-bold text-xs uppercase text-slate-400 block">Entrega</span><span id="doc-deadline"></span></div><div><span class="font-bold text-xs uppercase text-slate-400 block">Validade</span><span id="doc-validity"></span></div></div></div>
                     <div class="text-right"><h4 class="font-bold text-xs uppercase text-slate-400 mb-1">Total</h4><div id="doc-total" class="text-3xl font-bold text-slate-900">R$ 0,00</div></div>
                 </div>
                 <div id="doc-obs" class="text-xs text-slate-500 italic text-justify"></div>
@@ -1162,4 +1233,3 @@
 
 </body>
 </html>
-
