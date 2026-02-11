@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #F1F5F9; color: #334155; overflow-x: hidden; font-size: 16px; }
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #334155; overflow-x: hidden; font-size: 16px; }
         .font-heading { font-family: 'Plus Jakarta Sans', sans-serif; }
 
         /* Utilitários de Scroll */
@@ -137,51 +137,25 @@
         /* Assinatura */
         #signature-pad { border: 2px dashed #cbd5e1; border-radius: 12px; background: #f8fafc; cursor: crosshair; touch-action: none; width: 100%; height: 200px; }
         
-        /* --- ESTILOS DE DOCUMENTO (Página Pública Profissional) --- */
-        .doc-container {
-            font-family: 'Inter', sans-serif;
-            color: #1e293b;
-            line-height: 1.6;
-        }
-        .doc-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding-bottom: 2rem;
-            border-bottom: 2px solid #e2e8f0;
-            margin-bottom: 2rem;
-        }
-        .doc-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; letter-spacing: -0.02em; }
-        .doc-section-title {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            font-weight: 700;
-            color: #64748b;
-            margin-bottom: 1rem;
-            border-left: 3px solid #3b82f6;
-            padding-left: 0.75rem;
-        }
-        .doc-card {
-            background: #f8fafc;
-            border-radius: 8px;
-            padding: 1.5rem;
-            border: 1px solid #e2e8f0;
-        }
-        .att-card {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 1rem;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .att-card:hover {
-            border-color: #3b82f6;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
+        /* --- ESTILOS DE DOCUMENTO (Página Pública - MODERNIZADO) --- */
+        .doc-container { font-family: 'Inter', sans-serif; color: #1e293b; line-height: 1.6; }
+        
+        .doc-accent-bar { height: 6px; width: 100%; background: linear-gradient(90deg, #0f172a 0%, #1e3a8a 100%); }
+        
+        .doc-header-modern { display: flex; flex-direction: column; md:flex-row; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1.5rem; }
+        
+        .doc-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #64748b; margin-bottom: 0.25rem; display: block; }
+        
+        .doc-info-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; position: relative; overflow: hidden; }
+        .doc-info-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #3b82f6; }
+        
+        .doc-table-header { font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: #64748b; padding-bottom: 10px; border-bottom: 1px solid #e2e8f0; letter-spacing: 0.05em; }
+        
+        .doc-financial-block { background: #0f172a; color: white; border-radius: 16px; padding: 2rem; display: flex; flex-direction: column; md:flex-row; justify-content: space-between; align-items: center; gap: 2rem; position: relative; overflow: hidden; }
+        .doc-financial-block::after { content: ''; position: absolute; top: -50%; right: -10%; width: 200px; height: 200px; background: rgba(255,255,255,0.05); border-radius: 50%; }
+
+        .att-card { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; transition: all 0.2s; display: flex; align-items: center; gap: 1rem; }
+        .att-card:hover { border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1); transform: translateY(-2px); }
 
         /* --- RESPONSIVIDADE --- */
         
@@ -217,6 +191,8 @@
             table { display: block; overflow-x: auto; white-space: nowrap; }
             .app-header .btn { padding: 8px 12px; font-size: 0.8rem; }
             .app-header img { height: 32px; }
+            
+            .doc-financial-block { flex-direction: column; text-align: center; }
         }
         
         @media print { 
@@ -225,7 +201,8 @@
             .panel-grid { display: block; height: auto; overflow: visible; }
             #view-public { padding: 0; background: white; overflow: visible; }
             #public-content { box-shadow: none; margin: 0; width: 100%; max-width: 100%; }
-            .doc-card { background: white; border: 1px solid #ddd; }
+            .doc-info-card, .att-card { border: 1px solid #ddd; }
+            .doc-financial-block { background: white !important; color: black !important; border: 2px solid #000; }
         }
     </style>
 </head>
@@ -243,7 +220,6 @@
         console.log("Aprova Ai iniciando...");
 
         // --- DESTRAVE DE EMERGÊNCIA ---
-        // Se em 4 segundos nada acontecer, remove a tela de carregamento na força
         setTimeout(() => {
             const loader = document.getElementById('system-loader');
             if(loader && loader.style.display !== 'none') {
@@ -262,23 +238,15 @@
 
         window.onerror = function(msg) {
             console.error("Erro detectado:", msg);
-            // Remove o loader se houver erro para não travar a tela
-            const l = document.getElementById('system-loader');
-            if(l) l.style.display = 'none';
-            
+            const l = document.getElementById('system-loader'); if(l) l.style.display = 'none';
             const f = document.getElementById('fatal-error');
-            if(f) {
-                f.style.display = 'flex';
-                safeText('error-msg', "Erro de Script: " + msg);
-            }
+            if(f) { f.style.display = 'flex'; safeText('error-msg', "Erro de Script: " + msg); }
             return false;
         };
 
-        // --- ATENÇÃO: COLOQUE SUAS CHAVES REAIS AQUI ---
+        // --- CONFIGURAÇÃO SUPABASE ---
         const SUPABASE_URL = 'https://outasfgohiiyndsjciau.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91dGFzZmdvaGlpeW5kc2pjaWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4MTk4ODIsImV4cCI6MjA4NTM5NTg4Mn0.4yvGfYbQYf806FJcs34yPGkuU_kVTYHW8mBtbU3JD80';
-        // ------------------------------------------------
-
         let db = null;
         let state = { user: null, project: null, version: null, projectsCache: [], data: { client: {}, location: {}, items: [], terms: {}, settings: {}, history: [], attachments: [], signature: null }, previousData: null, snapshot: [] };
         
@@ -293,10 +261,8 @@
                 attachments: [],
                 signature: null 
             };
-            
             if (!dbData) return schema;
             let rawItems = Array.isArray(dbData.items) ? dbData.items : (dbData.scope || []);
-            
             const cleanItems = rawItems.map(i => ({ 
                 id: i.id || 'item_' + Math.random().toString(36).substr(2, 9), 
                 name: i.name || '', 
@@ -307,7 +273,6 @@
                 optional: i.optional || false,
                 publicSelected: i.publicSelected || false 
             }));
-
             let cleanAttachments = [];
             if (Array.isArray(dbData.attachments)) {
                 cleanAttachments = dbData.attachments.map(a => ({
@@ -317,7 +282,6 @@
                     description: a.description || '' 
                 }));
             }
-            
             return { 
                 client: { ...schema.client, ...(dbData.client || {}) }, 
                 location: { ...schema.location, ...(dbData.location || {}) }, 
@@ -338,18 +302,14 @@
         async function init() {
             try {
                 if(typeof supabase === 'undefined') throw new Error("A biblioteca do Supabase não carregou.");
-                
                 const { createClient } = supabase;
                 if(!db) db = createClient(SUPABASE_URL, SUPABASE_KEY);
-
                 const params = new URLSearchParams(window.location.search);
                 const view = params.get('view') || 'login';
                 const id = params.get('id');
                 document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
-                
                 const { data: { session }, error } = await db.auth.getSession();
                 state.user = session?.user;
-
                 if (view === 'public') {
                     if(!id) throw new Error("Link inválido.");
                     await loadPublicProposal(id);
@@ -371,7 +331,7 @@
                 console.error(e);
                 const l = document.getElementById('system-loader'); if(l) l.style.display = 'none';
                 const f = document.getElementById('fatal-error'); if(f) f.style.display = 'flex';
-                safeText('error-msg', e.message || "Erro desconhecido. Verifique o Console (F12).");
+                safeText('error-msg', e.message || "Erro desconhecido.");
             }
         }
 
@@ -405,7 +365,6 @@
             setHTML('project-list', '<div class="col-span-full text-center py-10 text-slate-400">Carregando dados...</div>');
             const { data: projects, error } = await db.from('projects').select('*, versions(status, total_value, version_number)').eq('user_id', state.user.id).order('created_at', { ascending: false });
             if(error) return setHTML('project-list', 'Erro ao carregar ou Banco de Dados vazio.');
-            
             if (projects) {
                 projects.forEach(p => {
                     if (p.versions && p.versions.length > 0) {
@@ -413,7 +372,6 @@
                     }
                 });
             }
-            
             state.projectsCache = projects || [];
             renderDashboardList();
         }
@@ -424,14 +382,12 @@
             const search = safeVal('dash-search').toLowerCase();
             const filterStatus = safeVal('dash-filter');
             let totalRev = 0, totalAprov = 0, countAprov = 0, countNegoc = 0, countOpen = 0;
-
             const filtered = state.projectsCache.filter(p => {
                 const v = p.versions?.[0] || { status: 'draft', total_value: 0 };
                 const matchSearch = p.name.toLowerCase().includes(search) || (p.client_name||'').toLowerCase().includes(search);
                 const matchStatus = filterStatus === 'all' || !filterStatus || v.status === filterStatus;
                 return matchSearch && matchStatus;
             });
-
             state.projectsCache.forEach(p => {
                 const v = p.versions?.[0] || { status: 'draft', total_value: 0 };
                 const val = parseFloat(v.total_value) || 0;
@@ -440,13 +396,11 @@
                 if(v.status === 'negotiating' || v.status === 'sent') countNegoc++;
                 if(v.status === 'draft') countOpen++;
             });
-
             safeText('kpi-total-est', totalRev.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
             safeText('kpi-total-apr', totalAprov.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
             safeText('kpi-count-neg', countNegoc);
             safeText('kpi-count-apr', countAprov);
             safeText('kpi-count-open', countOpen);
-
             let html = '';
             if(filtered.length === 0) html = '<div class="col-span-full text-center py-20 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Nenhum orçamento encontrado.</div>';
             else {
@@ -458,7 +412,6 @@
                     if(v.status === 'negotiating') { badgeClass = 'st-negotiating'; statusLabel = 'Em Negociação'; }
                     if(v.status === 'approved') { badgeClass = 'st-approved'; statusLabel = 'Aprovado'; }
                     if(v.status === 'canceled') { badgeClass = 'st-canceled'; statusLabel = 'Cancelado'; }
-
                     html += `<div onclick="goTo('editor', '${p.id}')" class="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group relative flex flex-col justify-between">
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex-1 pr-2">
@@ -492,16 +445,13 @@
             const name = prompt("Nome do Orçamento:"); if(!name) return;
             const { data: p, error } = await db.from('projects').insert({ name, user_id: state.user.id, client_name: 'Novo Cliente' }).select().single();
             if(error) return alert("Erro ao criar projeto: " + error.message);
-            
             const d = normalizeData(null); 
             d.settings.myPhone = localStorage.getItem('escopo_phone') || '';
             d.settings.providerName = localStorage.getItem('prov_name') || '';
             d.settings.providerDoc = localStorage.getItem('prov_doc') || '';
             d.settings.providerAddr = localStorage.getItem('prov_addr') || '';
             d.settings.providerPhone = localStorage.getItem('prov_phone') || '';
-
             d.history.push({ date: new Date().toISOString(), action: 'created', user: 'provider', detail: 'Orçamento criado via painel.' });
-
             await db.from('versions').insert({ project_id: p.id, version_number: 1, items: d, total_value: 0, status: 'draft' });
             goTo('editor', p.id);
         }
@@ -514,9 +464,7 @@
             const { data: vers } = await db.from('versions').select('*').eq('project_id', id).order('version_number', { ascending: true });
             state.version = vers[vers.length - 1];
             state.data = normalizeData(state.version.items);
-            
             state.snapshot = JSON.parse(JSON.stringify(state.data.items));
-
             state.previousData = null;
             if (state.version.version_number > 1 && vers[vers.length - 2]) {
                 state.previousData = normalizeData(vers[vers.length - 2].items);
@@ -531,26 +479,19 @@
         async function handleUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
-            
             if (file.size > 5 * 1024 * 1024) return alert("Arquivo muito grande! Máximo 5MB.");
             const ext = file.name.split('.').pop().toLowerCase();
             if(!['pdf','png','jpg','jpeg'].includes(ext)) return alert("Formato não permitido. Use PDF, PNG ou JPG.");
-
             const label = document.getElementById('upload-label');
             const originalText = label.innerHTML;
             label.innerText = "Enviando...";
-
             try {
                 const path = `${state.project.id}/${Date.now()}_${file.name}`;
                 const { data, error } = await db.storage.from('attachments').upload(path, file);
-                
                 if (error) throw error;
-
                 const { data: pubData } = db.storage.from('attachments').getPublicUrl(path);
-                
                 if (!state.data.attachments) state.data.attachments = [];
                 state.data.attachments.push({ name: file.name, url: pubData.publicUrl, type: ext, description: '' });
-                
                 await save();
             } catch (err) {
                 alert("Erro no upload: " + err.message);
@@ -580,16 +521,13 @@
         function renderEditor() {
             const d = state.data; 
             const isLocked = state.version.status !== 'draft'; 
-            
             safeText('ed-title', state.project.name);
             safeText('ed-ver', `V${state.version.version_number}`);
-            
             const badge = document.getElementById('ed-status-badge');
             if(badge) {
                 badge.className = `status-badge ml-2 ${state.version.status === 'approved' ? 'st-approved' : state.version.status === 'canceled' ? 'st-canceled' : 'st-draft'}`;
                 badge.innerText = state.version.status === 'draft' ? 'EM ABERTO' : state.version.status.toUpperCase();
             }
-            
             setVal('p-name', d.settings.providerName); setVal('p-doc', d.settings.providerDoc);
             setVal('p-addr', d.settings.providerAddr); setVal('p-phone', d.settings.providerPhone);
             setVal('c-name', d.client.name); setVal('c-doc', d.client.doc); setVal('c-phone', d.client.phone); setVal('c-email', d.client.email); setVal('c-addr', d.client.address);
@@ -607,15 +545,11 @@
             
             const lblName = document.getElementById('lbl-c-name'); if(lblName) lblName.innerText = isPJ ? 'Razão Social' : 'Nome Completo';
             const plName = document.getElementById('c-name'); if(plName) plName.placeholder = isPJ ? 'Nome da Empresa' : 'Nome do Cliente';
-            
             const lblDoc = document.getElementById('lbl-c-doc'); if(lblDoc) lblDoc.innerText = isPJ ? 'CNPJ' : 'CPF';
             const plDoc = document.getElementById('c-doc'); if(plDoc) plDoc.placeholder = isPJ ? '00.000.000/0000-00' : '000.000.000-00';
-
             const svc = document.getElementById('s-type'); if(svc) svc.value = d.settings.serviceType || 'Outros';
-            
             setVal('t-deadline', d.terms.deadline); 
             setVal('t-val', d.terms.validity); setVal('t-obs', d.terms.obs);
-
             const locCheck = document.getElementById('loc-check');
             if(locCheck) locCheck.checked = d.location.sameAsClient;
             const locDiv = document.getElementById('loc-custom-div');
@@ -655,27 +589,21 @@
 
             const uploadDiv = document.getElementById('upload-area');
             if(uploadDiv) uploadDiv.style.display = isLocked ? 'none' : 'block';
-
             const staticInputs = ['p-name','p-doc','p-addr','p-phone','c-name','c-doc','c-phone','c-email','c-addr','s-type','pay-mode','t-deadline','t-val','t-obs', 'loc-check', 'loc-addr'];
             staticInputs.forEach(id => { const el = document.getElementById(id); if(el) el.disabled = isLocked; });
-
             const btnAdd = document.getElementById('btn-add-item');
             if(btnAdd) btnAdd.style.display = isLocked ? 'none' : 'inline-block';
-            
             const btnCalc = document.getElementById('btn-calc-pay');
             if(btnCalc) btnCalc.style.display = isLocked ? 'none' : 'inline-block';
-
+            
             let html = ''; 
             let total = 0;
             const items = Array.isArray(d.items) ? d.items : [];
-            
             items.forEach((i, x) => {
                 const t = (i.qty||0)*(i.price||0); 
                 if(!i.optional) total += t;
-
                 let diffHtml = '';
                 let cardClass = i.optional ? 'item-optional' : '';
-                
                 if (state.previousData) {
                     const oldItem = state.previousData.items.find(old => old.id === i.id);
                     if (!oldItem) {
@@ -691,16 +619,12 @@
                         }
                     }
                 }
-
                 html += `
                 <div class="bg-white border p-4 rounded-lg mb-2 relative group transition-all ${cardClass}">
                     ${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-2">
                         <div class="md:col-span-8">
-                            <label class="text-[10px] uppercase font-bold text-slate-400 flex items-center">
-                                Item 
-                                ${i.optional ? '<span class="optional-badge">Opcional</span>' : ''}
-                            </label>
+                            <label class="text-[10px] uppercase font-bold text-slate-400 flex items-center">Item ${i.optional ? '<span class="optional-badge">Opcional</span>' : ''}</label>
                             <input class="w-full font-bold bg-transparent outline-none" placeholder="Nome do Item..." value="${i.name}" oninput="upItem(${x},'name',this.value)" ${isLocked?'disabled':''}>
                         </div>
                         <div class="md:col-span-2">
@@ -714,25 +638,18 @@
                     </div>
                     <div class="flex items-center gap-2">
                          <textarea class="w-full text-xs text-slate-500 bg-transparent outline-none resize-none" rows="1" oninput="upItem(${x},'description',this.value)" placeholder="Descrição técnica..." ${isLocked?'disabled':''}>${i.description||''}</textarea>
-                         ${!isLocked ? `
-                            <button onclick="toggleOpt(${x})" class="text-[10px] font-bold px-2 py-1 rounded border ${i.optional ? 'bg-slate-600 text-white border-slate-600' : 'text-slate-400 border-slate-200 hover:border-slate-400'}" title="Marcar como opcional (não soma no total automaticamente)">
-                                ${i.optional ? 'OPCIONAL' : 'Opcional?'}
-                            </button>
-                         ` : ''}
+                         ${!isLocked ? `<button onclick="toggleOpt(${x})" class="text-[10px] font-bold px-2 py-1 rounded border ${i.optional ? 'bg-slate-600 text-white border-slate-600' : 'text-slate-400 border-slate-200 hover:border-slate-400'}" title="Marcar como opcional">${i.optional ? 'OPCIONAL' : 'Opcional?'}</button>` : ''}
                     </div>
                     ${diffHtml}
                 </div>`;
             });
-            
             setHTML('ed-items', html);
             const totalOpt = items.reduce((acc, i) => i.optional ? acc + (i.qty * i.price) : acc, 0);
-            
             let totalDisplay = total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
             if (totalOpt > 0) {
                 totalDisplay += `<div class="text-xs text-slate-400 font-normal mt-1">+ ${totalOpt.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} em opcionais</div>`;
             }
             setHTML('ed-total', totalDisplay);
-
             let histHtml = '';
             if(d.history && d.history.length > 0) {
                 d.history.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(h => {
@@ -744,12 +661,10 @@
                     else if (h.action === 'canceled') { icon = 'times text-red-500'; actionLabel = 'Recusou/Cancelou'; }
                     else if (h.action === 'created') { icon = 'plus-circle text-blue-600'; actionLabel = 'Criou o orçamento'; }
                     else if (h.action === 'edited') { icon = 'pen text-indigo-500'; actionLabel = 'Alterou o escopo'; }
-
                     histHtml += `<div class="timeline-item"><div class="timeline-date">${date} • ${h.user === 'provider' ? 'Você' : 'Cliente'}</div><div class="timeline-title flex items-center gap-2"><i class="fas fa-${icon}"></i> ${actionLabel}</div>${h.detail ? `<div class="timeline-desc ${h.action.includes('request')?'':'system'}">${h.detail}</div>` : ''}</div>`;
                 });
             } else { histHtml = '<div class="text-xs text-slate-400 italic">Sem histórico registrado.</div>'; }
             setHTML('ed-history', histHtml);
-
             const actions = document.getElementById('ed-actions');
             if (actions) {
                 if (isLocked) { 
@@ -762,18 +677,14 @@
 
         function upVal(k,v) { if(k.startsWith('c-')) state.data.client[k.substring(2)] = v; else if(k.startsWith('t-')) state.data.terms[k.substring(2)] = v; else if(k==='s-phone') { state.data.settings.myPhone=v; localStorage.setItem('escopo_phone',v); } else if(k==='s-type') { state.data.settings.serviceType = v; } }
         function upSettings(k,v) { state.data.settings[k] = v; if(['providerName','providerDoc','providerAddr','providerPhone'].includes(k)) localStorage.setItem(k.replace('provider','prov_').toLowerCase(), v); }
-
         function toggleLoc(checked) { state.data.location.sameAsClient = checked; renderEditor(); }
         function upLoc(v) { state.data.location.address = v; }
-
         function upItem(i,f,v) { 
             const it=state.data.items[i]; 
             if(f==='qty'||f==='price') { it[f]=parseFloat(v)||0; renderEditor(); } 
             else { it[f]=v; }
         }
-        
         function toggleOpt(i) { state.data.items[i].optional = !state.data.items[i].optional; renderEditor(); }
-
         function addItem() { 
             if(!Array.isArray(state.data.items)) state.data.items = [];
             state.data.items.push({ id: 'item_' + Date.now(), name: '', description: '', qty: 1, price: 0, type: state.version?.version_number > 1 ? 'addon' : 'original', optional: false }); 
@@ -782,9 +693,7 @@
         function rmItem(i) { if(confirm("Remover este item?")) { state.data.items.splice(i, 1); renderEditor(); } }
         
         function generatePayment() {
-            // CORREÇÃO FEITA AQUI: Adicionado parêntese faltante
             const total = state.data.items.reduce((acc, i) => (!i.optional ? acc + (i.qty * i.price) : acc), 0);
-            
             if(total === 0) return alert("Adicione valores (não opcionais) primeiro.");
             const mode = document.getElementById('pay-mode').value;
             let text = "";
@@ -806,7 +715,6 @@
             let logs = [];
             const oldMap = new Map(oldArr.map(i => [i.id, i]));
             const newMap = new Map(newArr.map(i => [i.id, i]));
-            
             newArr.forEach(i => {
                 if(!oldMap.has(i.id)) logs.push(`Adicionou: ${i.name || 'Item sem nome'}`);
                 else {
@@ -821,16 +729,13 @@
 
         async function save() {
             const t = state.data.items.reduce((a,b)=> (!b.optional ? a+(b.qty*b.price) : a),0);
-            
             const changes = getChanges(state.snapshot, state.data.items);
             if(changes) {
                 logHistory('edited', 'provider', changes);
                 state.snapshot = JSON.parse(JSON.stringify(state.data.items)); 
             }
-
             if(state.data.client.name) await db.from('projects').update({client_name:state.data.client.name}).eq('id',state.project.id);
             await db.from('versions').update({items:state.data, total_value:t, notes:state.data.terms.obs}).eq('id',state.version.id);
-            
             renderEditor(); 
         }
 
@@ -852,18 +757,15 @@
         async function openShareModal() {
             await save();
             if (!state.version?.id) return alert("Erro ao salvar versão.");
-
             const url = `${window.location.origin}${window.location.pathname}?view=public&id=${state.version.id}`;
             const clientName = state.data.client.name ? ` ${state.data.client.name}` : '';
             const msg = `Olá${clientName}! Segue o link da proposta comercial para sua aprovação: ${url}`;
-
             document.getElementById('btn-share-wa').onclick = function() {
                 let phone = (state.data.client.phone || '').replace(/\D/g, '');
                 let link = `https://wa.me/${phone.length >= 10 ? '55' + phone : ''}?text=${encodeURIComponent(msg)}`;
                 window.open(link, '_blank');
                 document.getElementById('share-modal').style.display = 'none';
             };
-
             document.getElementById('btn-share-copy').onclick = async function() {
                 try {
                     await navigator.clipboard.writeText(url);
@@ -879,11 +781,10 @@
                 }
                 document.getElementById('share-modal').style.display = 'none';
             };
-
             document.getElementById('share-modal').style.display = 'flex';
         }
 
-        // --- PUBLIC INTERACTION FLOW ---
+        // --- PUBLIC INTERACTION FLOW (REFORMULADO VISUALMENTE) ---
         async function loadPublicProposal(id) {
             try {
                 safeShow('public-loading');
@@ -892,45 +793,92 @@
                 state.version = v; 
                 state.data = normalizeData(v.items);
                 const d = state.data;
-                
                 if(v.status === 'approved') document.getElementById('stamp-approved').style.display = 'block';
 
+                // 1. Cabeçalho & Metadados
+                let headerHtml = `<div class="doc-accent-bar mb-6"></div>`;
+                headerHtml += `<div class="doc-header-modern">`;
+                headerHtml += `  <div class="flex-1">`;
                 if(d.settings.providerName) {
-                    setHTML('doc-provider-info', `<h2 class="text-3xl font-bold font-heading mb-1">${d.settings.providerName}</h2><p class="text-slate-500 text-sm font-medium">${d.settings.providerDoc || ''} • ${d.settings.providerPhone || ''}</p><p class="text-slate-400 text-xs">${d.settings.providerAddr || ''}</p>`);
+                    headerHtml += `<h1 class="text-3xl font-extrabold text-slate-900 leading-tight">${d.settings.providerName}</h1>`;
+                    headerHtml += `<p class="text-slate-500 font-medium mt-1">${d.settings.providerDoc || ''} • ${d.settings.providerPhone || ''}</p>`;
+                    headerHtml += `<p class="text-slate-400 text-sm">${d.settings.providerAddr || ''}</p>`;
                 }
+                headerHtml += `  </div>`;
+                headerHtml += `  <div class="text-right mt-4 md:mt-0">`;
+                headerHtml += `    <div class="doc-label">PROPOSTA COMERCIAL</div>`;
+                headerHtml += `    <div class="text-2xl font-bold text-slate-300 tracking-tight">#${v.project_id ? v.project_id.substr(0,4).toUpperCase() : 'XXXX'}-${v.version_number}</div>`;
+                headerHtml += `    <div class="text-sm font-medium text-slate-400 mt-1">${new Date().toLocaleDateString()}</div>`;
+                headerHtml += `  </div>`;
+                headerHtml += `</div>`;
+                setHTML('doc-header-area', headerHtml);
 
-                safeText('doc-title', v.projects?.name);
-                safeText('doc-id', `#${v.project_id ? v.project_id.substr(0,4).toUpperCase() : 'XXXX'}-${v.version_number}`);
-                safeText('doc-c-name', d.client.name);
-                safeText('doc-c-doc', d.client.doc);
+                // 2. Título do Projeto e Cards de Cliente (Resumo do Projeto)
+                let summaryHtml = `<div class="mb-10">`;
+                summaryHtml += `<h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3"><span class="w-2 h-8 bg-blue-600 rounded"></span>${v.projects?.name || 'Projeto Sem Nome'}</h2>`;
                 
-                const finalAddr = d.location.sameAsClient ? d.client.address : (d.location.address || 'Não informado');
-                safeText('doc-c-addr', finalAddr);
+                summaryHtml += `<div class="grid grid-cols-1 md:grid-cols-2 gap-6">`;
+                // Card Cliente
+                summaryHtml += `<div class="doc-info-card">`;
+                summaryHtml += `<span class="doc-label">CLIENTE</span>`;
+                summaryHtml += `<div><div class="font-bold text-lg text-slate-800">${d.client.name || 'Não informado'}</div><div class="text-slate-500 text-sm">${d.client.doc || ''}</div></div>`;
+                summaryHtml += `<div><div class="font-medium text-slate-700 text-sm"><i class="fas fa-map-marker-alt text-blue-500 mr-2"></i>${d.client.address || 'Endereço não informado'}</div></div>`;
+                summaryHtml += `</div>`;
                 
+                // Card Local do Serviço
+                const finalAddr = d.location.sameAsClient ? 'Mesmo endereço do cliente' : (d.location.address || 'Não informado');
+                summaryHtml += `<div class="doc-info-card" style="border-left-color: #f59e0b;">`; // Cor diferente para diferenciar
+                summaryHtml += `<span class="doc-label">LOCAL DO SERVIÇO</span>`;
+                summaryHtml += `<div class="flex-1 flex items-center text-slate-600 font-medium"><i class="fas fa-tools text-amber-500 mr-3 text-xl"></i>${finalAddr}</div>`;
+                summaryHtml += `</div>`;
+                summaryHtml += `</div>`; // End Grid
+                summaryHtml += `</div>`; // End Summary
+                setHTML('doc-summary-area', summaryHtml);
+
                 renderPublicItems(); 
 
-                safeText('doc-payment', d.terms.paymentText); 
-                safeText('doc-deadline', d.terms.deadline); 
-                safeText('doc-validity', d.terms.validity); 
-                safeText('doc-obs', d.terms.obs);
+                // 3. Área Financeira e Condições (Modernizado)
+                let financeHtml = `<div class="mt-12">`;
+                financeHtml += `<div class="doc-financial-block">`;
+                
+                // Coluna Esquerda: Condições
+                financeHtml += `<div class="flex-1 z-10">`;
+                financeHtml += `  <div class="doc-label text-slate-400 mb-4">COND. PAGAMENTO & PRAZOS</div>`;
+                financeHtml += `  <div class="text-lg text-white font-medium mb-6 leading-relaxed">${d.terms.paymentText || 'A combinar'}</div>`;
+                financeHtml += `  <div class="flex gap-4">`;
+                financeHtml += `    <div class="bg-slate-800 px-4 py-2 rounded-lg"><span class="block text-[10px] uppercase text-slate-400 font-bold">Entrega</span><span class="text-white font-bold text-sm">${d.terms.deadline || '-'}</span></div>`;
+                financeHtml += `    <div class="bg-slate-800 px-4 py-2 rounded-lg"><span class="block text-[10px] uppercase text-slate-400 font-bold">Validade</span><span class="text-white font-bold text-sm">${d.terms.validity || '-'}</span></div>`;
+                financeHtml += `  </div>`;
+                financeHtml += `</div>`;
 
-                // --- RENDERIZAÇÃO MELHORADA DOS ANEXOS NA PÁGINA PÚBLICA ---
+                // Coluna Direita: Valor
+                financeHtml += `<div class="text-right z-10">`;
+                financeHtml += `  <div class="doc-label text-slate-400">VALOR TOTAL</div>`;
+                financeHtml += `  <div id="doc-total-display" class="text-5xl font-extrabold text-white tracking-tight mt-1">R$ 0,00</div>`;
+                financeHtml += `</div>`;
+                financeHtml += `</div>`; // End Block
+                
+                if(d.terms.obs) {
+                    financeHtml += `<div class="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600 italic"><span class="font-bold not-italic text-xs uppercase text-slate-400 block mb-1">Observações:</span>${d.terms.obs}</div>`;
+                }
+                financeHtml += `</div>`;
+                setHTML('doc-finance-area', financeHtml);
+
+                // Anexos
                 if(d.attachments && d.attachments.length > 0) {
                     let attHtml = '';
                     d.attachments.forEach(att => {
                         let icon = att.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500';
                         attHtml += `
                         <a href="${att.url}" target="_blank" class="att-card group">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors">
-                                    <i class="fas ${icon} text-xl"></i>
-                                </div>
-                                <div class="flex-1 overflow-hidden">
-                                    <h4 class="font-bold text-sm text-slate-800 truncate">${att.name}</h4>
-                                    ${att.description ? `<p class="text-xs text-slate-500 truncate">${att.description}</p>` : '<p class="text-[10px] text-slate-400 uppercase">Sem descrição</p>'}
-                                </div>
-                                <i class="fas fa-external-link-alt text-slate-300 group-hover:text-blue-500"></i>
+                            <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-50 transition-colors">
+                                <i class="fas ${icon} text-lg"></i>
                             </div>
+                            <div class="flex-1 overflow-hidden">
+                                <h4 class="font-bold text-sm text-slate-800 truncate">${att.name}</h4>
+                                <p class="text-xs text-slate-500 truncate">${att.description || 'Anexo do projeto'}</p>
+                            </div>
+                            <i class="fas fa-external-link-alt text-slate-300 group-hover:text-blue-500 text-xs"></i>
                         </a>`;
                     });
                     setHTML('doc-attachments-grid', attHtml);
@@ -940,7 +888,7 @@
                 }
 
                 if (d.signature) {
-                    setHTML('doc-signature-area', `<div class="mt-8 border-t border-dashed pt-4 w-64 text-center"><img src="${d.signature}" class="mx-auto h-16 mb-2" alt="Assinatura"><p class="text-xs text-slate-500 uppercase font-bold">Assinado Digitalmente</p></div>`);
+                    setHTML('doc-signature-area', `<div class="mt-12 text-center"><img src="${d.signature}" class="mx-auto h-20 mb-2 opacity-90" alt="Assinatura"><div class="border-t border-slate-300 w-64 mx-auto pt-2"><p class="text-xs text-slate-500 uppercase font-bold tracking-widest">Assinado Digitalmente</p></div></div>`);
                 }
 
                 const actions = document.getElementById('doc-actions');
@@ -949,10 +897,10 @@
                         showSuccessScreen(v.status);
                     } else {
                         actions.innerHTML = `
-                            <button onclick="openModal('approve')" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-slate-800 mb-3 transition-transform hover:scale-[1.01] flex items-center justify-center gap-2"><i class="fas fa-signature"></i> APROVAR PROPOSTA</button>
-                            <div class="grid grid-cols-2 gap-3">
-                                <button onclick="openModal('change')" class="bg-white border border-amber-200 text-amber-700 font-bold py-3 rounded-xl hover:bg-amber-50">Solicitar Alteração</button>
-                                <button onclick="openModal('cancel')" class="bg-white border border-red-200 text-red-600 font-bold py-3 rounded-xl hover:bg-red-50">Recusar</button>
+                            <button onclick="openModal('approve')" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-xl hover:bg-slate-800 mb-4 transition-transform hover:scale-[1.01] flex items-center justify-center gap-3"><i class="fas fa-signature text-emerald-400"></i> APROVAR PROPOSTA</button>
+                            <div class="grid grid-cols-2 gap-4">
+                                <button onclick="openModal('change')" class="bg-white border-2 border-slate-100 text-slate-600 font-bold py-3 rounded-xl hover:border-amber-300 hover:text-amber-600 transition-colors">Solicitar Alteração</button>
+                                <button onclick="openModal('cancel')" class="bg-white border-2 border-slate-100 text-slate-600 font-bold py-3 rounded-xl hover:border-red-300 hover:text-red-600 transition-colors">Recusar</button>
                             </div>
                         `;
                     }
@@ -976,35 +924,31 @@
             items.forEach((i, idx) => {
                 let isActive = !i.optional; 
                 if (i.optional && i.publicSelected) isActive = true; 
-                
                 if(i.optional && typeof i.publicSelected === 'undefined') i.publicSelected = false;
+                if (!i.optional || i.publicSelected) { total += (i.qty * i.price); }
 
-                if (!i.optional || i.publicSelected) {
-                    total += (i.qty * i.price);
-                }
-
-                html += `<tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors ${i.optional ? 'bg-slate-50/50' : ''}">
-                    <td class="py-4 pl-4">
-                        <div class="flex items-start gap-3">
-                            ${i.optional && !isFrozen ? `<input type="checkbox" onchange="togglePublicOpt(${idx})" ${i.publicSelected ? 'checked' : ''} class="mt-1 w-5 h-5 cursor-pointer accent-slate-900">` : ''}
-                            ${i.optional && isFrozen ? (i.publicSelected ? '<i class="fas fa-check-square text-green-600 mt-1"></i>' : '<i class="far fa-square text-slate-400 mt-1"></i>') : ''}
+                html += `<tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors ${i.optional ? 'opacity-80' : ''}">
+                    <td class="py-5 pl-2">
+                        <div class="flex items-start gap-4">
+                            ${i.optional && !isFrozen ? `<input type="checkbox" onchange="togglePublicOpt(${idx})" ${i.publicSelected ? 'checked' : ''} class="mt-1 w-5 h-5 cursor-pointer accent-slate-900 rounded border-slate-300">` : ''}
+                            ${i.optional && isFrozen ? (i.publicSelected ? '<i class="fas fa-check-square text-emerald-500 mt-1 text-lg"></i>' : '<i class="far fa-square text-slate-300 mt-1 text-lg"></i>') : ''}
                             <div>
-                                <div class="font-bold text-slate-800 ${i.optional ? 'text-slate-600' : ''}">
-                                    ${i.name} ${i.optional ? '<span class="text-[10px] bg-slate-200 text-slate-600 px-1 rounded uppercase ml-2 tracking-wide font-bold">Opcional</span>' : ''}
+                                <div class="font-bold text-slate-800 text-base ${i.optional ? 'text-slate-600' : ''}">
+                                    ${i.name} ${i.optional ? '<span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full uppercase ml-2 tracking-wide font-bold border border-slate-200">Opcional</span>' : ''}
                                 </div>
-                                <span class="font-normal text-sm text-slate-500">${i.description}</span>
+                                <span class="font-normal text-sm text-slate-500 mt-1 block leading-relaxed max-w-2xl">${i.description}</span>
                             </div>
                         </div>
                     </td>
-                    <td class="text-center text-sm font-medium text-slate-600">${i.qty}</td>
-                    <td class="text-right text-sm text-slate-500">R$ ${i.price.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
-                    <td class="text-right pr-4 font-bold text-sm ${i.optional && !i.publicSelected ? 'text-slate-400 decoration-slate-400 line-through' : 'text-slate-800'}">
+                    <td class="text-center text-sm font-bold text-slate-600">${i.qty}</td>
+                    <td class="text-right text-sm text-slate-500 font-medium">R$ ${i.price.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+                    <td class="text-right pr-2 font-bold text-base ${i.optional && !i.publicSelected ? 'text-slate-300 decoration-slate-300 line-through' : 'text-slate-800'}">
                         R$ ${(i.qty*i.price).toLocaleString('pt-BR',{minimumFractionDigits:2})}
                     </td>
                 </tr>`; 
             });
             setHTML('doc-items-body', html);
-            safeText('doc-total', total.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}));
+            safeText('doc-total-display', total.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}));
         }
 
         function togglePublicOpt(idx) {
@@ -1020,7 +964,7 @@
             const originalDisplay = stamp.style.display;
             stamp.style.display = 'block';
             document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
-            const opt = { margin: 10, filename: `Proposta_${state.project?.name}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            const opt = { margin: 0, filename: `Proposta_${state.project?.name}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
             html2pdf().set(opt).from(element).save().then(() => {
                  if(btn) btn.innerText = "Baixar Comprovante PDF";
                  document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
@@ -1038,18 +982,18 @@
             actions.innerHTML = ''; 
 
             if(type === 'approved' || type === 'approve') {
-                if(icon) icon.className = "fas fa-check-circle text-6xl text-green-500 mb-4";
-                if(title) title.innerText = "Orçamento Aprovado!";
+                if(icon) icon.className = "fas fa-check-circle text-6xl text-emerald-500 mb-4";
+                if(title) title.innerText = "Proposta Aprovada!";
                 if(desc) desc.innerText = "Obrigado pela confiança. O comprovante foi gerado.";
-                actions.innerHTML = `<button id="btn-download-pdf" onclick="loadPublicProposal('${state.version.id}').then(() => setTimeout(downloadPDF, 1000))" class="px-6 py-3 bg-slate-800 text-white rounded-lg font-bold shadow hover:bg-slate-700"><i class="fas fa-file-pdf mr-2"></i> Baixar Comprovante PDF</button>`;
+                actions.innerHTML = `<button id="btn-download-pdf" onclick="loadPublicProposal('${state.version.id}').then(() => setTimeout(downloadPDF, 1000))" class="px-8 py-4 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 transition-all"><i class="fas fa-file-pdf mr-2"></i> Baixar Comprovante PDF</button>`;
             } else if (type === 'negotiating' || type === 'change_request') {
                 if(icon) icon.className = "fas fa-clock text-6xl text-amber-500 mb-4";
                 if(title) title.innerText = "Solicitação Enviada";
-                if(desc) desc.innerText = "Aguarde o retorno.";
+                if(desc) desc.innerText = "O prestador receberá sua mensagem.";
             } else {
-                if(icon) icon.className = "fas fa-times-circle text-6xl text-slate-400 mb-4";
-                if(title) title.innerText = "Orçamento Recusado";
-                if(desc) desc.innerText = "O orçamento foi marcado como recusado.";
+                if(icon) icon.className = "fas fa-times-circle text-6xl text-slate-300 mb-4";
+                if(title) title.innerText = "Proposta Recusada";
+                if(desc) desc.innerText = "O status foi atualizado.";
             }
         }
 
@@ -1098,7 +1042,7 @@
                 desc.innerText = 'Por favor, assine abaixo para confirmar a aprovação.';
                 sigArea.style.display = 'block';
                 btn.innerText = 'Confirmar Aprovação';
-                btn.className = "w-full py-3 bg-green-600 text-white rounded font-bold hover:bg-green-700";
+                btn.className = "w-full py-3 bg-emerald-600 text-white rounded font-bold hover:bg-emerald-700";
                 btn.onclick = () => executeAction('approve');
                 setTimeout(initSignaturePad, 100); 
             } else if(type === 'change') {
@@ -1106,7 +1050,7 @@
                 desc.innerText = 'Descreva as mudanças desejadas:';
                 input.style.display = 'block';
                 btn.innerText = 'Enviar Solicitação';
-                btn.className = "w-full py-3 bg-amber-600 text-white rounded font-bold hover:bg-amber-700";
+                btn.className = "w-full py-3 bg-amber-500 text-white rounded font-bold hover:bg-amber-600";
                 btn.onclick = () => executeAction('change');
             } else if(type === 'cancel') {
                 title.innerText = 'Recusar Orçamento';
@@ -1352,81 +1296,36 @@
 
     <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10 overflow-y-auto print:p-0">
         <div id="public-loading" class="flex justify-center mt-20"><div class="spinner border-slate-900"></div></div>
+        
         <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col doc-container">
             <div id="stamp-approved" class="hidden absolute top-10 right-10 border-4 border-emerald-600 text-emerald-600 font-bold text-3xl px-6 py-2 uppercase opacity-30 transform -rotate-12 z-20">APROVADO</div>
             
             <div class="p-12 print:p-8">
-                <div class="doc-header">
-                    <div>
-                        <div id="doc-provider-info"></div>
-                    </div>
-                    <div class="text-right">
-                        <div id="doc-id" class="text-2xl font-bold text-slate-300">#REF</div>
-                        <div class="text-sm text-slate-400 mt-1 uppercase tracking-widest">Proposta Técnica</div>
-                    </div>
-                </div>
+                <div id="doc-header-area"></div>
 
-                <div class="mb-10">
-                    <h1 id="doc-title" class="text-4xl font-bold text-slate-800 mb-2 doc-title">Projeto</h1>
-                    <p class="text-slate-500">Documento de escopo e orçamento.</p>
-                </div>
-                
-                <div class="doc-card mb-12">
-                    <div class="flex flex-col md:flex-row gap-8">
-                        <div class="flex-1">
-                            <h3 class="doc-section-title">Contratante</h3>
-                            <div id="doc-c-name" class="font-bold text-lg text-slate-800"></div>
-                            <div id="doc-c-doc" class="text-slate-500 text-sm"></div>
-                        </div>
-                        <div class="flex-1 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-8">
-                            <h3 class="doc-section-title">Local do Serviço</h3>
-                            <div id="doc-c-addr" class="text-slate-600 text-sm"></div>
-                        </div>
-                    </div>
-                </div>
+                <div id="doc-summary-area"></div>
 
                 <div class="mb-12">
-                    <h3 class="doc-section-title">Escopo do Serviço</h3>
+                    <h3 class="doc-table-header">Escopo Detalhado</h3>
                     <table class="w-full">
-                        <thead>
-                            <tr class="text-left text-xs uppercase text-slate-400 border-b-2 border-slate-100">
-                                <th class="pb-3 pl-4 font-bold">Descrição</th>
-                                <th class="pb-3 text-center font-bold">Qtd</th>
-                                <th class="pb-3 text-right font-bold">Unit.</th>
-                                <th class="pb-3 text-right pr-4 font-bold">Total</th>
-                            </tr>
-                        </thead>
                         <tbody id="doc-items-body"></tbody>
                     </table>
                 </div>
                 
                 <div id="doc-attachments-section" class="mb-12">
-                    <h3 class="doc-section-title">Documentação & Arquivos</h3>
-                    <div id="doc-attachments-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                    <h3 class="doc-table-header">Arquivos & Documentos</h3>
+                    <div id="doc-attachments-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4"></div>
                 </div>
 
-                <div class="bg-slate-50 border border-slate-200 rounded-lg p-8 mb-12 flex flex-col md:flex-row gap-12 mt-8">
-                    <div class="flex-1">
-                        <h4 class="doc-section-title" style="border-left-color: #f59e0b;">Condições Comerciais</h4>
-                        <div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line mb-4"></div>
-                        <div class="flex gap-8 text-sm border-t pt-4 border-slate-200">
-                            <div><span class="font-bold text-xs uppercase text-slate-400 block mb-1">Prazo de Entrega</span><span id="doc-deadline" class="font-medium"></span></div>
-                            <div><span class="font-bold text-xs uppercase text-slate-400 block mb-1">Validade da Proposta</span><span id="doc-validity" class="font-medium"></span></div>
-                        </div>
-                    </div>
-                    <div class="text-right flex flex-col justify-center">
-                        <h4 class="text-xs uppercase font-bold text-slate-400 mb-2">Valor Total</h4>
-                        <div id="doc-total" class="text-4xl font-extrabold text-slate-900 tracking-tight">R$ 0,00</div>
-                    </div>
-                </div>
+                <div id="doc-finance-area"></div>
                 
-                <div id="doc-obs" class="text-xs text-slate-500 italic text-justify border-l-2 border-slate-300 pl-4 mb-8"></div>
                 <div id="doc-signature-area"></div>
                 
-                <div id="doc-actions" class="no-print mt-12"></div>
+                <div id="doc-actions" class="no-print mt-16 pb-8"></div>
             </div>
-            <div class="bg-slate-100 p-4 text-center border-t no-print text-slate-400 text-xs uppercase tracking-widest font-bold">
-                Gerado via Aprova Aí
+            
+            <div class="bg-slate-50 p-4 text-center border-t no-print text-slate-400 text-[10px] uppercase tracking-widest font-bold">
+                Gerado via Aprova Aí • Sistema de Gestão Inteligente
             </div>
         </div>
     </section>
