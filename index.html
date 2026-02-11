@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #334155; overflow-x: hidden; font-size: 16px; }
+        body { font-family: 'Inter', sans-serif; background-color: #F1F5F9; color: #334155; overflow-x: hidden; font-size: 16px; }
         .font-heading { font-family: 'Plus Jakarta Sans', sans-serif; }
 
         /* Utilitários de Scroll */
@@ -108,6 +108,7 @@
         .editor-body { padding: 24px; }
         
         .finance-section { flex-shrink: 0; background: white; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; }
+        .attachments-section { flex-shrink: 0; background: white; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; }
         .history-section { flex-grow: 1; background: white; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-height: 200px; }
         .history-content-scroll { overflow-y: auto; flex-grow: 1; padding: 16px; }
 
@@ -136,6 +137,52 @@
         /* Assinatura */
         #signature-pad { border: 2px dashed #cbd5e1; border-radius: 12px; background: #f8fafc; cursor: crosshair; touch-action: none; width: 100%; height: 200px; }
         
+        /* --- ESTILOS DE DOCUMENTO (Página Pública Profissional) --- */
+        .doc-container {
+            font-family: 'Inter', sans-serif;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+        .doc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 2rem;
+        }
+        .doc-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; letter-spacing: -0.02em; }
+        .doc-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 700;
+            color: #64748b;
+            margin-bottom: 1rem;
+            border-left: 3px solid #3b82f6;
+            padding-left: 0.75rem;
+        }
+        .doc-card {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        .att-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .att-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
         /* --- RESPONSIVIDADE --- */
         
         /* Telas Gigantes (4k, Ultrawide) */
@@ -165,7 +212,7 @@
             } 
             .left-col-scroll { overflow: visible; height: auto; padding-right: 0; }
             .right-col-fixed { height: auto; overflow: visible; gap: 20px; }
-            .finance-section, .history-section { flex: none; width: 100%; border-radius: 16px; }
+            .finance-section, .attachments-section, .history-section { flex: none; width: 100%; border-radius: 16px; }
             .history-section { max-height: 400px; }
             table { display: block; overflow-x: auto; white-space: nowrap; }
             .app-header .btn { padding: 8px 12px; font-size: 0.8rem; }
@@ -174,10 +221,11 @@
         
         @media print { 
             .no-print { display: none !important; } 
-            body { background: white; font-size: 12pt; } 
+            body { background: white; font-size: 11pt; } 
             .panel-grid { display: block; height: auto; overflow: visible; }
-            #view-public { padding: 0; background: white; }
+            #view-public { padding: 0; background: white; overflow: visible; }
             #public-content { box-shadow: none; margin: 0; width: 100%; max-width: 100%; }
+            .doc-card { background: white; border: 1px solid #ddd; }
         }
     </style>
 </head>
@@ -242,6 +290,17 @@
                 optional: i.optional || false,
                 publicSelected: i.publicSelected || false 
             }));
+
+            // Normaliza anexos para garantir que tenham descrição
+            let cleanAttachments = [];
+            if (Array.isArray(dbData.attachments)) {
+                cleanAttachments = dbData.attachments.map(a => ({
+                    name: a.name || 'Arquivo',
+                    url: a.url || '',
+                    type: a.type || 'pdf',
+                    description: a.description || '' // Garante o campo descrição
+                }));
+            }
             
             return { 
                 client: { ...schema.client, ...(dbData.client || {}) }, 
@@ -250,7 +309,7 @@
                 terms: { ...schema.terms, ...(dbData.terms || {}) }, 
                 settings: { ...schema.settings, ...(dbData.settings || {}) }, 
                 history: Array.isArray(dbData.history) ? dbData.history : [],
-                attachments: Array.isArray(dbData.attachments) ? dbData.attachments : [],
+                attachments: cleanAttachments,
                 signature: dbData.signature || null
             };
         }
@@ -471,7 +530,8 @@
                 const { data: pubData } = db.storage.from('attachments').getPublicUrl(path);
                 
                 if (!state.data.attachments) state.data.attachments = [];
-                state.data.attachments.push({ name: file.name, url: pubData.publicUrl, type: ext });
+                // Adiciona o anexo com campo de descrição vazio
+                state.data.attachments.push({ name: file.name, url: pubData.publicUrl, type: ext, description: '' });
                 
                 await save();
             } catch (err) {
@@ -480,6 +540,7 @@
             } finally {
                 label.innerHTML = originalText;
                 e.target.value = ''; // Limpa input
+                renderEditor();
             }
         }
 
@@ -487,6 +548,10 @@
             if(!confirm("Remover este anexo?")) return;
             state.data.attachments.splice(idx, 1);
             await save();
+        }
+
+        function upAttachmentDesc(idx, val) {
+            state.data.attachments[idx].description = val;
         }
 
         function setClientType(type) {
@@ -511,7 +576,6 @@
             setVal('p-addr', d.settings.providerAddr); setVal('p-phone', d.settings.providerPhone);
             setVal('c-name', d.client.name); setVal('c-doc', d.client.doc); setVal('c-phone', d.client.phone); setVal('c-email', d.client.email); setVal('c-addr', d.client.address);
             
-            // --- INICIO ALTERAÇÃO CLIENTE ---
             const isPJ = d.client.type !== 'pf'; // Padrão PJ
             const clBtns = document.getElementById('cl-type-btns');
             if(clBtns) {
@@ -528,7 +592,6 @@
             
             const lblDoc = document.getElementById('lbl-c-doc'); if(lblDoc) lblDoc.innerText = isPJ ? 'CNPJ' : 'CPF';
             const plDoc = document.getElementById('c-doc'); if(plDoc) plDoc.placeholder = isPJ ? '00.000.000/0000-00' : '000.000.000-00';
-            // --- FIM ALTERAÇÃO CLIENTE ---
 
             const svc = document.getElementById('s-type'); if(svc) svc.value = d.settings.serviceType || 'Outros';
             
@@ -542,26 +605,34 @@
             if(locDiv) locDiv.style.display = d.location.sameAsClient ? 'none' : 'block';
             setVal('loc-addr', d.location.address);
 
-            // RENDERIZA LISTA DE ANEXOS NO EDITOR
+            // --- RENDERIZA LISTA DE ANEXOS NA NOVA SEÇÃO (FORA DO FINANCEIRO) ---
             const attachList = document.getElementById('ed-attachments-list');
             if (attachList) {
                 let attHtml = '';
                 if (d.attachments && d.attachments.length > 0) {
                     d.attachments.forEach((att, idx) => {
                         let icon = att.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500';
-                        attHtml += `<div class="flex items-center justify-between bg-white border p-3 rounded mb-2 text-sm">
-                            <div class="flex items-center gap-2 overflow-hidden">
-                                <i class="fas ${icon}"></i> 
-                                <span class="truncate">${att.name}</span>
+                        attHtml += `<div class="bg-slate-50 border border-slate-200 p-3 rounded mb-3 text-sm">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2 overflow-hidden">
+                                    <i class="fas ${icon} text-lg"></i> 
+                                    <span class="truncate font-medium text-slate-700">${att.name}</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700 bg-white p-1 rounded border shadow-sm"><i class="fas fa-eye"></i></a>
+                                    ${!isLocked ? `<button onclick="deleteAttachment(${idx})" class="text-red-400 hover:text-red-600 bg-white p-1 rounded border shadow-sm"><i class="fas fa-trash"></i></button>` : ''}
+                                </div>
                             </div>
-                            <div class="flex gap-2">
-                                <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700"><i class="fas fa-eye"></i></a>
-                                ${!isLocked ? `<button onclick="deleteAttachment(${idx})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>` : ''}
-                            </div>
+                            <input type="text" 
+                                class="w-full text-xs bg-white border border-slate-200 rounded p-2 outline-none focus:border-blue-400" 
+                                placeholder="Descreva este documento (Ex: Planta Baixa, Contrato Assinado...)" 
+                                value="${att.description || ''}" 
+                                onchange="upAttachmentDesc(${idx}, this.value)"
+                                ${isLocked ? 'disabled' : ''}>
                         </div>`;
                     });
                 } else {
-                    attHtml = '<div class="text-xs text-slate-400 italic text-center py-2">Nenhum arquivo anexado.</div>';
+                    attHtml = '<div class="text-xs text-slate-400 italic text-center py-6 border-2 border-dashed border-slate-100 rounded bg-slate-50">Nenhum documento anexado.</div>';
                 }
                 attachList.innerHTML = attHtml;
             }
@@ -570,17 +641,15 @@
             const uploadDiv = document.getElementById('upload-area');
             if(uploadDiv) uploadDiv.style.display = isLocked ? 'none' : 'block';
 
-            // DESABILITA TODOS OS CAMPOS DE TEXTO E INPUTS SE ESTIVER BLOQUEADO
+            // DESABILITA TODOS OS CAMPOS SE ESTIVER BLOQUEADO
             const staticInputs = ['p-name','p-doc','p-addr','p-phone','c-name','c-doc','c-phone','c-email','c-addr','s-type','pay-mode','t-deadline','t-val','t-obs', 'loc-check', 'loc-addr'];
             staticInputs.forEach(id => { const el = document.getElementById(id); if(el) el.disabled = isLocked; });
 
-            // OCULTA BOTÃO DE ADICIONAR ITEM E CALCULADORA
             const btnAdd = document.getElementById('btn-add-item');
             if(btnAdd) btnAdd.style.display = isLocked ? 'none' : 'inline-block';
             
             const btnCalc = document.getElementById('btn-calc-pay');
             if(btnCalc) btnCalc.style.display = isLocked ? 'none' : 'inline-block';
-
 
             let html = ''; 
             let total = 0;
@@ -651,7 +720,6 @@
             setHTML('ed-total', totalDisplay);
 
             let histHtml = '';
-            // CORREÇÃO: ORDENAÇÃO POR DATA ASCENDENTE (ANTIGO -> NOVO)
             if(d.history && d.history.length > 0) {
                 d.history.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(h => {
                     const date = new Date(h.date).toLocaleString('pt-BR');
@@ -668,7 +736,6 @@
             } else { histHtml = '<div class="text-xs text-slate-400 italic">Sem histórico registrado.</div>'; }
             setHTML('ed-history', histHtml);
 
-            // CORREÇÃO: BOTÃO "CRIAR REVISÃO" RESTAURADO
             const actions = document.getElementById('ed-actions');
             if (actions) {
                 if (isLocked) { 
@@ -701,7 +768,7 @@
         function rmItem(i) { if(confirm("Remover este item?")) { state.data.items.splice(i, 1); renderEditor(); } }
         
         function generatePayment() {
-            const total = state.data.items.reduce((acc, i) => (!i.optional ? acc + (i.qty * i.price) : acc), 0);
+            const total = state.data.items.reduce((acc, i) => (!i.optional ? acc + (i.qty * i.price) : acc, 0);
             if(total === 0) return alert("Adicione valores (não opcionais) primeiro.");
             const mode = document.getElementById('pay-mode').value;
             let text = "";
@@ -813,7 +880,7 @@
                 if(v.status === 'approved') document.getElementById('stamp-approved').style.display = 'block';
 
                 if(d.settings.providerName) {
-                    setHTML('doc-provider-info', `<div class="mb-4 pb-4 border-b border-slate-700"><h2 class="text-xl font-bold">${d.settings.providerName}</h2><p class="text-slate-400 text-sm">${d.settings.providerDoc || ''} • ${d.settings.providerPhone || ''}</p><p class="text-slate-400 text-xs">${d.settings.providerAddr || ''}</p></div>`);
+                    setHTML('doc-provider-info', `<h2 class="text-3xl font-bold font-heading mb-1">${d.settings.providerName}</h2><p class="text-slate-500 text-sm font-medium">${d.settings.providerDoc || ''} • ${d.settings.providerPhone || ''}</p><p class="text-slate-400 text-xs">${d.settings.providerAddr || ''}</p>`);
                 }
 
                 safeText('doc-title', v.projects?.name);
@@ -831,16 +898,29 @@
                 safeText('doc-validity', d.terms.validity); 
                 safeText('doc-obs', d.terms.obs);
 
+                // --- RENDERIZAÇÃO MELHORADA DOS ANEXOS NA PÁGINA PÚBLICA ---
                 if(d.attachments && d.attachments.length > 0) {
-                    let attHtml = '<h3 class="font-bold text-xs uppercase text-slate-400 mb-2 mt-8 tracking-wider">Documentos Anexos</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-2">';
+                    let attHtml = '';
                     d.attachments.forEach(att => {
                         let icon = att.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500';
-                        attHtml += `<a href="${att.url}" target="_blank" class="flex items-center gap-3 p-3 border rounded hover:bg-slate-50 transition-colors"><i class="fas ${icon} text-lg"></i><span class="text-sm font-medium text-slate-700 truncate">${att.name}</span></a>`;
+                        attHtml += `
+                        <a href="${att.url}" target="_blank" class="att-card group">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors">
+                                    <i class="fas ${icon} text-xl"></i>
+                                </div>
+                                <div class="flex-1 overflow-hidden">
+                                    <h4 class="font-bold text-sm text-slate-800 truncate">${att.name}</h4>
+                                    ${att.description ? `<p class="text-xs text-slate-500 truncate">${att.description}</p>` : '<p class="text-[10px] text-slate-400 uppercase">Sem descrição</p>'}
+                                </div>
+                                <i class="fas fa-external-link-alt text-slate-300 group-hover:text-blue-500"></i>
+                            </div>
+                        </a>`;
                     });
-                    attHtml += '</div>';
-                    setHTML('doc-attachments-area', attHtml);
+                    setHTML('doc-attachments-grid', attHtml);
+                    safeShow('doc-attachments-section');
                 } else {
-                    setHTML('doc-attachments-area', '');
+                    safeHide('doc-attachments-section');
                 }
 
                 if (d.signature) {
@@ -853,10 +933,10 @@
                         showSuccessScreen(v.status);
                     } else {
                         actions.innerHTML = `
-                            <button onclick="openModal('approve')" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 mb-3 transition-transform hover:scale-[1.01]">APROVAR PROPOSTA</button>
+                            <button onclick="openModal('approve')" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-slate-800 mb-3 transition-transform hover:scale-[1.01] flex items-center justify-center gap-2"><i class="fas fa-signature"></i> APROVAR PROPOSTA</button>
                             <div class="grid grid-cols-2 gap-3">
-                                <button onclick="openModal('change')" class="bg-amber-100 text-amber-700 font-bold py-3 rounded-xl hover:bg-amber-200">Solicitar Alteração</button>
-                                <button onclick="openModal('cancel')" class="bg-red-50 text-red-600 font-bold py-3 rounded-xl hover:bg-red-100">Recusar</button>
+                                <button onclick="openModal('change')" class="bg-white border border-amber-200 text-amber-700 font-bold py-3 rounded-xl hover:bg-amber-50">Solicitar Alteração</button>
+                                <button onclick="openModal('cancel')" class="bg-white border border-red-200 text-red-600 font-bold py-3 rounded-xl hover:bg-red-50">Recusar</button>
                             </div>
                         `;
                     }
@@ -887,20 +967,20 @@
                     total += (i.qty * i.price);
                 }
 
-                html += `<tr class="border-b border-slate-100 ${i.optional ? 'bg-slate-50' : ''}">
+                html += `<tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors ${i.optional ? 'bg-slate-50/50' : ''}">
                     <td class="py-4 pl-4">
                         <div class="flex items-start gap-3">
-                            ${i.optional && !isFrozen ? `<input type="checkbox" onchange="togglePublicOpt(${idx})" ${i.publicSelected ? 'checked' : ''} class="mt-1 w-5 h-5 cursor-pointer accent-green-600">` : ''}
+                            ${i.optional && !isFrozen ? `<input type="checkbox" onchange="togglePublicOpt(${idx})" ${i.publicSelected ? 'checked' : ''} class="mt-1 w-5 h-5 cursor-pointer accent-slate-900">` : ''}
                             ${i.optional && isFrozen ? (i.publicSelected ? '<i class="fas fa-check-square text-green-600 mt-1"></i>' : '<i class="far fa-square text-slate-400 mt-1"></i>') : ''}
                             <div>
                                 <div class="font-bold text-slate-800 ${i.optional ? 'text-slate-600' : ''}">
-                                    ${i.name} ${i.optional ? '<span class="text-[10px] bg-slate-200 text-slate-600 px-1 rounded uppercase ml-2">Opcional</span>' : ''}
+                                    ${i.name} ${i.optional ? '<span class="text-[10px] bg-slate-200 text-slate-600 px-1 rounded uppercase ml-2 tracking-wide font-bold">Opcional</span>' : ''}
                                 </div>
-                                <span class="font-normal text-xs text-slate-500">${i.description}</span>
+                                <span class="font-normal text-sm text-slate-500">${i.description}</span>
                             </div>
                         </div>
                     </td>
-                    <td class="text-center text-sm">${i.qty}</td>
+                    <td class="text-center text-sm font-medium text-slate-600">${i.qty}</td>
                     <td class="text-right text-sm text-slate-500">R$ ${i.price.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
                     <td class="text-right pr-4 font-bold text-sm ${i.optional && !i.publicSelected ? 'text-slate-400 decoration-slate-400 line-through' : 'text-slate-800'}">
                         R$ ${(i.qty*i.price).toLocaleString('pt-BR',{minimumFractionDigits:2})}
@@ -924,7 +1004,7 @@
             const originalDisplay = stamp.style.display;
             stamp.style.display = 'block';
             document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
-            const opt = { margin: 0, filename: `Comprovante_${state.project?.name}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            const opt = { margin: 10, filename: `Proposta_${state.project?.name}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
             html2pdf().set(opt).from(element).save().then(() => {
                  if(btn) btn.innerText = "Baixar Comprovante PDF";
                  document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
@@ -1219,6 +1299,19 @@
                 </div>
 
                 <div class="right-col-fixed">
+                    <div class="attachments-section">
+                        <div class="editor-header"><i class="fas fa-folder-open"></i> Documentação & Arquivos</div>
+                        <div class="editor-body">
+                            <div id="ed-attachments-list"></div>
+                            <div id="upload-area" class="mt-2">
+                                <label for="file-upload" id="upload-label" class="cursor-pointer block w-full text-center p-3 border-2 border-dashed border-slate-300 rounded hover:bg-slate-50 text-xs text-slate-500 font-bold uppercase transition-colors">
+                                    <i class="fas fa-cloud-upload-alt mr-2"></i> Adicionar PDF ou Imagem
+                                </label>
+                                <input id="file-upload" type="file" class="hidden" accept=".pdf, .png, .jpg, .jpeg" onchange="handleUpload(event)">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="finance-section">
                         <div class="editor-header"><i class="fas fa-coins"></i> Financeiro</div>
                         <div class="editor-body">
@@ -1227,17 +1320,6 @@
                             
                             <div class="grid grid-cols-2 gap-4"><div class="input-group"><label class="input-label">Entrega</label><input id="t-deadline" class="border p-2 rounded text-sm" placeholder="Prazo" onchange="upVal('t-deadline',this.value)"></div><div class="input-group"><label class="input-label">Validade</label><input id="t-val" class="border p-2 rounded text-sm" placeholder="Validade" onchange="upVal('t-val',this.value)"></div></div>
                             
-                            <div class="mt-4 pt-4 border-t border-dashed">
-                                <label class="input-label">Anexos (PDF/Img)</label>
-                                <div id="ed-attachments-list"></div>
-                                <div id="upload-area" class="mt-2">
-                                    <label for="file-upload" id="upload-label" class="cursor-pointer block w-full text-center p-3 border-2 border-dashed border-slate-300 rounded hover:bg-slate-50 text-xs text-slate-500 font-bold uppercase">
-                                        <i class="fas fa-paperclip mr-2"></i> Adicionar Arquivo
-                                    </label>
-                                    <input id="file-upload" type="file" class="hidden" accept=".pdf, .png, .jpg, .jpeg" onchange="handleUpload(event)">
-                                </div>
-                            </div>
-
                             <div class="input-group mt-4"><label class="input-label">Obs</label><textarea id="t-obs" class="w-full border p-2 rounded text-sm h-20 mb-4 bg-slate-50" placeholder="Condições de pagamento..." onchange="upVal('t-obs',this.value)"></textarea></div>
                             <div id="ed-actions" class="mt-6"></div>
                         </div>
@@ -1254,43 +1336,82 @@
 
     <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10 overflow-y-auto print:p-0">
         <div id="public-loading" class="flex justify-center mt-20"><div class="spinner border-slate-900"></div></div>
-        <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col">
+        <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col doc-container">
             <div id="stamp-approved" class="hidden absolute top-10 right-10 border-4 border-emerald-600 text-emerald-600 font-bold text-3xl px-6 py-2 uppercase opacity-30 transform -rotate-12 z-20">APROVADO</div>
-            <div class="bg-slate-900 text-white p-12 print:bg-white print:text-black print:border-b-2">
-                <div id="doc-provider-info"></div>
-                <div class="flex justify-between items-start mt-4">
-                    <div><h1 id="doc-title" class="text-3xl font-bold mb-2">Projeto</h1><p class="text-xs uppercase tracking-widest text-slate-400">Proposta Técnica</p></div>
-                    <div class="text-right"><div id="doc-id" class="font-bold text-lg">#REF</div><div id="doc-date" class="text-sm opacity-70">--/--/--</div></div>
+            
+            <div class="p-12 print:p-8">
+                <div class="doc-header">
+                    <div>
+                        <div id="doc-provider-info"></div>
+                    </div>
+                    <div class="text-right">
+                        <div id="doc-id" class="text-2xl font-bold text-slate-300">#REF</div>
+                        <div class="text-sm text-slate-400 mt-1 uppercase tracking-widest">Proposta Técnica</div>
+                    </div>
                 </div>
-            </div>
-            <div class="p-12 flex-1">
-                <div class="flex gap-12 mb-12 text-sm"><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Contratante</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div><div id="doc-c-doc" class="text-slate-500"></div></div><div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Local</h3><div id="doc-c-addr" class="text-slate-600"></div></div></div>
+
+                <div class="mb-10">
+                    <h1 id="doc-title" class="text-4xl font-bold text-slate-800 mb-2 doc-title">Projeto</h1>
+                    <p class="text-slate-500">Documento de escopo e orçamento.</p>
+                </div>
+                
+                <div class="doc-card mb-12">
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <div class="flex-1">
+                            <h3 class="doc-section-title">Contratante</h3>
+                            <div id="doc-c-name" class="font-bold text-lg text-slate-800"></div>
+                            <div id="doc-c-doc" class="text-slate-500 text-sm"></div>
+                        </div>
+                        <div class="flex-1 border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-8">
+                            <h3 class="doc-section-title">Local do Serviço</h3>
+                            <div id="doc-c-addr" class="text-slate-600 text-sm"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mb-12">
-                    <h3 class="font-bold text-xs uppercase text-slate-400 mb-4 tracking-wider">Escopo</h3>
+                    <h3 class="doc-section-title">Escopo do Serviço</h3>
                     <table class="w-full">
                         <thead>
-                            <tr class="text-left text-xs uppercase text-slate-400 border-b">
-                                <th class="pb-2 pl-4">Item</th>
-                                <th class="pb-2 text-center">Qtd</th>
-                                <th class="pb-2 text-right">Unit.</th>
-                                <th class="pb-2 text-right pr-4">Total</th>
+                            <tr class="text-left text-xs uppercase text-slate-400 border-b-2 border-slate-100">
+                                <th class="pb-3 pl-4 font-bold">Descrição</th>
+                                <th class="pb-3 text-center font-bold">Qtd</th>
+                                <th class="pb-3 text-right font-bold">Unit.</th>
+                                <th class="pb-3 text-right pr-4 font-bold">Total</th>
                             </tr>
                         </thead>
                         <tbody id="doc-items-body"></tbody>
                     </table>
                 </div>
                 
-                <div id="doc-attachments-area"></div>
-
-                <div class="bg-slate-50 border border-slate-100 rounded-lg p-8 mb-12 flex gap-12 mt-8">
-                    <div class="flex-1"><h4 class="font-bold text-xs uppercase text-slate-400 mb-2">Pagamento</h4><div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line"></div><div class="mt-4 flex gap-6 text-sm"><div><span class="font-bold text-xs uppercase text-slate-400 block">Entrega</span><span id="doc-deadline"></span></div><div><span class="font-bold text-xs uppercase text-slate-400 block">Validade</span><span id="doc-validity"></span></div></div></div>
-                    <div class="text-right"><h4 class="font-bold text-xs uppercase text-slate-400 mb-1">Total</h4><div id="doc-total" class="text-3xl font-bold text-slate-900">R$ 0,00</div></div>
+                <div id="doc-attachments-section" class="mb-12">
+                    <h3 class="doc-section-title">Documentação & Arquivos</h3>
+                    <div id="doc-attachments-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 </div>
-                <div id="doc-obs" class="text-xs text-slate-500 italic text-justify"></div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-8 mb-12 flex flex-col md:flex-row gap-12 mt-8">
+                    <div class="flex-1">
+                        <h4 class="doc-section-title" style="border-left-color: #f59e0b;">Condições Comerciais</h4>
+                        <div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line mb-4"></div>
+                        <div class="flex gap-8 text-sm border-t pt-4 border-slate-200">
+                            <div><span class="font-bold text-xs uppercase text-slate-400 block mb-1">Prazo de Entrega</span><span id="doc-deadline" class="font-medium"></span></div>
+                            <div><span class="font-bold text-xs uppercase text-slate-400 block mb-1">Validade da Proposta</span><span id="doc-validity" class="font-medium"></span></div>
+                        </div>
+                    </div>
+                    <div class="text-right flex flex-col justify-center">
+                        <h4 class="text-xs uppercase font-bold text-slate-400 mb-2">Valor Total</h4>
+                        <div id="doc-total" class="text-4xl font-extrabold text-slate-900 tracking-tight">R$ 0,00</div>
+                    </div>
+                </div>
+                
+                <div id="doc-obs" class="text-xs text-slate-500 italic text-justify border-l-2 border-slate-300 pl-4 mb-8"></div>
                 <div id="doc-signature-area"></div>
+                
                 <div id="doc-actions" class="no-print mt-12"></div>
             </div>
-            <div class="bg-slate-50 p-4 text-center border-t no-print"><button onclick="window.print()" class="text-xs font-bold text-slate-400 uppercase hover:text-slate-600"><i class="fas fa-print"></i> PDF</button></div>
+            <div class="bg-slate-100 p-4 text-center border-t no-print text-slate-400 text-xs uppercase tracking-widest font-bold">
+                Gerado via Aprova Aí
+            </div>
         </div>
     </section>
 
