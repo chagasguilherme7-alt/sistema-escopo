@@ -26,27 +26,18 @@
         .btn-new { background: #3B82F6; color: white; border-radius: 8px; padding: 12px; margin: 20px; text-align: center; font-weight: 600; cursor: pointer; transition: background 0.2s; display: block; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5); }
         .btn-new:hover { background: #2563EB; }
 
-        /* --- ELEMENTOS ORIGINAIS (RESTORED) --- */
-        
-        /* Status Badges (Bolinhas do MeOrçamentos + Cores do AprovaAi) */
-        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-        .st-draft { color: #0284c7; background: #e0f2fe; } /* Azul Claro */
-        .st-sent { color: #1e40af; background: #dbeafe; } /* Azul Escuro */
-        .st-negotiating { color: #c2410c; background: #ffedd5; } /* Laranja (Em Negociação) - RESTAURADO */
-        .st-approved { color: #166534; background: #dcfce7; } /* Verde */
-        .st-canceled { color: #991b1b; background: #fee2e2; } /* Vermelho */
-        
-        .status-badge { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.05em; white-space: nowrap; }
+        /* --- ELEMENTOS DO EDITOR ORIGINAL (RESTAURADOS) --- */
+        .item-box { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s; }
+        .item-box:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .item-optional { border: 2px dashed #94a3b8 !important; background-color: #f8fafc; opacity: 0.9; }
+        .optional-badge { background: #64748b; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; font-weight: bold; text-transform: uppercase; margin-left: 8px; }
 
-        /* Timeline (Histórico Original) - RESTAURADO */
         .timeline-item { position: relative; padding-left: 2rem; border-left: 2px solid #e2e8f0; padding-bottom: 1.5rem; }
         .timeline-item::before { content: ''; position: absolute; left: -5px; top: 0; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
         .timeline-item:last-child { border-left: transparent; }
-        .timeline-date { font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px; }
         .timeline-desc { font-size: 0.85rem; color: #334155; margin-top: 6px; background: #fff7ed; padding: 12px; border-radius: 8px; border: 1px solid #fed7aa; font-style: italic; }
-        .timeline-desc.system { background: #f8fafc; border-color: #f1f5f9; font-style: normal; }
 
-        /* Cards do Documento Público (Original) - RESTAURADO */
+        /* --- DOCUMENTO PÚBLICO (RESTAURADO) --- */
         .doc-container { font-family: 'Inter', sans-serif; color: #1e293b; line-height: 1.6; }
         .doc-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 2rem; border-bottom: 2px solid #e2e8f0; margin-bottom: 2rem; }
         .doc-section-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #64748b; margin-bottom: 1rem; border-left: 3px solid #3b82f6; padding-left: 0.75rem; }
@@ -62,6 +53,9 @@
         .custom-table th { padding: 16px; background: #F8FAFC; color: #64748B; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #E2E8F0; }
         .custom-table td { padding: 16px; border-bottom: 1px solid #E2E8F0; background: white; font-size: 0.9rem; }
         .custom-table tr:hover td { background: #F1F5F9; cursor: pointer; }
+
+        /* Status Dots */
+        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
 
         /* Responsividade Mobile */
         @media (max-width: 768px) {
@@ -86,7 +80,6 @@
     <section id="view-login" class="hidden min-h-screen flex items-center justify-center bg-slate-50 p-4">
         <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
             <h1 class="text-3xl font-bold text-slate-900 mb-2 text-center">Aprova Aí</h1>
-            <p class="text-slate-500 text-center mb-8">Acesse seu painel de gestão.</p>
             <input type="email" id="email" class="w-full p-3 border border-slate-300 rounded-lg mb-4" placeholder="seu@email.com">
             <button onclick="handleLogin()" id="btn-login" class="w-full bg-slate-900 text-white font-bold py-3 rounded-lg hover:bg-slate-800">Entrar</button>
         </div>
@@ -115,7 +108,7 @@
                 
                 <div class="px-6 py-4 mt-2">
                     <p class="text-[10px] font-bold text-slate-400 uppercase mb-3">Status</p>
-                    <div onclick="filterProjects('draft')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#94a3b8"></span> Em Aberto (Rascunho)</div>
+                    <div onclick="filterProjects('draft')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#94a3b8"></span> Em Aberto</div>
                     <div onclick="filterProjects('negotiating')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#f97316"></span> Em Negociação</div>
                     <div onclick="filterProjects('approved')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#22c55e"></span> Aprovados</div>
                     <div onclick="filterProjects('canceled')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600"><span class="status-dot" style="background:#ef4444"></span> Cancelados</div>
@@ -123,9 +116,8 @@
 
                 <div onclick="switchTab('clients')" class="nav-item" id="nav-clients"><i class="fas fa-users"></i> Clientes</div>
             </nav>
-            
             <div class="p-4 border-t border-slate-100">
-                <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="flex items-center text-sm text-red-500 font-medium hover:text-red-700 w-full px-4 py-2"><i class="fas fa-sign-out-alt mr-3"></i> Sair</button>
+                <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="flex items-center text-sm text-red-500 font-medium w-full px-4 py-2"><i class="fas fa-sign-out-alt mr-3"></i> Sair</button>
             </div>
         </aside>
 
@@ -134,89 +126,48 @@
             <section id="view-dashboard" class="space-y-6">
                 <h2 class="text-2xl font-bold text-slate-800">Visão geral</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <div class="text-sm text-slate-500 font-medium mb-1">Orçamentos este mês</div>
-                        <div class="text-2xl font-bold text-blue-600" id="kpi-month-count">0</div>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <div class="text-sm text-slate-500 font-medium mb-1">Total em reais este mês</div>
-                        <div class="text-2xl font-bold text-emerald-600" id="kpi-month-total">R$ 0,00</div>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <div class="text-sm text-slate-500 font-medium mb-1">Total Orçamentos</div>
-                        <div class="text-2xl font-bold text-slate-800" id="kpi-all-count">0</div>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <div class="text-sm text-slate-500 font-medium mb-1">Clientes</div>
-                        <div class="text-2xl font-bold text-indigo-600" id="kpi-client-count">0</div>
-                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Mês</div><div class="text-2xl font-bold text-blue-600" id="kpi-month-count">0</div></div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Faturamento</div><div class="text-2xl font-bold text-emerald-600" id="kpi-month-total">R$ 0,00</div></div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Total</div><div class="text-2xl font-bold text-slate-800" id="kpi-all-count">0</div></div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Clientes</div><div class="text-2xl font-bold text-indigo-600" id="kpi-client-count">0</div></div>
                 </div>
-                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                    <h3 class="font-bold text-slate-700 mb-4">Orçamentos por dia</h3>
-                    <div style="height: 300px;"><canvas id="dashboardChart"></canvas></div>
-                </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-700 mb-4">Orçamentos por dia</h3><div style="height: 300px;"><canvas id="dashboardChart"></canvas></div></div>
             </section>
 
             <section id="view-projects" class="hidden space-y-6">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-bold text-slate-800">Orçamentos</h2>
-                    <button onclick="createProject()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700">+ Novo Orçamento</button>
-                </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200 flex gap-4">
-                    <input id="search-input" onkeyup="renderProjectTable()" class="flex-1 p-2 border rounded-lg" placeholder="Buscar...">
-                    <select id="status-filter" onchange="renderProjectTable()" class="p-2 border rounded-lg bg-white">
-                        <option value="all">Todos os status</option>
-                        <option value="draft">Em Aberto</option>
-                        <option value="negotiating">Em Negociação</option>
-                        <option value="approved">Aprovados</option>
-                        <option value="canceled">Cancelados</option>
-                    </select>
-                </div>
-                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                    <table class="custom-table">
-                        <thead><tr><th>Status</th><th>Número</th><th>Cliente</th><th>Data</th><th class="text-right">Total</th></tr></thead>
-                        <tbody id="project-table-body"></tbody>
-                    </table>
-                </div>
+                <div class="flex justify-between items-center"><h2 class="text-2xl font-bold text-slate-800">Orçamentos</h2><button onclick="createProject()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">+ Novo</button></div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 flex gap-4"><input id="search-input" onkeyup="renderProjectTable()" class="flex-1 p-2 border rounded-lg" placeholder="Buscar..."><select id="status-filter" onchange="renderProjectTable()" class="p-2 border rounded-lg bg-white"><option value="all">Todos</option><option value="draft">Em Aberto</option><option value="negotiating">Em Negociação</option><option value="approved">Aprovados</option><option value="canceled">Cancelados</option></select></div>
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm"><table class="custom-table"><thead><tr><th>Status</th><th>Número</th><th>Cliente</th><th>Data</th><th class="text-right">Total</th></tr></thead><tbody id="project-table-body"></tbody></table></div>
             </section>
 
-            <section id="view-clients" class="hidden space-y-6">
-                <h2 class="text-2xl font-bold text-slate-800">Clientes</h2>
-                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm p-6">
-                    <table class="custom-table">
-                        <thead><tr><th>Nome</th><th>Documento</th><th>Email</th><th>Projetos</th></tr></thead>
-                        <tbody id="client-table-body"></tbody>
-                    </table>
-                </div>
-            </section>
+            <section id="view-clients" class="hidden space-y-6"><h2 class="text-2xl font-bold text-slate-800">Clientes</h2><div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm p-6"><table class="custom-table"><thead><tr><th>Nome</th><th>Documento</th><th>Email</th><th>Projetos</th></tr></thead><tbody id="client-table-body"></tbody></table></div></section>
 
             <section id="view-editor" class="hidden pb-20">
                 <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                    <div class="flex items-center gap-4">
-                        <button onclick="switchTab('projects')" class="text-slate-400 hover:text-slate-800"><i class="fas fa-arrow-left"></i></button>
-                        <div>
-                            <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-                                <span id="ed-title">...</span>
-                                <span id="ed-ver" class="text-xs bg-slate-100 px-2 py-1 rounded border">V1</span>
-                            </h2>
-                            <div id="ed-status-badge"></div>
-                        </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="save()" class="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold"><i class="fas fa-save mr-2"></i> Salvar</button>
-                        <button onclick="openShareModal()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-blue-200"><i class="fas fa-share-alt mr-2"></i> Enviar</button>
-                    </div>
+                    <div class="flex items-center gap-4"><button onclick="switchTab('projects')" class="text-slate-400 hover:text-slate-800"><i class="fas fa-arrow-left"></i></button><div><h2 class="text-xl font-bold text-slate-800 flex items-center gap-2"><span id="ed-title">...</span><span id="ed-ver" class="text-xs bg-slate-100 px-2 py-1 rounded border">V1</span></h2><div id="ed-status-badge"></div></div></div>
+                    <div class="flex gap-2"><button onclick="save()" class="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold"><i class="fas fa-save mr-2"></i> Salvar</button><button onclick="openShareModal()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-blue-200"><i class="fas fa-share-alt mr-2"></i> Enviar</button></div>
                 </div>
 
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
                     <div class="xl:col-span-2 space-y-6">
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <h3 class="font-bold border-b pb-2 mb-4 text-slate-700">Seus Dados</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <input id="p-name" onchange="upSettings('providerName',this.value)" class="border p-2 rounded text-sm" placeholder="Nome da Sua Empresa">
+                                <input id="p-doc" onchange="upSettings('providerDoc',this.value)" class="border p-2 rounded text-sm" placeholder="CNPJ">
+                                <input id="p-phone" onchange="upSettings('providerPhone',this.value)" class="border p-2 rounded text-sm" placeholder="Seu Telefone">
+                                <input id="p-addr" onchange="upSettings('providerAddr',this.value)" class="border p-2 rounded text-sm" placeholder="Seu Endereço">
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold border-b pb-2 mb-4 text-slate-700">Dados do Cliente</h3>
                             <div class="grid grid-cols-2 gap-4">
-                                <input id="c-name" onchange="upVal('c-name',this.value)" class="border p-2 rounded text-sm" placeholder="Nome">
+                                <input id="c-name" onchange="upVal('c-name',this.value)" class="border p-2 rounded text-sm" placeholder="Nome Cliente">
                                 <input id="c-doc" onchange="upVal('c-doc',this.value)" class="border p-2 rounded text-sm" placeholder="CPF/CNPJ">
                                 <input id="c-phone" onchange="upVal('c-phone',this.value)" class="border p-2 rounded text-sm" placeholder="Telefone">
                                 <input id="c-email" onchange="upVal('c-email',this.value)" class="border p-2 rounded text-sm" placeholder="Email">
+                                <input id="c-addr" onchange="upVal('c-addr',this.value)" class="col-span-2 border p-2 rounded text-sm" placeholder="Endereço">
                             </div>
                         </div>
 
@@ -236,9 +187,12 @@
                         </div>
 
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold text-slate-700 mb-4">Ações & Versões</h3>
-                            <div id="ed-actions-area">
-                                </div>
+                            <h3 class="font-bold text-slate-700 mb-4">Anexos</h3>
+                            <div id="ed-attachments-list" class="mb-3"></div>
+                            <label class="block w-full text-center border-2 border-dashed border-slate-300 p-4 rounded cursor-pointer hover:bg-slate-50 text-xs text-slate-500 font-bold uppercase">
+                                <i class="fas fa-cloud-upload-alt mr-2"></i> Adicionar PDF/IMG
+                                <input type="file" class="hidden" onchange="handleUpload(event)">
+                            </label>
                         </div>
 
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
@@ -246,16 +200,20 @@
                             <select id="pay-mode" class="w-full border p-2 rounded mb-2 text-sm"><option value="single">À vista</option><option value="entry_installments">Entrada + Parcelas</option></select>
                             <button onclick="generatePayment()" class="w-full bg-slate-100 text-slate-600 text-xs font-bold py-2 rounded mb-3">Gerar Texto</button>
                             <textarea id="t-obs" onchange="upVal('t-obs',this.value)" class="w-full border p-2 rounded text-sm h-20" placeholder="Obs de pagamento..."></textarea>
+                            <div class="grid grid-cols-2 gap-2 mt-2">
+                                <input id="t-deadline" onchange="upVal('t-deadline',this.value)" class="border p-2 rounded text-xs" placeholder="Prazo">
+                                <input id="t-val" onchange="upVal('t-val',this.value)" class="border p-2 rounded text-xs" placeholder="Validade">
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <h3 class="font-bold text-slate-700 mb-4">Versões</h3>
+                            <div id="ed-actions-area"></div>
                         </div>
 
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold text-slate-700 mb-4">Histórico</h3>
                             <div id="ed-history" class="space-y-4 max-h-60 overflow-y-auto"></div>
-                        </div>
-                        
-                        <div class="bg-white p-4 rounded-xl border border-slate-200">
-                             <input id="p-name" onchange="upSettings('providerName',this.value)" class="w-full border p-2 rounded text-xs mb-2" placeholder="Sua Empresa">
-                             <input id="p-phone" onchange="upSettings('providerPhone',this.value)" class="w-full border p-2 rounded text-xs" placeholder="Seu Telefone">
                         </div>
                     </div>
                 </div>
@@ -265,49 +223,31 @@
 
     <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10">
         <div id="public-content" class="max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col doc-container p-12">
-            
             <div id="stamp-approved" class="hidden absolute top-10 right-10 border-4 border-emerald-600 text-emerald-600 font-bold text-3xl px-6 py-2 uppercase opacity-30 transform -rotate-12 z-20">APROVADO</div>
 
             <div class="doc-header">
                 <div><div id="doc-provider-info"></div></div>
-                <div class="text-right">
-                    <div id="doc-id" class="text-2xl font-bold text-slate-300">#REF</div>
-                    <div class="text-sm text-slate-400 mt-1 uppercase tracking-widest">Proposta Técnica</div>
-                </div>
+                <div class="text-right"><div id="doc-id" class="text-2xl font-bold text-slate-300">#REF</div><div class="text-sm text-slate-400 mt-1 uppercase tracking-widest">Proposta Técnica</div></div>
             </div>
 
             <div class="doc-card mb-12">
                 <div class="flex flex-col md:flex-row gap-8">
-                    <div class="flex-1">
-                        <h3 class="doc-section-title">Contratante</h3>
-                        <div id="doc-c-name" class="font-bold text-lg text-slate-800"></div>
-                        <div id="doc-c-doc" class="text-slate-500 text-sm"></div>
-                    </div>
+                    <div class="flex-1"><h3 class="doc-section-title">Contratante</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div><div id="doc-c-doc" class="text-slate-500 text-sm"></div></div>
+                    <div class="flex-1 border-l pl-8"><h3 class="doc-section-title">Local</h3><div id="doc-c-addr" class="text-slate-600 text-sm"></div></div>
                 </div>
             </div>
 
-            <div class="mb-12">
-                <h3 class="doc-section-title">Escopo do Serviço</h3>
-                <table class="w-full">
-                    <thead><tr class="text-left text-xs uppercase text-slate-400 border-b-2 border-slate-100"><th class="pb-3 pl-4 font-bold">Descrição</th><th class="pb-3 text-center font-bold">Qtd</th><th class="pb-3 text-right pr-4 font-bold">Total</th></tr></thead>
-                    <tbody id="doc-items-body"></tbody>
-                </table>
-            </div>
+            <div class="mb-12"><h3 class="doc-section-title">Escopo do Serviço</h3><table class="w-full"><thead><tr class="text-left text-xs uppercase text-slate-400 border-b-2 border-slate-100"><th class="pb-3 pl-4 font-bold">Descrição</th><th class="pb-3 text-center font-bold">Qtd</th><th class="pb-3 text-right pr-4 font-bold">Total</th></tr></thead><tbody id="doc-items-body"></tbody></table></div>
 
-            <div id="doc-attachments-section" class="mb-12 hidden">
-                <h3 class="doc-section-title">Anexos</h3>
-                <div id="doc-attachments-grid" class="grid grid-cols-2 gap-4"></div>
-            </div>
+            <div id="doc-attachments-section" class="mb-12 hidden"><h3 class="doc-section-title">Documentação & Arquivos</h3><div id="doc-attachments-grid" class="grid grid-cols-2 gap-4"></div></div>
 
             <div class="bg-slate-50 border border-slate-200 rounded-lg p-8 mb-12 flex flex-col md:flex-row gap-12 mt-auto">
                 <div class="flex-1">
                     <h4 class="doc-section-title" style="border-left-color: #f97316;">Condições Comerciais</h4>
                     <div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line mb-4"></div>
+                    <div class="flex gap-4 text-xs text-slate-500"><div><span class="font-bold">Prazo:</span> <span id="doc-deadline"></span></div><div><span class="font-bold">Validade:</span> <span id="doc-validity"></span></div></div>
                 </div>
-                <div class="text-right">
-                    <h4 class="text-xs uppercase font-bold text-slate-400 mb-2">Valor Total</h4>
-                    <div id="doc-total" class="text-4xl font-extrabold text-slate-900 tracking-tight">R$ 0,00</div>
-                </div>
+                <div class="text-right"><h4 class="text-xs uppercase font-bold text-slate-400 mb-2">Valor Total</h4><div id="doc-total" class="text-4xl font-extrabold text-slate-900 tracking-tight">R$ 0,00</div></div>
             </div>
 
             <div id="doc-signature-area"></div>
@@ -341,7 +281,7 @@
         let chartInstance = null;
 
         function normalizeData(dbData) {
-            const schema = { client: { name: '', doc: '', email: '', phone: '', address: '' }, items: [], terms: { paymentText: '', deadline: '' }, settings: { providerName: '', providerPhone: '' }, history: [], attachments: [], signature: null };
+            const schema = { client: { name: '', doc: '', email: '', phone: '', address: '' }, items: [], terms: { paymentText: '', deadline: '', validity: '' }, settings: { providerName: '', providerPhone: '', providerDoc: '', providerAddr: '' }, history: [], attachments: [], signature: null };
             if (!dbData) return schema;
             return { 
                 client: { ...schema.client, ...(dbData.client || {}) }, 
@@ -409,17 +349,14 @@
         function renderDashboardCharts() {
             const ctx = document.getElementById('dashboardChart');
             if(chartInstance) chartInstance.destroy();
-            // KPIs
             const now = new Date();
             const monthProjs = state.projectsCache.filter(p => new Date(p.created_at).getMonth() === now.getMonth());
             document.getElementById('kpi-month-count').innerText = monthProjs.length;
             document.getElementById('kpi-month-total').innerText = monthProjs.reduce((a,b)=>a+(b.total||0),0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
             document.getElementById('kpi-all-count').innerText = state.projectsCache.length;
-            
             const days = {};
             for(let i=29; i>=0; i--) { const d = new Date(); d.setDate(d.getDate()-i); days[d.toLocaleDateString('pt-BR').slice(0,5)] = 0; }
             state.projectsCache.forEach(p => { const k = new Date(p.created_at).toLocaleDateString('pt-BR').slice(0,5); if(days[k]!==undefined) days[k]++; });
-            
             chartInstance = new Chart(ctx, { type: 'line', data: { labels: Object.keys(days), datasets: [{ label: 'Orçamentos', data: Object.values(days), borderColor: '#3B82F6', tension: 0.4 }] } });
         }
 
@@ -470,11 +407,11 @@
 
             // Inputs
             const d = state.data;
-            setVal('c-name', d.client.name); setVal('c-doc', d.client.doc); setVal('c-phone', d.client.phone); setVal('c-email', d.client.email);
-            setVal('p-name', d.settings.providerName); setVal('p-phone', d.settings.providerPhone);
-            setVal('t-obs', d.terms.paymentText); // Usando obs para texto de pgto pra simplificar
+            setVal('c-name', d.client.name); setVal('c-doc', d.client.doc); setVal('c-phone', d.client.phone); setVal('c-email', d.client.email); setVal('c-addr', d.client.address);
+            setVal('p-name', d.settings.providerName); setVal('p-phone', d.settings.providerPhone); setVal('p-doc', d.settings.providerDoc); setVal('p-addr', d.settings.providerAddr);
+            setVal('t-obs', d.terms.paymentText); setVal('t-deadline', d.terms.deadline); setVal('t-val', d.terms.validity);
 
-            // Actions Area (Restaurado)
+            // Actions Area
             const area = document.getElementById('ed-actions-area');
             if (state.version.status !== 'draft') {
                 area.innerHTML = `<button onclick="createAddon()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg mb-2 shadow"><i class="fas fa-copy mr-2"></i> Criar Revisão (V${state.version.version_number + 1})</button>`;
@@ -482,48 +419,74 @@
                 area.innerHTML = `<div class="text-xs text-gray-400 text-center italic">Orçamento em rascunho. Edite à vontade.</div>`;
             }
 
-            renderItems(); renderHistory(); updateTotal();
+            renderItems(); renderAttachments(); renderHistory(); updateTotal();
         }
 
         function setVal(id, v) { const el = document.getElementById(id); if(el) el.value = v||''; }
-        function upVal(k,v) { if(k.startsWith('c-')) state.data.client[k.substring(2)]=v; if(k==='t-obs') state.data.terms.paymentText=v; }
+        function upVal(k,v) { if(k.startsWith('c-')) state.data.client[k.substring(2)]=v; if(k.startsWith('t-')) state.data.terms[k.substring(2)]=v; }
         function upSettings(k,v) { state.data.settings[k]=v; }
 
         function renderItems() {
             const isLocked = state.version.status !== 'draft';
             document.getElementById('ed-items').innerHTML = state.data.items.map((i,x) => `
-                <div class="bg-slate-50 p-3 rounded border border-slate-200 relative group">
+                <div class="item-box ${i.optional ? 'item-optional' : ''} group">
                     ${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}
-                    <div class="grid grid-cols-12 gap-2 mb-2">
-                        <div class="col-span-8"><input class="w-full bg-transparent font-bold outline-none" value="${i.name}" oninput="upItem(${x},'name',this.value)" placeholder="Item" ${isLocked?'disabled':''}></div>
-                        <div class="col-span-2"><input type="number" class="w-full bg-white border rounded text-center text-xs" value="${i.qty}" onchange="upItem(${x},'qty',this.value)" ${isLocked?'disabled':''}></div>
-                        <div class="col-span-2"><input type="number" class="w-full bg-white border rounded text-right text-xs" value="${i.price}" onchange="upItem(${x},'price',this.value)" ${isLocked?'disabled':''}></div>
+                    <div class="grid grid-cols-12 gap-4 mb-2">
+                        <div class="col-span-8">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase">Item ${i.optional ? '<span class="optional-badge">Opcional</span>' : ''}</label>
+                            <input class="w-full font-bold outline-none" value="${i.name}" oninput="upItem(${x},'name',this.value)" placeholder="Nome do item" ${isLocked?'disabled':''}>
+                        </div>
+                        <div class="col-span-2">
+                             <label class="text-[10px] font-bold text-gray-400 uppercase text-center block">Qtd</label>
+                             <input type="number" class="w-full bg-slate-50 border rounded text-center text-xs" value="${i.qty}" onchange="upItem(${x},'qty',this.value)" ${isLocked?'disabled':''}>
+                        </div>
+                        <div class="col-span-2">
+                             <label class="text-[10px] font-bold text-gray-400 uppercase text-right block">Valor</label>
+                             <input type="number" class="w-full bg-slate-50 border rounded text-right text-xs" value="${i.price}" onchange="upItem(${x},'price',this.value)" ${isLocked?'disabled':''}>
+                        </div>
                     </div>
+                    <textarea class="w-full bg-transparent text-xs text-slate-500 resize-none outline-none border-t border-dashed pt-2 mt-2" rows="2" placeholder="Descrição técnica..." oninput="upItem(${x},'description',this.value)" ${isLocked?'disabled':''}>${i.description||''}</textarea>
+                    ${!isLocked ? `<button onclick="toggleOpt(${x})" class="text-[10px] mt-2 px-2 py-1 rounded border ${i.optional ? 'bg-slate-600 text-white' : 'text-slate-400'}">${i.optional ? 'ITEM OPCIONAL' : 'Marcar como Opcional?'}</button>` : ''}
                 </div>
             `).join('');
         }
         function upItem(x,f,v) { state.data.items[x][f] = (f==='qty'||f==='price') ? parseFloat(v) : v; updateTotal(); }
-        function addItem() { state.data.items.push({name:'',qty:1,price:0}); renderItems(); }
+        function addItem() { state.data.items.push({name:'',qty:1,price:0,description:'',optional:false}); renderItems(); }
         function rmItem(x) { state.data.items.splice(x,1); renderItems(); updateTotal(); }
-        function updateTotal() { document.getElementById('ed-total').innerText = state.data.items.reduce((a,b)=>a+(b.qty*b.price),0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+        function toggleOpt(x) { state.data.items[x].optional = !state.data.items[x].optional; renderItems(); updateTotal(); }
+        function updateTotal() { document.getElementById('ed-total').innerText = state.data.items.reduce((a,b)=> !b.optional ? a+(b.qty*b.price) : a,0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+
+        async function handleUpload(e) {
+            const file = e.target.files[0]; if(!file) return;
+            const path = `${state.project.id}/${Date.now()}_${file.name}`;
+            const { error } = await db.storage.from('attachments').upload(path, file);
+            if(!error) {
+                const { data: pub } = db.storage.from('attachments').getPublicUrl(path);
+                state.data.attachments.push({ name: file.name, url: pub.publicUrl, type: 'file' });
+                save(); renderAttachments();
+            }
+        }
+        function renderAttachments() {
+            document.getElementById('ed-attachments-list').innerHTML = state.data.attachments.map(a => `<div class="flex justify-between text-xs bg-slate-50 p-2 rounded mb-1"><a href="${a.url}" target="_blank" class="text-blue-600 truncate">${a.name}</a></div>`).join('');
+        }
 
         async function createAddon() {
             if(!confirm("Criar nova versão?")) return;
-            const t = state.data.items.reduce((a,b)=>a+(b.qty*b.price),0);
+            const t = state.data.items.reduce((a,b)=> !b.optional ? a+(b.qty*b.price) : a,0);
             state.data.history.push({ date: new Date(), action: 'created', user: 'provider', detail: 'Criou revisão V'+(state.version.version_number+1) });
             await db.from('versions').insert({ project_id: state.project.id, version_number: state.version.version_number+1, items: state.data, total_value: t, status: 'draft' });
             loadEditor(state.project.id);
         }
 
         function generatePayment() {
-            const total = state.data.items.reduce((a,b)=>a+(b.qty*b.price),0);
+            const total = state.data.items.reduce((a,b)=> !b.optional ? a+(b.qty*b.price) : a,0);
             const mode = document.getElementById('pay-mode').value;
             let txt = mode === 'single' ? `À Vista: ${total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}` : `Entrada: ${(total*0.3).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} + 2x`;
             state.data.terms.paymentText = txt; setVal('t-obs', txt);
         }
 
         async function save() {
-            const t = state.data.items.reduce((a,b)=>a+(b.qty*b.price),0);
+            const t = state.data.items.reduce((a,b)=> !b.optional ? a+(b.qty*b.price) : a,0);
             if(JSON.stringify(state.snapshot) !== JSON.stringify(state.data.items)) {
                 state.data.history.push({ date: new Date(), action: 'edited', user: 'provider', detail: 'Alteração de escopo' });
                 state.snapshot = JSON.parse(JSON.stringify(state.data.items));
@@ -551,16 +514,35 @@
             
             if(v.status === 'approved') document.getElementById('stamp-approved').classList.remove('hidden');
             
-            document.getElementById('doc-provider-info').innerHTML = `<h2 class="text-2xl font-bold">${state.data.settings.providerName||''}</h2><p>${state.data.settings.providerPhone||''}</p>`;
+            document.getElementById('doc-provider-info').innerHTML = `<h2 class="text-2xl font-bold">${state.data.settings.providerName||''}</h2><p class="text-sm">${state.data.settings.providerDoc||''} • ${state.data.settings.providerPhone||''}</p><p class="text-xs text-slate-500">${state.data.settings.providerAddr||''}</p>`;
             document.getElementById('doc-id').innerText = `#${v.project_id.substr(0,4)}-V${v.version_number}`;
             document.getElementById('doc-c-name').innerText = state.data.client.name;
             document.getElementById('doc-c-doc').innerText = state.data.client.doc;
+            document.getElementById('doc-c-addr').innerText = state.data.client.address;
             document.getElementById('doc-total').innerText = (v.total_value||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
             document.getElementById('doc-payment').innerText = state.data.terms.paymentText;
+            document.getElementById('doc-deadline').innerText = state.data.terms.deadline;
+            document.getElementById('doc-validity').innerText = state.data.terms.validity;
 
-            document.getElementById('doc-items-body').innerHTML = state.data.items.map(i => `<tr class="border-b"><td class="py-2">${i.name}</td><td class="text-center">${i.qty}</td><td class="text-right">${(i.qty*i.price).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td></tr>`).join('');
+            document.getElementById('doc-items-body').innerHTML = state.data.items.map(i => `
+                <tr class="border-b ${i.optional ? 'bg-slate-50/50' : ''}">
+                    <td class="py-3 pr-2">
+                        <div class="font-bold text-slate-800 ${i.optional ? 'text-slate-500':''}">${i.name} ${i.optional ? '<span class="text-[10px] bg-slate-200 px-1 rounded">OPCIONAL</span>' : ''}</div>
+                        <div class="text-sm text-slate-500">${i.description||''}</div>
+                    </td>
+                    <td class="text-center text-slate-600">${i.qty}</td>
+                    <td class="text-right font-bold text-slate-800 ${i.optional ? 'line-through text-slate-400':''}">${(i.qty*i.price).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
+                </tr>
+            `).join('');
 
-            if(state.data.signature) document.getElementById('doc-signature-area').innerHTML = `<img src="${state.data.signature}" class="h-20 border-b border-black mt-8">`;
+            if(state.data.attachments.length > 0) {
+                document.getElementById('doc-attachments-section').classList.remove('hidden');
+                document.getElementById('doc-attachments-grid').innerHTML = state.data.attachments.map(a => `
+                    <a href="${a.url}" target="_blank" class="att-card"><div class="flex items-center gap-3"><i class="fas fa-file text-blue-500"></i><span class="text-sm font-bold truncate">${a.name}</span></div></a>
+                `).join('');
+            }
+
+            if(state.data.signature) document.getElementById('doc-signature-area').innerHTML = `<div class="mt-8 border-t border-dashed w-64 text-center"><img src="${state.data.signature}" class="h-16 mx-auto"><p class="text-xs font-bold uppercase">Assinado Digitalmente</p></div>`;
 
             const acts = document.getElementById('doc-actions');
             if (v.status === 'sent' || v.status === 'negotiating') {
