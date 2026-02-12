@@ -637,6 +637,7 @@
             return logs.length ? logs.join('; ') : null;
         }
 
+        // ----- FEED DE ATIVIDADES: APENAS AÇÕES DO CLIENTE -----
         function getRecentActivities(limit = 10) {
             let activities = [];
             state.projectsCache.forEach(project => {
@@ -644,14 +645,17 @@
                 const version = project.versions?.[0] || null;
                 if (version?.items?.history && Array.isArray(version.items.history)) {
                     version.items.history.forEach(h => {
-                        activities.push({
-                            date: h.date,
-                            projectId: project.id,
-                            projectName: projectName,
-                            action: h.action,
-                            user: h.user,
-                            detail: h.detail
-                        });
+                        // Filtrar apenas ações do cliente (approved, change_request, canceled)
+                        if (h.user === 'client' && ['approved', 'change_request', 'canceled'].includes(h.action)) {
+                            activities.push({
+                                date: h.date,
+                                projectId: project.id,
+                                projectName: projectName,
+                                action: h.action,
+                                user: h.user,
+                                detail: h.detail
+                            });
+                        }
                     });
                 }
             });
@@ -664,7 +668,7 @@
             if (!feedContainer) return;
             const activities = getRecentActivities(10);
             if (activities.length === 0) {
-                feedContainer.innerHTML = '<div class="text-center py-8 text-slate-400 italic">Nenhuma atividade registrada ainda.</div>';
+                feedContainer.innerHTML = '<div class="text-center py-8 text-slate-400 italic">Nenhuma atividade do cliente registrada ainda.</div>';
                 return;
             }
             let html = '';
@@ -679,17 +683,11 @@
                         textColor = 'text-green-600';
                         actionText = 'Aprovou';
                         break;
-                    case 'created':
-                        icon = 'fa-plus-circle';
-                        bgColor = 'bg-blue-100';
-                        textColor = 'text-blue-600';
-                        actionText = 'Criou';
-                        break;
-                    case 'edited':
-                        icon = 'fa-pen';
-                        bgColor = 'bg-indigo-100';
-                        textColor = 'text-indigo-600';
-                        actionText = 'Editou';
+                    case 'change_request':
+                        icon = 'fa-comment-dots';
+                        bgColor = 'bg-amber-100';
+                        textColor = 'text-amber-600';
+                        actionText = 'Solicitou alteração';
                         break;
                     case 'canceled':
                         icon = 'fa-times-circle';
@@ -697,25 +695,13 @@
                         textColor = 'text-red-600';
                         actionText = 'Cancelou';
                         break;
-                    case 'change_request':
-                        icon = 'fa-comment-dots';
-                        bgColor = 'bg-amber-100';
-                        textColor = 'text-amber-600';
-                        actionText = 'Solicitou alteração';
-                        break;
-                    case 'sent':
-                        icon = 'fa-paper-plane';
-                        bgColor = 'bg-blue-100';
-                        textColor = 'text-blue-600';
-                        actionText = 'Enviou link';
-                        break;
                     default:
                         icon = 'fa-info-circle';
                         bgColor = 'bg-slate-100';
                         textColor = 'text-slate-600';
                         actionText = act.action;
                 }
-                const userLabel = act.user === 'provider' ? 'Você' : 'Cliente';
+                const userLabel = 'Cliente';
                 const detail = act.detail ? ` – ${act.detail}` : '';
                 html += `
                     <div class="activity-item">
@@ -1501,6 +1487,17 @@
             if (!skipConfirm && !confirm(`Mudar status para ${newStatus}?`)) return;
             await db.from('versions').update({status: newStatus}).eq('id', state.version.id);
             logHistory(newStatus, 'provider', skipConfirm ? 'Status alterado automaticamente (envio de link)' : 'Alteração manual de status.');
+            
+            // Recarrega o projeto atual no cache
+            await loadProjects();
+            
+            // Atualiza todas as visualizações
+            renderDashboardKPIs();
+            renderDashboardCharts();
+            renderProjectCards();
+            renderActivityFeed();
+            
+            // Recarrega o editor para refletir o novo status e bloqueio
             loadEditor(state.project.id);
         }
 
@@ -1808,6 +1805,14 @@
                 items: state.data 
             }).eq('id', state.version.id);
             document.getElementById('interaction-modal').classList.add('hidden');
+            
+            // Recarrega os projetos e atualiza dashboard
+            await loadProjects();
+            renderDashboardKPIs();
+            renderDashboardCharts();
+            renderProjectCards();
+            renderActivityFeed();
+            
             showSuccessScreen(action);
         }
 
@@ -1834,6 +1839,14 @@
                 window.open(`https://wa.me/${phone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
             }
             document.getElementById('interaction-modal').classList.add('hidden');
+            
+            // Recarrega os projetos e atualiza dashboard
+            await loadProjects();
+            renderDashboardKPIs();
+            renderDashboardCharts();
+            renderProjectCards();
+            renderActivityFeed();
+            
             showSuccessScreen('approved');
         }
 
