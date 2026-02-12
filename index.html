@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        /* ----- ESTILOS NOVOS (SIDEBAR, TABELAS, ETC) ----- */
+        /* ----- ESTILOS NOVOS (SIDEBAR, TABELAS) ----- */
         body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; color: #334155; }
         .sidebar { width: 260px; background: white; height: 100vh; position: fixed; left: 0; top: 0; border-right: 1px solid #E2E8F0; display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s; }
         .main-content { margin-left: 260px; padding: 2rem; min-height: 100vh; transition: margin 0.3s; }
@@ -76,6 +76,40 @@
         .doc-section-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #64748b; margin-bottom: 1rem; border-left: 3px solid #3b82f6; padding-left: 0.75rem; }
         .att-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; transition: all 0.2s; display: flex; flex-direction: column; gap: 0.5rem; }
         .att-card:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+
+        /* ----- LOGIN ORIGINAL (COMPLETO) ----- */
+        .split-screen { display: flex; min-height: 100vh; width: 100%; position: absolute; top: 0; left: 0; z-index: 50; background: white; }
+        .left-area { width: 60%; background: radial-gradient(circle at top left, #1e1b4b, #0f172a), linear-gradient(135deg, #172554 0%, #1e3a8a 100%); color: white; display: flex; flex-direction: column; justify-content: center; padding: 5rem 6rem; position: relative; overflow: hidden; }
+        .glow-orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.35; }
+        .orb-1 { width: 600px; height: 600px; background: #3b82f6; top: -15%; left: -15%; animation: float 10s ease-in-out infinite; }
+        .orb-2 { width: 500px; height: 500px; background: #8b5cf6; bottom: -15%; right: -15%; animation: float 12s ease-in-out infinite reverse; }
+        @keyframes float { 0% { transform: translate(0, 0); } 50% { transform: translate(-20px, 20px); } 100% { transform: translate(0, 0); } }
+        .benefit-item { display: flex; align-items: start; gap: 1.25rem; padding: 1.25rem; margin-bottom: 1.25rem; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 16px; backdrop-filter: blur(12px); transition: all 0.3s ease; }
+        .benefit-item:hover { background: rgba(255, 255, 255, 0.08); transform: translateX(8px); border-color: rgba(255, 255, 255, 0.2); }
+        .icon-circle { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .right-area { width: 40%; background: #F8FAFC; display: flex; align-items: center; justify-content: center; position: relative; padding: 2rem; }
+        .login-card { background: white; width: 100%; max-width: 420px; padding: 3rem 2rem; border-radius: 24px; box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.08); border: 1px solid #f1f5f9; text-align: center; }
+        .input-pro { width: 100%; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 1rem; color: #1e293b; text-align: center; transition: all 0.2s; margin-bottom: 1.5rem; outline: none; }
+        .input-pro:focus { background: white; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        .btn-pro { width: 100%; padding: 16px; border-radius: 12px; font-weight: 700; color: white; background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); border: none; cursor: pointer; transition: all 0.3s; font-size: 1rem; box-shadow: 0 10px 25px -5px rgba(30, 58, 138, 0.25); }
+        .btn-pro:hover { transform: translateY(-2px); box-shadow: 0 15px 30px -5px rgba(30, 58, 138, 0.35); }
+        .btn-pro:disabled { opacity: 0.7; cursor: not-allowed; }
+        .ideal-para-container { display: flex; align-items: center; justify-content: center; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.25rem; color: #94a3b8; margin-bottom: 3rem; margin-top: 1rem; }
+        @media (min-width: 1024px) { .ideal-para-container { justify-content: flex-start; } }
+        .rotating-wrapper { position: relative; height: 1.5em; width: 350px; overflow: hidden; margin-left: 0.5rem; display: inline-block; vertical-align: middle; text-align: left; }
+        .rotate-word { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; font-weight: 700; color: #ffffff; opacity: 0; transform: translateY(100%); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .rotate-word.active { opacity: 1; transform: translateY(0); } 
+        .rotate-word.exit { opacity: 0; transform: translateY(-100%); }
+        @media (max-width: 1024px) { 
+            .split-screen { flex-direction: column; position: relative; height: auto; min-height: 100vh; } 
+            .left-area { width: 100%; padding: 3rem 1.5rem; min-height: auto; text-align: center; } 
+            .ideal-para-container { justify-content: center; font-size: 1rem; } 
+            .rotating-wrapper { width: 200px; }
+            .right-area { width: 100%; padding: 2rem 1rem; background: white; } 
+            .login-card { box-shadow: none; border: none; padding: 0; max-width: 100%; } 
+            .benefit-item { flex-direction: column; align-items: center; text-align: center; } 
+            .glow-orb { display: none; } 
+        }
     </style>
 </head>
 <body>
@@ -86,7 +120,7 @@
         <p class="text-sm text-slate-500 font-medium">Carregando Sistema...</p>
     </div>
 
-    <!-- FATAL ERROR (original) -->
+    <!-- FATAL ERROR -->
     <div id="fatal-error" class="hidden fixed inset-0 bg-rose-50 z-[10000] flex flex-col items-center justify-center p-8 text-center">
         <i class="fas fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i>
         <h2 class="text-2xl font-bold text-slate-800">Ops! Algo deu errado.</h2>
@@ -94,12 +128,33 @@
         <button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button>
     </div>
 
-    <!-- LOGIN -->
-    <section id="view-login" class="hidden min-h-screen flex items-center justify-center bg-slate-50 p-4">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
-            <h1 class="text-3xl font-bold text-slate-900 mb-2 text-center">Aprova Aí</h1>
-            <input type="email" id="email" class="w-full p-3 border border-slate-300 rounded-lg mb-4" placeholder="seu@email.com">
-            <button onclick="handleLogin()" id="btn-login" class="w-full bg-slate-900 text-white font-bold py-3 rounded-lg hover:bg-slate-800">Enviar link de acesso</button>
+    <!-- LOGIN ORIGINAL (COMPLETO) -->
+    <section id="view-login" class="hidden split-screen">
+        <div class="left-area">
+            <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
+            <div class="relative z-10 anim-entry">
+                <div class="mb-4">
+                    <img src="logo.png" alt="Aprova Ai" class="h-16">
+                </div>
+                <h1 class="text-5xl font-extrabold leading-tight mb-2 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">Garantem sua segurança</span></h1>
+                <div class="ideal-para-container"><span>Ideal para:</span><span id="rotator" class="rotating-wrapper"></span></div>
+                <div class="space-y-4">
+                    <div class="benefit-item delay-100"><div class="icon-circle bg-blue-600 text-white"><i class="fas fa-shield-alt"></i></div><div><h3 class="font-bold text-lg">Evite prejuízos</h3><p class="text-sm text-indigo-100 opacity-80">Registre mudanças de escopo.</p></div></div>
+                    <div class="benefit-item delay-200"><div class="icon-circle bg-emerald-500 text-white"><i class="fas fa-check"></i></div><div><h3 class="font-bold text-lg">Aprovação</h3><p class="text-sm text-indigo-100 opacity-80">Link direto e histórico.</p></div></div>
+                    <div class="benefit-item delay-300"><div class="icon-circle bg-purple-500 text-white"><i class="fas fa-file-contract"></i></div><div><h3 class="font-bold text-lg">Sem discussão</h3><p class="text-sm text-indigo-100 opacity-80">Tudo documentado.</p></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="right-area">
+            <div class="login-card anim-entry delay-300">
+                <div class="avatar-circle flex justify-center mb-4">
+                    <img src="logo.png" alt="Logo" class="h-12">
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900 mb-2 font-heading">Acesse sua conta</h2>
+                <p class="text-slate-500 mb-8 text-sm">Digite seu e-mail para entrar.</p>
+                <input type="email" id="email" placeholder="E-mail" class="input-pro">
+                <button onclick="handleLogin()" id="btn-login" class="btn-pro">Enviar link de acesso</button>
+            </div>
         </div>
     </section>
 
@@ -230,9 +285,9 @@
                 </div>
             </section>
 
-            <!-- EDITOR COMPLETO COM TODAS AS FUNCIONALIDADES ORIGINAIS + BOTÃO ENVIAR LINK -->
+            <!-- EDITOR COMPLETO COM BOTÃO ENVIAR LINK (SEMPRE VISÍVEL) -->
             <section id="view-editor" class="hidden pb-20">
-                <!-- Header com botão de enviar link sempre visível -->
+                <!-- Header com botão "Enviar Link" sempre visível -->
                 <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex items-center gap-4">
                         <button onclick="switchTab('projects')" class="text-slate-400 hover:text-slate-800"><i class="fas fa-arrow-left"></i></button>
@@ -599,6 +654,7 @@
                 } else if (!state.user && view !== 'login') {
                     window.history.replaceState(null, '', '?view=login');
                     safeShow('view-login');
+                    initRotator();
                 } else if (state.user && view === 'login') {
                     goTo('dashboard');
                 } else {
@@ -619,6 +675,20 @@
                 safeShow('fatal-error');
                 safeText('error-msg', e.message);
             }
+        }
+
+        function initRotator() {
+            const words = ["Prestadores","Técnicos", "Mecânicos", "Fotógrafos"];
+            let idx = 0; const el = document.getElementById('rotator'); if(!el) return;
+            el.innerHTML = '';
+            words.forEach((w, i) => { const s = document.createElement('span'); s.className = `rotate-word ${i===0?'active':''}`; s.innerText = w; el.appendChild(s); });
+            setInterval(() => {
+                const spans = el.querySelectorAll('.rotate-word');
+                if(!spans.length) return;
+                spans[idx].classList.remove('active'); spans[idx].classList.add('exit');
+                idx = (idx + 1) % words.length;
+                spans[idx].classList.remove('exit'); spans[idx].classList.add('active');
+            }, 3000);
         }
 
         // ----- LOGIN -----
@@ -841,7 +911,6 @@
 
         // ----- EDITOR (FUNÇÕES ORIGINAIS RESTAURADAS) -----
         async function loadEditor(id) {
-            safeHide('editor-content');
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
             state.project = proj;
             const { data: vers } = await db.from('versions').select('*').eq('project_id', id).order('version_number', { ascending: true });
@@ -1237,7 +1306,7 @@
             setHTML('ed-history', histHtml);
         }
 
-        // ----- COMPARTILHAR (MODAL ORIGINAL CORRIGIDO) -----
+        // ----- COMPARTILHAR (MODAL ORIGINAL COM LINK CORRETO) -----
         async function openShareModal() {
             await save();
             if (!state.version?.id) return alert("Erro ao salvar versão.");
@@ -1540,7 +1609,6 @@
             
             logHistory('approved', 'client', 'Aprovado via link com assinatura');
             
-            // Recalcular total com base nos opcionais selecionados
             const items = state.data.items;
             const finalTotal = items.reduce((acc, i) => (!i.optional || i.publicSelected ? acc + (i.qty * i.price) : acc), 0);
             
