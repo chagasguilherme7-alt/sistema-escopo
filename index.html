@@ -230,9 +230,9 @@
                 </div>
             </section>
 
-            <!-- EDITOR COMPLETO COM TODAS AS FUNCIONALIDADES ORIGINAIS -->
+            <!-- EDITOR COMPLETO COM TODAS AS FUNCIONALIDADES ORIGINAIS + BOTÃO ENVIAR LINK -->
             <section id="view-editor" class="hidden pb-20">
-                <!-- Header -->
+                <!-- Header com botão de enviar link sempre visível -->
                 <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex items-center gap-4">
                         <button onclick="switchTab('projects')" class="text-slate-400 hover:text-slate-800"><i class="fas fa-arrow-left"></i></button>
@@ -244,7 +244,12 @@
                             </h2>
                         </div>
                     </div>
-                    <div id="ed-actions-header" class="flex gap-2"></div>
+                    <div class="flex gap-2">
+                        <button onclick="openShareModal()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-blue-200">
+                            <i class="fas fa-share-alt mr-2"></i> Enviar Link
+                        </button>
+                        <div id="ed-actions-header" class="flex gap-2"></div>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -837,7 +842,6 @@
         // ----- EDITOR (FUNÇÕES ORIGINAIS RESTAURADAS) -----
         async function loadEditor(id) {
             safeHide('editor-content');
-            // Não temos loader específico, mas deixamos o estado
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
             state.project = proj;
             const { data: vers } = await db.from('versions').select('*').eq('project_id', id).order('version_number', { ascending: true });
@@ -1233,7 +1237,7 @@
             setHTML('ed-history', histHtml);
         }
 
-        // ----- COMPARTILHAR (MODAL ORIGINAL) -----
+        // ----- COMPARTILHAR (MODAL ORIGINAL CORRIGIDO) -----
         async function openShareModal() {
             await save();
             if (!state.version?.id) return alert("Erro ao salvar versão.");
