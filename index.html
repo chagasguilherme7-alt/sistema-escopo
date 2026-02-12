@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        /* (mantido igual à última versão – não houve mudanças nos estilos) */
+        /* ----- ESTILOS NOVOS (SIDEBAR, TABELAS) ----- */
         body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; color: #334155; }
         .sidebar { width: 260px; background: white; height: 100vh; position: fixed; left: 0; top: 0; border-right: 1px solid #E2E8F0; display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s; }
         .main-content { margin-left: 260px; padding: 2rem; min-height: 100vh; transition: margin 0.3s; }
@@ -35,6 +35,7 @@
             .mobile-header { display: flex !important; }
         }
 
+        /* ----- ESTILOS ORIGINAIS (PRESERVADOS) ----- */
         .item-box { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s; }
         .item-box:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .item-optional { border: 2px dashed #94a3b8 !important; background-color: #f8fafc; opacity: 0.9; }
@@ -57,8 +58,10 @@
         .st-approved { background: #dcfce7; color: #166534; } 
         .st-canceled { background: #fee2e2; color: #991b1b; }
         
+        /* Assinatura */
         #signature-pad { border: 2px dashed #cbd5e1; border-radius: 12px; background: #f8fafc; cursor: crosshair; touch-action: none; width: 100%; height: 200px; }
         
+        /* Animações */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .anim-entry { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
         
@@ -66,6 +69,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .hidden { display: none !important; }
 
+        /* Página pública */
         #view-public { background: #f1f5f9; }
         #public-content { max-width: 1200px; margin: 0 auto; background: white; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
         #stamp-approved { position: absolute; top: 30px; right: 30px; border: 4px solid #16a34a; color: #16a34a; font-size: 2rem; font-weight: 800; padding: 0.5rem 2rem; text-transform: uppercase; opacity: 0.3; transform: rotate(-12deg); z-index: 20; }
@@ -73,6 +77,7 @@
         .att-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; transition: all 0.2s; display: flex; flex-direction: column; gap: 0.5rem; }
         .att-card:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
 
+        /* ----- LOGIN ORIGINAL ----- */
         .split-screen { display: flex; min-height: 100vh; width: 100%; position: absolute; top: 0; left: 0; z-index: 50; background: white; }
         .left-area { width: 60%; background: radial-gradient(circle at top left, #1e1b4b, #0f172a), linear-gradient(135deg, #172554 0%, #1e3a8a 100%); color: white; display: flex; flex-direction: column; justify-content: center; padding: 5rem 6rem; position: relative; overflow: hidden; }
         .glow-orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.35; }
@@ -106,6 +111,7 @@
             .glow-orb { display: none; } 
         }
 
+        /* ----- MELHORIAS PARA O PDF ----- */
         @media print {
             body { background: white; }
             .no-print { display: none !important; }
@@ -116,15 +122,21 @@
             .print-break-after { page-break-after: always; }
             .print-break-inside { page-break-inside: avoid; }
         }
+
+        /* Cards de projeto */
+        .project-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; transition: all 0.2s; cursor: pointer; }
+        .project-card:hover { border-color: #3b82f6; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
 
+    <!-- LOADER GLOBAL -->
     <div id="system-loader" style="position:fixed; inset:0; background:white; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <div class="loader-spin mb-4"></div>
         <p class="text-sm text-slate-500 font-medium">Carregando Sistema...</p>
     </div>
 
+    <!-- FATAL ERROR -->
     <div id="fatal-error" class="hidden fixed inset-0 bg-rose-50 z-[10000] flex flex-col items-center justify-center p-8 text-center">
         <i class="fas fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i>
         <h2 class="text-2xl font-bold text-slate-800">Ops! Algo deu errado.</h2>
@@ -132,6 +144,7 @@
         <button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button>
     </div>
 
+    <!-- LOGIN ORIGINAL -->
     <section id="view-login" class="hidden split-screen">
         <div class="left-area">
             <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
@@ -161,6 +174,7 @@
         </div>
     </section>
 
+    <!-- LAYOUT PRINCIPAL (SIDEBAR) -->
     <div id="app-layout" class="hidden">
         <div class="mobile-header">
             <span class="font-bold text-lg text-slate-800">Aprova Ai</span>
@@ -179,7 +193,7 @@
                 <div onclick="switchTab('dashboard')" class="nav-item active" id="nav-dashboard"><i class="fas fa-home"></i> Visão geral</div>
                 <div onclick="switchTab('projects')" class="nav-item" id="nav-projects"><i class="fas fa-file-invoice"></i> Orçamentos</div>
                 <div class="px-6 py-4 mt-2">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-3">Status</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-3">Filtros rápidos</p>
                     <div onclick="filterProjects('draft')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#94a3b8"></span> Em Aberto</div>
                     <div onclick="filterProjects('negotiating')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#f97316"></span> Em Negociação</div>
                     <div onclick="filterProjects('approved')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#22c55e"></span> Aprovados</div>
@@ -193,6 +207,7 @@
         </aside>
 
         <main class="main-content">
+            <!-- DASHBOARD: SOMENTE INDICADORES E GRÁFICO -->
             <section id="view-dashboard" class="space-y-6">
                 <h2 class="text-2xl font-bold text-slate-800">Visão geral</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -217,13 +232,26 @@
                         <div class="text-2xl font-bold text-slate-600" id="kpi-count-open">0</div>
                     </div>
                 </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-700 mb-4">Orçamentos por dia</h3>
+                    <div style="height: 300px;">
+                        <canvas id="dashboardChart"></canvas>
+                    </div>
+                </div>
+            </section>
 
-                <div class="flex flex-col md:flex-row gap-4 mb-4 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <!-- VIEW PROJETOS (CARDS + BUSCA + FILTRO) -->
+            <section id="view-projects" class="hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-slate-800">Orçamentos</h2>
+                    <button onclick="createProject()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">+ Novo</button>
+                </div>
+                <div class="flex flex-col md:flex-row gap-4 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex-1 w-full relative">
                         <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
-                        <input id="dash-search" onkeyup="renderDashboardList()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Buscar cliente ou projeto...">
+                        <input id="project-search" onkeyup="renderProjectCards()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Buscar cliente ou projeto...">
                     </div>
-                    <select id="dash-filter" onchange="renderDashboardList()" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
+                    <select id="project-status-filter" onchange="renderProjectCards()" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
                         <option value="all">Todos os Status</option>
                         <option value="draft">Em Aberto</option>
                         <option value="sent">Enviados</option>
@@ -232,41 +260,10 @@
                         <option value="canceled">Cancelados</option>
                     </select>
                 </div>
-
-                <div id="project-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                <div id="project-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
 
-            <section id="view-projects" class="hidden space-y-6">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-bold text-slate-800">Orçamentos</h2>
-                    <button onclick="createProject()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">+ Novo</button>
-                </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200 flex gap-4">
-                    <input id="search-input" onkeyup="renderProjectTable()" class="flex-1 p-2 border rounded-lg" placeholder="Buscar...">
-                    <select id="status-filter" onchange="renderProjectTable()" class="p-2 border rounded-lg bg-white">
-                        <option value="all">Todos</option>
-                        <option value="draft">Em Aberto</option>
-                        <option value="negotiating">Em Negociação</option>
-                        <option value="approved">Aprovados</option>
-                        <option value="canceled">Cancelados</option>
-                    </select>
-                </div>
-                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                    <table class="custom-table">
-                        <thead>
-                            <tr>
-                                <th>Status</th>
-                                <th>Número</th>
-                                <th>Cliente</th>
-                                <th>Data</th>
-                                <th class="text-right">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="project-table-body"></tbody>
-                    </table>
-                </div>
-            </section>
-
+            <!-- VIEW CLIENTES -->
             <section id="view-clients" class="hidden space-y-6">
                 <h2 class="text-2xl font-bold text-slate-800">Clientes</h2>
                 <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm p-6">
@@ -284,6 +281,7 @@
                 </div>
             </section>
 
+            <!-- EDITOR COMPLETO -->
             <section id="view-editor" class="hidden pb-20">
                 <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex items-center gap-4">
@@ -305,6 +303,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    <!-- Coluna esquerda (2/3) -->
                     <div class="xl:col-span-2 space-y-6">
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold border-b pb-2 mb-4 text-slate-700 flex items-center gap-2"><i class="fas fa-id-card text-blue-600"></i> Seus Dados</h3>
@@ -350,16 +349,13 @@
                                 <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-list-ol text-blue-600"></i> Escopo do Serviço</h3>
                                 <button id="btn-add-item" onclick="addItem()" class="text-blue-600 text-sm font-bold border border-blue-200 px-3 py-1 rounded hover:bg-blue-50">+ Adicionar Item</button>
                             </div>
-                            
                             <div id="ed-items" class="space-y-3"></div>
-
                             <div class="mt-6 pt-4 border-t border-dashed">
                                 <label class="text-xs font-bold text-slate-500 mb-1 block flex items-center gap-1">
                                     <i class="fas fa-truck text-blue-600"></i> Prazo de entrega
                                 </label>
                                 <input id="t-deadline" onchange="upVal('t-deadline',this.value)" class="w-full border p-2 rounded text-sm" placeholder="Ex: 30 dias úteis após aprovação">
                             </div>
-
                             <div class="mt-6 pt-4 border-t border-dashed">
                                 <h4 class="font-bold text-slate-700 mb-3 flex items-center gap-2"><i class="fas fa-paperclip text-blue-600"></i> Anexos e Documentos</h4>
                                 <div id="ed-attachments-list" class="mb-3 space-y-3"></div>
@@ -373,6 +369,7 @@
                         </div>
                     </div>
 
+                    <!-- Coluna direita (1/3) -->
                     <div class="space-y-6">
                         <div class="bg-slate-900 text-white p-6 rounded-xl shadow-lg text-center">
                             <p class="text-xs font-bold uppercase text-slate-400">Total Global</p>
@@ -411,6 +408,7 @@
         </main>
     </div>
 
+    <!-- VIEW PÚBLICA -->
     <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10 overflow-y-auto print:p-0">
         <div id="public-loading" class="flex justify-center mt-20"><div class="loader-spin"></div></div>
         <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col print:shadow-none print:min-h-0">
@@ -454,7 +452,6 @@
                         </thead>
                         <tbody id="doc-items-body"></tbody>
                     </table>
-                    
                     <div id="doc-deadline-container" class="mt-4 text-sm text-slate-700 font-medium">
                         <span class="font-bold">Prazo de entrega:</span> <span id="doc-deadline"></span>
                     </div>
@@ -488,6 +485,7 @@
         </div>
     </section>
 
+    <!-- TELA DE SUCESSO -->
     <section id="view-success" class="hidden min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
         <div class="max-w-md w-full">
             <i id="success-icon" class="fas fa-check-circle text-6xl text-green-500 mb-6 anim-entry"></i>
@@ -498,6 +496,7 @@
         </div>
     </section>
 
+    <!-- MODAL DE INTERAÇÃO -->
     <div id="interaction-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl animate-[fadeInUp_0.3s]">
             <h3 id="modal-title" class="text-xl font-bold mb-2 text-slate-800"></h3>
@@ -514,6 +513,7 @@
         </div>
     </div>
 
+    <!-- MODAL DE COMPARTILHAR -->
     <div id="share-modal" class="hidden fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4">
         <div class="bg-white p-6 rounded-xl w-full max-w-sm text-center">
             <h3 class="text-xl font-bold mb-6 text-slate-800"><i class="fas fa-share-alt mr-2 text-blue-600"></i>Enviar Proposta</h3>
@@ -536,7 +536,7 @@
         const { createClient } = supabase;
         let db = null;
 
-        // ----- ESTADO -----
+        // ----- ESTADO GLOBAL -----
         let state = { 
             user: null, 
             project: null, 
@@ -546,9 +546,9 @@
             previousData: null, 
             snapshot: [] 
         };
-        let signaturePad = null;
+        let chartInstance = null;
 
-        // ----- AUXILIARES -----
+        // ----- FUNÇÕES AUXILIARES -----
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
         function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
@@ -556,13 +556,13 @@
         function safeShow(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
         function safeHide(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
 
-        // ----- NORMALIZAÇÃO (com validade VAZIA, SEM "10 dias") -----
+        // ----- NORMALIZAÇÃO (validade vazia) -----
         function normalizeData(dbData) {
             const schema = { 
                 client: { name: '', doc: '', email: '', phone: '', address: '' }, 
                 location: { address: '', sameAsClient: true }, 
                 items: [], 
-                terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '', obs: '' }, // ← validade vazia
+                terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '', obs: '' },
                 settings: { myPhone: '', serviceType: 'Outros', providerName: '', providerDoc: '', providerAddr: '', providerPhone: '' }, 
                 history: [],
                 attachments: [],
@@ -613,6 +613,7 @@
             });
         }
 
+        // ----- DETECTAR MUDANÇAS -----
         function getChanges(oldArr, newArr) {
             let logs = [];
             const oldMap = new Map(oldArr.map(i => [i.id, i]));
@@ -720,16 +721,27 @@
             if(nav) nav.classList.add('active');
             document.querySelector('.sidebar').classList.remove('open');
             if(updateUrl) window.history.pushState(null, '', tab === 'dashboard' ? '?' : `?view=${tab}`);
-            if(tab === 'dashboard') renderDashboardList();
-            if(tab === 'projects') renderProjectTable();
-            if(tab === 'clients') renderClients();
+            
+            if (tab === 'dashboard') {
+                renderDashboardKPIs();
+                renderDashboardCharts();
+            }
+            if (tab === 'projects') {
+                renderProjectCards();
+            }
+            if (tab === 'clients') {
+                renderClients();
+            }
         }
 
+        // ----- FILTRO RÁPIDO -----
         function filterProjects(status) {
             switchTab('projects');
-            const filterEl = document.getElementById('status-filter');
-            if(filterEl) filterEl.value = status;
-            renderProjectTable();
+            const filterEl = document.getElementById('project-status-filter');
+            if(filterEl) {
+                filterEl.value = status;
+                renderProjectCards();
+            }
         }
 
         // ----- CARREGAR PROJETOS -----
@@ -750,21 +762,9 @@
             state.projectsCache = projects || [];
         }
 
-        // ----- DASHBOARD -----
-        function renderDashboardList() {
-            const list = document.getElementById('project-list');
-            if(!list) return;
-            const search = safeVal('dash-search').toLowerCase();
-            const filterStatus = safeVal('dash-filter');
+        // ----- DASHBOARD: KPIs -----
+        function renderDashboardKPIs() {
             let totalRev = 0, totalAprov = 0, countAprov = 0, countNegoc = 0, countOpen = 0;
-
-            const filtered = state.projectsCache.filter(p => {
-                const v = p.versions?.[0] || { status: 'draft', total_value: 0 };
-                const matchSearch = p.name.toLowerCase().includes(search) || (p.client_name||'').toLowerCase().includes(search);
-                const matchStatus = filterStatus === 'all' || !filterStatus || v.status === filterStatus;
-                return matchSearch && matchStatus;
-            });
-
             state.projectsCache.forEach(p => {
                 const v = p.versions?.[0] || { status: 'draft', total_value: 0 };
                 const val = parseFloat(v.total_value) || 0;
@@ -773,27 +773,72 @@
                 if(v.status === 'negotiating' || v.status === 'sent') countNegoc++;
                 if(v.status === 'draft') countOpen++;
             });
-
             safeText('kpi-total-est', totalRev.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
             safeText('kpi-total-apr', totalAprov.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
             safeText('kpi-count-neg', countNegoc);
             safeText('kpi-count-apr', countAprov);
             safeText('kpi-count-open', countOpen);
+        }
 
+        // ----- DASHBOARD: GRÁFICO -----
+        function renderDashboardCharts() {
+            const ctx = document.getElementById('dashboardChart');
+            if (!ctx) return;
+            if (chartInstance) chartInstance.destroy();
+            const days = {};
+            for(let i=29; i>=0; i--) { 
+                const d = new Date(); 
+                d.setDate(d.getDate()-i); 
+                days[d.toLocaleDateString('pt-BR').slice(0,5)] = 0; 
+            }
+            state.projectsCache.forEach(p => { 
+                const k = new Date(p.created_at).toLocaleDateString('pt-BR').slice(0,5); 
+                if(days[k]!==undefined) days[k]++; 
+            });
+            chartInstance = new Chart(ctx, { 
+                type: 'line', 
+                data: { 
+                    labels: Object.keys(days), 
+                    datasets: [{ 
+                        label: 'Orçamentos', 
+                        data: Object.values(days), 
+                        borderColor: '#3B82F6', 
+                        tension: 0.4,
+                        fill: false
+                    }] 
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // ----- PROJETOS: RENDERIZAÇÃO DOS CARDS -----
+        function renderProjectCards() {
+            const container = document.getElementById('project-cards-container');
+            if (!container) return;
+            const search = safeVal('project-search').toLowerCase();
+            const filterStatus = safeVal('project-status-filter') || 'all';
+            const filtered = state.projectsCache.filter(p => {
+                const v = p.versions?.[0] || { status: 'draft', total_value: 0 };
+                const matchSearch = p.name.toLowerCase().includes(search) || (p.client_name||'').toLowerCase().includes(search);
+                const matchStatus = filterStatus === 'all' || v.status === filterStatus;
+                return matchSearch && matchStatus;
+            });
             let html = '';
-            if(filtered.length === 0) {
+            if (filtered.length === 0) {
                 html = '<div class="col-span-full text-center py-20 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Nenhum orçamento encontrado.</div>';
             } else {
                 filtered.forEach(p => {
                     const v = p.versions?.[0] || { total_value: 0, status: 'draft', version_number: 1 };
                     const val = parseFloat(v.total_value) || 0;
                     let badgeClass = 'st-draft'; let statusLabel = 'Em Aberto';
-                    if(v.status === 'sent') { badgeClass = 'st-sent'; statusLabel = 'Enviado'; }
-                    if(v.status === 'negotiating') { badgeClass = 'st-negotiating'; statusLabel = 'Em Negociação'; }
-                    if(v.status === 'approved') { badgeClass = 'st-approved'; statusLabel = 'Aprovado'; }
-                    if(v.status === 'canceled') { badgeClass = 'st-canceled'; statusLabel = 'Cancelado'; }
-
-                    html += `<div onclick="openProject('${p.id}')" class="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group relative flex flex-col justify-between">
+                    if (v.status === 'sent') { badgeClass = 'st-sent'; statusLabel = 'Enviado'; }
+                    if (v.status === 'negotiating') { badgeClass = 'st-negotiating'; statusLabel = 'Em Negociação'; }
+                    if (v.status === 'approved') { badgeClass = 'st-approved'; statusLabel = 'Aprovado'; }
+                    if (v.status === 'canceled') { badgeClass = 'st-canceled'; statusLabel = 'Cancelado'; }
+                    html += `<div onclick="openProject('${p.id}')" class="project-card group">
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex-1 pr-2">
                                 <h3 class="font-bold text-slate-800 text-lg group-hover:text-blue-600 transition-colors leading-tight">${p.name}</h3>
@@ -811,9 +856,10 @@
                     </div>`;
                 });
             }
-            setHTML('project-list', html);
+            container.innerHTML = html;
         }
 
+        // ----- DELETAR PROJETO -----
         async function deleteProject(id, event) {
             event.stopPropagation(); 
             if(!confirm("Tem certeza que deseja EXCLUIR este orçamento permanentemente?")) return;
@@ -821,11 +867,14 @@
             if(error) alert("Erro ao excluir: " + error.message);
             else { 
                 state.projectsCache = state.projectsCache.filter(p => p.id !== id); 
-                renderDashboardList(); 
-                renderProjectTable();
+                renderDashboardKPIs();
+                renderDashboardCharts();
+                renderProjectCards();
+                renderClients();
             }
         }
 
+        // ----- ABRIR PROJETO -----
         function openProject(id) {
             window.history.pushState(null, '', `?view=editor&id=${id}`);
             loadEditor(id).then(() => switchTab('editor', false));
@@ -840,7 +889,6 @@
                 user_id: state.user.id, 
                 client_name: 'Novo Cliente' 
             }).select().single();
-            
             const d = normalizeData(null); 
             d.settings.myPhone = localStorage.getItem('escopo_phone') || '';
             d.settings.providerName = localStorage.getItem('prov_name') || '';
@@ -848,7 +896,6 @@
             d.settings.providerAddr = localStorage.getItem('prov_addr') || '';
             d.settings.providerPhone = localStorage.getItem('prov_phone') || '';
             d.history.push({ date: new Date().toISOString(), action: 'created', user: 'provider', detail: 'Orçamento criado via painel.' });
-
             await db.from('versions').insert({ 
                 project_id: p.id, 
                 version_number: 1, 
@@ -859,37 +906,7 @@
             openProject(p.id);
         }
 
-        // ----- TABELA DE PROJETOS -----
-        function renderProjectTable() {
-            const term = safeVal('search-input').toLowerCase();
-            const status = safeVal('status-filter') || 'all';
-            const filtered = state.projectsCache.filter(p => {
-                const v = p.versions?.[0] || { status: 'draft' };
-                const matchStatus = status === 'all' || v.status === status;
-                const matchText = p.name.toLowerCase().includes(term) || (p.client_name||'').toLowerCase().includes(term);
-                return matchStatus && matchText;
-            });
-            const html = filtered.map(p => {
-                const v = p.versions?.[0] || { status: 'draft', total_value: 0, version_number: 1 };
-                const badges = { 
-                    'draft': ['bg-slate-100 text-slate-600', 'Rascunho'], 
-                    'sent': ['bg-blue-100 text-blue-800', 'Enviado'], 
-                    'negotiating': ['bg-orange-100 text-orange-800', 'Em Negociação'], 
-                    'approved': ['bg-green-100 text-green-800', 'Aprovado'], 
-                    'canceled': ['bg-red-100 text-red-800', 'Cancelado'] 
-                };
-                const b = badges[v.status] || badges['draft'];
-                return `<tr onclick="openProject('${p.id}')">
-                    <td><span class="px-2 py-1 rounded text-xs font-bold ${b[0]}">${b[1]}</span></td>
-                    <td class="font-mono">#${p.id.substr(0,4)} (V${v.version_number})</td>
-                    <td class="font-bold">${p.client_name}</td>
-                    <td>${new Date(p.created_at).toLocaleDateString()}</td>
-                    <td class="text-right font-bold">${(parseFloat(v.total_value)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
-                </tr>`;
-            }).join('');
-            document.getElementById('project-table-body').innerHTML = html || '<tr><td colspan="5" class="text-center py-4 text-slate-400">Nada encontrado</td></tr>';
-        }
-
+        // ----- CLIENTES -----
         function renderClients() {
             const map = {};
             state.projectsCache.forEach(p => { 
@@ -903,7 +920,7 @@
             document.getElementById('client-table-body').innerHTML = html || '<tr><td colspan="4" class="text-center py-4 text-slate-400">Nenhum cliente encontrado</td></tr>';
         }
 
-        // ----- EDITOR -----
+        // ========== EDITOR ==========
         async function loadEditor(id) {
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
             state.project = proj;
@@ -911,22 +928,18 @@
             state.version = vers[vers.length - 1];
             state.data = normalizeData(state.version.items);
             state.snapshot = JSON.parse(JSON.stringify(state.data.items));
-
             state.previousData = null;
             if (state.version.version_number > 1 && vers[vers.length - 2]) {
                 state.previousData = normalizeData(vers[vers.length - 2].items);
             }
-
             renderEditor();
         }
 
         function renderEditor() {
             const d = state.data; 
             const isLocked = state.version.status !== 'draft'; 
-            
             safeText('ed-title', state.project.name);
             safeText('ed-ver', `V${state.version.version_number}`);
-            
             const badge = document.getElementById('ed-status-badge');
             if(badge) {
                 badge.className = `status-badge ml-2 ${
@@ -939,7 +952,6 @@
                                  state.version.status === 'sent' ? 'ENVIADO' : 
                                  state.version.status.toUpperCase();
             }
-
             setVal('p-name', d.settings.providerName);
             setVal('p-doc', d.settings.providerDoc);
             setVal('p-addr', d.settings.providerAddr);
@@ -950,17 +962,14 @@
             setVal('c-email', d.client.email);
             setVal('c-addr', d.client.address);
             setVal('in-s-myphone', d.settings.myPhone);
-            
             setVal('t-deadline', d.terms.deadline); 
             setVal('t-val', d.terms.validity); 
             setVal('t-obs', d.terms.paymentText || d.terms.obs);
-
             const locCheck = document.getElementById('loc-check');
             if(locCheck) locCheck.checked = d.location.sameAsClient;
             const locDiv = document.getElementById('loc-custom-div');
             if(locDiv) locDiv.style.display = d.location.sameAsClient ? 'none' : 'block';
             setVal('loc-addr', d.location.address);
-
             const staticInputs = [
                 'p-name','p-doc','p-addr','p-phone',
                 'c-name','c-doc','c-phone','c-email','c-addr',
@@ -971,16 +980,12 @@
                 const el = document.getElementById(id); 
                 if(el) el.disabled = isLocked; 
             });
-
             const btnAdd = document.getElementById('btn-add-item');
             if(btnAdd) btnAdd.style.display = isLocked ? 'none' : 'inline-block';
-            
             const btnCalc = document.getElementById('btn-calc-pay');
             if(btnCalc) btnCalc.style.display = isLocked ? 'none' : 'inline-block';
-
             const uploadArea = document.getElementById('upload-area');
             if(uploadArea) uploadArea.style.display = isLocked ? 'none' : 'block';
-
             const headerActions = document.getElementById('ed-actions-header');
             if (headerActions) {
                 if (isLocked) {
@@ -989,7 +994,6 @@
                     headerActions.innerHTML = `<button onclick="save()" class="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold"><i class="fas fa-save mr-2"></i> Salvar</button>`;
                 }
             }
-
             const area = document.getElementById('ed-actions-area');
             if (area) {
                 if (isLocked) {
@@ -998,7 +1002,6 @@
                     area.innerHTML = `<button onclick="changeStatus('canceled')" class="w-full py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-sm font-bold">Cancelar Orçamento</button>`;
                 }
             }
-
             renderItems();
             renderAttachments();
             renderHistory();
@@ -1010,15 +1013,12 @@
             const d = state.data;
             let html = ''; 
             let total = 0, totalOpt = 0;
-            
             d.items.forEach((i, x) => {
                 const t = (i.qty||0)*(i.price||0); 
                 if(!i.optional) total += t;
                 else totalOpt += t;
-
                 let diffHtml = '';
                 let cardClass = i.optional ? 'item-optional' : '';
-                
                 if (state.previousData) {
                     const oldItem = state.previousData.items.find(old => old.id === i.id);
                     if (!oldItem) {
@@ -1034,7 +1034,6 @@
                         }
                     }
                 }
-
                 html += `
                 <div class="item-box ${cardClass} group">
                     ${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}
@@ -1064,13 +1063,10 @@
                     ${diffHtml}
                 </div>`;
             });
-            
             setHTML('ed-items', html);
             document.getElementById('ed-total').innerText = total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
             const optDiv = document.getElementById('ed-total-optional');
-            if (optDiv) {
-                optDiv.innerText = totalOpt > 0 ? `+ ${totalOpt.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} em opcionais` : '';
-            }
+            if (optDiv) optDiv.innerText = totalOpt > 0 ? `+ ${totalOpt.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} em opcionais` : '';
         }
 
         function upItem(i,f,v) { 
@@ -1082,13 +1078,11 @@
                 it[f] = v; 
             }
         }
-        
         function toggleOpt(i) { 
             state.data.items[i].optional = !state.data.items[i].optional; 
             renderItems(); 
             updateTotal(); 
         }
-
         function addItem() { 
             if(!Array.isArray(state.data.items)) state.data.items = [];
             state.data.items.push({ 
@@ -1102,7 +1096,6 @@
             }); 
             renderItems(); 
         }
-        
         function rmItem(i) { 
             if(confirm("Remover este item?")) { 
                 state.data.items.splice(i, 1); 
@@ -1110,7 +1103,6 @@
                 updateTotal(); 
             } 
         }
-
         function updateTotal() { 
             const total = state.data.items.reduce((a,b)=> !b.optional ? a + (b.qty*b.price) : a, 0);
             document.getElementById('ed-total').innerText = total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
@@ -1120,21 +1112,20 @@
         function upVal(k,v) { 
             if (k.startsWith('c-')) {
                 if (k === 'c-addr') {
-                    state.data.client.address = v;       // ← CORRIGIDO: address, não addr
+                    state.data.client.address = v;
                 } else {
-                    state.data.client[k.substring(2)] = v; // name, doc, phone, email
+                    state.data.client[k.substring(2)] = v;
                 }
             } else if (k.startsWith('t-')) {
                 if (k === 't-obs') {
                     state.data.terms.paymentText = v;
                 } else if (k === 't-val') {
-                    state.data.terms.validity = v;       // ← CORRIGIDO: validity, não val
+                    state.data.terms.validity = v;
                 } else {
-                    state.data.terms[k.substring(2)] = v; // deadline
+                    state.data.terms[k.substring(2)] = v;
                 }
             }
         }
-        
         function upSettings(k,v) { 
             state.data.settings[k] = v; 
             if(['providerName','providerDoc','providerAddr','providerPhone'].includes(k)) {
@@ -1142,7 +1133,6 @@
             }
             if(k === 'myPhone') localStorage.setItem('escopo_phone', v);
         }
-
         function toggleLoc(checked) { 
             state.data.location.sameAsClient = checked; 
             const locDiv = document.getElementById('loc-custom-div');
@@ -1156,7 +1146,6 @@
             if(total === 0) return alert("Adicione valores (não opcionais) primeiro.");
             const mode = document.getElementById('pay-mode').value;
             let text = "";
-            
             if(mode === 'entry_installments') {
                 const entryP = prompt("Porcentagem de Entrada? (Ex: 30)", "30");
                 const inst = prompt("Restante em quantas vezes?", "2");
@@ -1187,11 +1176,9 @@
             if (file.size > 5 * 1024 * 1024) return alert("Arquivo muito grande! Máximo 5MB.");
             const ext = file.name.split('.').pop().toLowerCase();
             if(!['pdf','png','jpg','jpeg'].includes(ext)) return alert("Formato não permitido. Use PDF, PNG ou JPG.");
-
             const label = document.getElementById('upload-label');
             const originalText = label.innerHTML;
             label.innerText = "Enviando...";
-
             try {
                 const path = `${state.project.id}/${Date.now()}_${file.name}`;
                 const { error } = await db.storage.from('attachments').upload(path, file);
@@ -1213,19 +1200,16 @@
                 e.target.value = '';
             }
         }
-
         function deleteAttachment(idx) {
             if(!confirm("Remover este anexo?")) return;
             state.data.attachments.splice(idx, 1);
             save().then(() => renderAttachments());
         }
-
         function updateAttachmentDescription(idx, desc) {
             state.data.attachments[idx].description = desc;
             clearTimeout(window.descTimeout);
             window.descTimeout = setTimeout(() => save(), 800);
         }
-
         function renderAttachments() {
             const attachList = document.getElementById('ed-attachments-list');
             if (!attachList) return;
@@ -1266,13 +1250,11 @@
         // ----- SALVAR -----
         async function save() {
             const t = state.data.items.reduce((a,b)=> (!b.optional ? a+(b.qty*b.price) : a),0);
-            
             const changes = getChanges(state.snapshot, state.data.items);
             if(changes) {
                 logHistory('edited', 'provider', changes);
                 state.snapshot = JSON.parse(JSON.stringify(state.data.items)); 
             }
-
             if(state.data.client.name) {
                 await db.from('projects').update({client_name: state.data.client.name}).eq('id', state.project.id);
             }
@@ -1281,13 +1263,12 @@
                 total_value: t, 
                 notes: state.data.terms.obs || state.data.terms.paymentText
             }).eq('id', state.version.id);
-            
             renderHistory();
         }
 
         // ----- CRIAR NOVA VERSÃO -----
         async function createAddon() {
-            await save(); // salva dados atuais (incluindo endereço e validade)
+            await save();
             if(!confirm("Criar nova versão (Aditivo)?")) return;
             const t = state.data.items.reduce((a,b)=> (!b.optional ? a+(b.qty*b.price) : a),0);
             logHistory('created', 'provider', `Criou nova versão V${state.version.version_number+1}.`);
@@ -1324,7 +1305,6 @@
                     else if (h.action === 'canceled') { icon = 'times text-red-500'; actionLabel = 'Recusou/Cancelou'; }
                     else if (h.action === 'created') { icon = 'plus-circle text-blue-600'; actionLabel = 'Criou o orçamento'; }
                     else if (h.action === 'edited') { icon = 'pen text-indigo-500'; actionLabel = 'Alterou o escopo'; }
-
                     histHtml += `<div class="timeline-item">
                         <div class="text-xs text-slate-400">${date} • ${h.user === 'provider' ? 'Você' : 'Cliente'}</div>
                         <div class="font-bold text-sm text-slate-700 flex items-center gap-2 mt-1">
@@ -1343,18 +1323,15 @@
         async function openShareModal() {
             await save();
             if (!state.version?.id) return alert("Erro ao salvar versão.");
-
             const url = `${window.location.origin}${window.location.pathname}?view=public&id=${state.version.id}`;
             const clientName = state.data.client.name ? ` ${state.data.client.name}` : '';
             const msg = `Olá${clientName}! Segue o link da proposta comercial para sua aprovação: ${url}`;
-
             document.getElementById('btn-share-wa').onclick = function() {
                 let phone = (state.data.client.phone || '').replace(/\D/g, '');
                 let link = `https://wa.me/${phone.length >= 10 ? '55' + phone : ''}?text=${encodeURIComponent(msg)}`;
                 window.open(link, '_blank');
                 document.getElementById('share-modal').classList.add('hidden');
             };
-
             document.getElementById('btn-share-copy').onclick = async function() {
                 try {
                     await navigator.clipboard.writeText(url);
@@ -1370,11 +1347,10 @@
                 }
                 document.getElementById('share-modal').classList.add('hidden');
             };
-
             safeShow('share-modal');
         }
 
-        // ----- PÁGINA PÚBLICA -----
+        // ========== PÁGINA PÚBLICA ==========
         async function loadPublicProposal(id) {
             try {
                 safeShow('public-loading');
@@ -1383,28 +1359,21 @@
                 state.version = v; 
                 state.data = normalizeData(v.items);
                 const d = state.data;
-                
                 if(v.status === 'approved') document.getElementById('stamp-approved').style.display = 'block';
-
                 if(d.settings.providerName) {
                     setHTML('doc-provider-info', `<div class="mb-4 pb-4 border-b border-slate-700"><h2 class="text-xl font-bold">${d.settings.providerName}</h2><p class="text-slate-400 text-sm">${d.settings.providerDoc || ''} • ${d.settings.providerPhone || ''}</p><p class="text-slate-400 text-xs">${d.settings.providerAddr || ''}</p></div>`);
                 }
-
                 safeText('doc-title', v.projects?.name);
                 safeText('doc-id', `#${v.project_id ? v.project_id.substr(0,4).toUpperCase() : 'XXXX'}-${v.version_number}`);
                 safeText('doc-c-name', d.client.name);
                 safeText('doc-c-doc', d.client.doc);
-                
                 const finalAddr = d.location.sameAsClient ? d.client.address : (d.location.address || 'Não informado');
                 safeText('doc-c-addr', finalAddr);
-                
                 renderPublicItems(); 
-
                 safeText('doc-payment', d.terms.paymentText); 
                 safeText('doc-deadline', d.terms.deadline || 'Não informado'); 
                 safeText('doc-validity', d.terms.validity); 
                 safeText('doc-obs', d.terms.obs);
-
                 if(d.attachments && d.attachments.length > 0) {
                     let attHtml = '<h3 class="font-bold text-xs uppercase text-slate-400 mb-2 mt-8 tracking-wider">Documentos Anexos</h3><div class="grid grid-cols-1 gap-3">';
                     d.attachments.forEach(att => {
@@ -1423,11 +1392,9 @@
                 } else {
                     setHTML('doc-attachments-area', '');
                 }
-
                 if (d.signature) {
                     setHTML('doc-signature-area', `<div class="mt-8 border-t border-dashed pt-4 w-64 text-center"><img src="${d.signature}" class="mx-auto h-16 mb-2" alt="Assinatura"><p class="text-xs text-slate-500 uppercase font-bold">Assinado Digitalmente</p></div>`);
                 }
-
                 const actions = document.getElementById('doc-actions');
                 if(actions) {
                     if(v.status === 'approved' || v.status === 'canceled') {
@@ -1457,13 +1424,11 @@
             let total = 0;
             const items = state.data.items;
             const isFrozen = state.version.status !== 'sent' && state.version.status !== 'negotiating' && state.version.status !== 'draft';
-
             items.forEach((i, idx) => {
                 if(i.optional && typeof i.publicSelected === 'undefined') i.publicSelected = false;
                 if (!i.optional || i.publicSelected) {
                     total += (i.qty * i.price);
                 }
-
                 html += `<tr class="border-b border-slate-100 ${i.optional ? 'bg-slate-50' : ''}">
                     <td class="py-4 pl-4">
                         <div class="flex items-start gap-3">
@@ -1493,7 +1458,7 @@
             renderPublicItems();
         }
 
-        // ----- PDF (MELHORADO) -----
+        // ----- PDF -----
         function downloadPDF() {
             const element = document.getElementById('public-content');
             const btn = document.getElementById('btn-download-pdf');
@@ -1502,7 +1467,6 @@
             const originalDisplay = stamp.style.display;
             stamp.style.display = 'block';
             document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
-            
             const opt = { 
                 margin: [0.6, 0.6, 0.6, 0.6],
                 filename: `Comprovante_${state.version?.projects?.name || 'proposta'}.pdf`, 
@@ -1511,7 +1475,6 @@
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 pagebreak: { mode: ['css', 'legacy'] }
             };
-            
             html2pdf().set(opt).from(element).save().then(() => {
                 if(btn) btn.innerText = "Baixar Comprovante PDF";
                 document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
@@ -1519,7 +1482,7 @@
             });
         }
 
-        // ----- MODAIS DE APROVAÇÃO -----
+        // ----- MODAIS PÚBLICOS -----
         function openModal(type) {
             const modal = document.getElementById('interaction-modal');
             const title = document.getElementById('modal-title');
@@ -1527,12 +1490,10 @@
             const input = document.getElementById('modal-input');
             const sigArea = document.getElementById('modal-sig-area');
             const btn = document.getElementById('modal-btn');
-            
             modal.classList.remove('hidden');
             input.value = '';
             input.classList.add('hidden');
             sigArea.classList.add('hidden');
-            
             if(type === 'approve') {
                 title.innerText = 'Assinar e Aprovar';
                 desc.innerText = 'Por favor, assine abaixo para confirmar a aprovação.';
@@ -1609,7 +1570,6 @@
             const btn = document.getElementById('modal-btn');
             btn.innerText = "Processando...";
             btn.disabled = true;
-
             if (type === 'approve') {
                 const canvas = document.getElementById('signature-pad');
                 const signatureData = canvas.toDataURL();
@@ -1645,12 +1605,9 @@
                 const j = await r.json(); 
                 ip = j.ip; 
             } catch(e){}
-            
             logHistory('approved', 'client', 'Aprovado via link com assinatura');
-            
             const items = state.data.items;
             const finalTotal = items.reduce((acc, i) => (!i.optional || i.publicSelected ? acc + (i.qty * i.price) : acc), 0);
-            
             await db.from('versions').update({ 
                 status: 'approved', 
                 approved_at: new Date(), 
@@ -1658,7 +1615,6 @@
                 items: state.data, 
                 total_value: finalTotal 
             }).eq('id', state.version.id);
-            
             const phone = state.data.settings?.myPhone;
             if(phone) {
                 const msg = `✅ O cliente APROVOU o orçamento ${state.version.projects?.name || ''}!`;
@@ -1676,7 +1632,6 @@
             const desc = document.getElementById('success-desc');
             const actions = document.getElementById('success-actions');
             actions.innerHTML = ''; 
-
             if(type === 'approved' || type === 'approve') {
                 icon.className = "fas fa-check-circle text-6xl text-green-500 mb-4";
                 title.innerText = "Orçamento Aprovado!";
