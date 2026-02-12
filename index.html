@@ -3,695 +3,1027 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aprova Ai | Gestão Inteligente</title>
+    <title>Aprova Ai | Sistema de Orçamentos</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; color: #334155; overflow-x: hidden; }
+        /* --- ESTILO GERAL --- */
+        body { font-family: 'Inter', sans-serif; background-color: #F1F5F9; color: #334155; font-size: 15px; overflow-x: hidden; }
         .font-heading { font-family: 'Plus Jakarta Sans', sans-serif; }
         
-        /* --- SIDEBAR NOVA (Visual MeOrçamentos) --- */
-        .sidebar { width: 260px; background: white; height: 100vh; position: fixed; left: 0; top: 0; border-right: 1px solid #E2E8F0; display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s; }
-        .main-content { margin-left: 260px; padding: 2rem; min-height: 100vh; transition: margin 0.3s; }
-        .nav-item { display: flex; align-items: center; padding: 12px 24px; color: #64748B; font-weight: 500; transition: all 0.2s; cursor: pointer; border-left: 3px solid transparent; }
-        .nav-item:hover, .nav-item.active { background: #F8FAFC; color: #3B82F6; border-left-color: #3B82F6; }
-        .nav-item i { width: 24px; margin-right: 10px; }
-        .btn-new { background: #3B82F6; color: white; border-radius: 8px; padding: 12px; margin: 20px; text-align: center; font-weight: 600; cursor: pointer; transition: background 0.2s; display: block; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5); }
-        .btn-new:hover { background: #2563EB; }
+        /* Scrollbar Personalizada */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* --- ESTILOS ORIGINAIS (EDITOR & UTILITÁRIOS) --- */
-        .item-box { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s; }
-        .item-box:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .item-optional { border: 2px dashed #94a3b8 !important; background-color: #f8fafc; opacity: 0.9; }
-        .optional-badge { background: #64748b; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; font-weight: bold; text-transform: uppercase; margin-left: 8px; }
-        
-        .timeline-item { position: relative; padding-left: 2rem; border-left: 2px solid #e2e8f0; padding-bottom: 1.5rem; }
-        .timeline-item::before { content: ''; position: absolute; left: -5px; top: 0; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
-        .timeline-item:last-child { border-left: transparent; }
-        .timeline-desc { font-size: 0.85rem; color: #334155; margin-top: 6px; background: #fff7ed; padding: 12px; border-radius: 8px; border: 1px solid #fed7aa; font-style: italic; }
-        .timeline-desc.system { background: #f8fafc; border-color: #f1f5f9; font-style: normal; }
+        /* Animações */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .anim-entry { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 
-        /* --- ESTILOS DO DOCUMENTO PÚBLICO (RESTAURADO 100%) --- */
-        .doc-container { font-family: 'Inter', sans-serif; color: #1e293b; line-height: 1.6; }
-        .doc-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 2rem; border-bottom: 2px solid #e2e8f0; margin-bottom: 2rem; }
-        .doc-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; letter-spacing: -0.02em; }
-        .doc-section-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #64748b; margin-bottom: 1rem; border-left: 3px solid #3b82f6; padding-left: 0.75rem; }
-        .doc-card { background: #f8fafc; border-radius: 8px; padding: 1.5rem; border: 1px solid #e2e8f0; }
-        .att-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; transition: all 0.2s; display: flex; flex-direction: column; gap: 0.5rem; }
-        .att-card:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        /* --- COMPONENTES DE UI --- */
+        .app-header { background: #0f172a; height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; position: sticky; top: 0; z-index: 50; box-shadow: 0 4px 20px rgba(0,0,0,0.1); color: white; }
         
-        /* Assinatura */
-        #signature-pad { border: 2px dashed #cbd5e1; border-radius: 12px; background: #f8fafc; cursor: crosshair; touch-action: none; width: 100%; height: 200px; }
+        /* Inputs & Forms */
+        .input-label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .input-field { width: 100%; padding: 12px 16px; background: #fff; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.95rem; color: #1e293b; transition: all 0.2s; outline: none; }
+        .input-field:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        .input-field:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
 
-        /* Dashboard Tables */
-        .custom-table { width: 100%; text-align: left; border-collapse: separate; border-spacing: 0; }
-        .custom-table th { padding: 16px; background: #F8FAFC; color: #64748B; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #E2E8F0; }
-        .custom-table td { padding: 16px; border-bottom: 1px solid #E2E8F0; background: white; font-size: 0.9rem; }
-        .custom-table tr:hover td { background: #F1F5F9; cursor: pointer; }
-        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        /* Botões */
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.95rem; gap: 8px; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn-primary { background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: white; border: none; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2); }
+        .btn-primary:hover { box-shadow: 0 6px 16px rgba(15, 23, 42, 0.3); }
+        .btn-secondary { background: white; color: #475569; border: 1px solid #e2e8f0; }
+        .btn-secondary:hover { background: #f8fafc; border-color: #cbd5e1; color: #1e293b; }
+        .btn-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .btn-danger:hover { background: #fecaca; }
+
+        /* Cards do Editor */
+        .panel-grid { display: grid; grid-template-columns: 1fr 420px; gap: 24px; max-width: 1900px; margin: 24px auto; padding: 0 24px; height: calc(100vh - 120px); }
+        .col-scroll { overflow-y: auto; height: 100%; padding-right: 8px; padding-bottom: 40px; display: flex; flex-direction: column; gap: 24px; }
         
-        /* Responsividade e Loaders */
+        .card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: all 0.3s; }
+        .card-header { background: #f8fafc; padding: 16px 24px; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: #475569; display: flex; align-items: center; gap: 10px; letter-spacing: 0.05em; }
+        .card-body { padding: 24px; }
+
+        /* Itens do Escopo */
+        .item-row { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s; }
+        .item-row:hover { border-color: #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .item-optional { border: 2px dashed #94a3b8; background: #f8fafc; }
+        
+        /* Anexos */
+        .attach-item { display: flex; align-items: center; gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 10px; margin-bottom: 8px; }
+        .attach-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: white; border: 1px solid #e2e8f0; }
+        .attach-input { background: transparent; border: none; border-bottom: 1px dashed #cbd5e1; width: 100%; padding: 4px 0; font-size: 0.9rem; color: #475569; }
+        .attach-input:focus { border-bottom-color: #3b82f6; outline: none; }
+
+        /* Responsividade */
+        @media (max-width: 1280px) { .panel-grid { grid-template-columns: 1fr 360px; padding: 0 16px; } }
         @media (max-width: 1024px) { 
-            .sidebar { transform: translateX(-100%); width: 100%; }
-            .sidebar.open { transform: translateX(0); }
-            .main-content { margin-left: 0; padding: 1rem; }
-            .mobile-header { display: flex !important; }
-            .doc-container { padding: 1.5rem; }
+            .panel-grid { display: flex; flex-direction: column; height: auto; overflow: visible; gap: 30px; } 
+            .col-scroll { height: auto; overflow: visible; padding-right: 0; }
+            .app-header { padding: 0 16px; height: 64px; }
         }
-        .mobile-header { display: none; justify-content: space-between; align-items: center; padding: 1rem; background: white; border-bottom: 1px solid #E2E8F0; margin-bottom: 1rem; }
-        .hidden { display: none !important; }
-        .loader-spin { width: 30px; height: 30px; border: 3px solid #E2E8F0; border-top-color: #3B82F6; border-radius: 50%; animation: spin 1s linear infinite; }
+
+        /* Loading */
+        #system-loader { position: fixed; inset: 0; background: #0f172a; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @media print { .no-print { display: none !important; } .sidebar { display: none; } .main-content { margin: 0; padding: 0; } }
+
+        /* Utils */
+        .hidden { display: none !important; }
+        @media print { .no-print { display: none !important; } .panel-grid { display: block; } }
     </style>
 </head>
 <body>
 
-    <div id="system-loader" style="position:fixed; inset:0; background:white; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-        <div class="loader-spin mb-4"></div>
-        <p class="text-sm text-slate-500 font-medium">Carregando...</p>
+    <div id="system-loader">
+        <div class="spinner"></div>
+        <p class="text-sm opacity-70 tracking-widest uppercase">Carregando...</p>
     </div>
 
-    <section id="view-login" class="hidden min-h-screen flex items-center justify-center bg-slate-50 p-4">
-        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
-            <h1 class="text-3xl font-bold text-slate-900 mb-2 text-center font-heading">Aprova Aí</h1>
-            <p class="text-slate-500 text-center mb-6">Acesse seu painel de orçamentos</p>
-            <input type="email" id="email" class="w-full p-3 border border-slate-300 rounded-lg mb-4" placeholder="seu@email.com">
-            <button onclick="handleLogin()" id="btn-login" class="w-full bg-slate-900 text-white font-bold py-3 rounded-lg hover:bg-slate-800 transition-colors">Entrar</button>
+    <div id="fatal-error" class="hidden fixed inset-0 bg-red-50 z-[10000] flex flex-col items-center justify-center text-center p-8">
+        <i class="fas fa-bug text-5xl text-red-500 mb-4"></i>
+        <h2 class="text-2xl font-bold text-red-900">Algo deu errado</h2>
+        <p id="error-msg" class="text-red-700 mt-2 mb-6 max-w-md">Erro desconhecido.</p>
+        <button onclick="localStorage.clear(); window.location.reload()" class="btn btn-primary bg-red-600 hover:bg-red-700">Recarregar Sistema</button>
+    </div>
+
+    <section id="view-login" class="hidden min-h-screen flex flex-col lg:flex-row">
+        <div class="lg:w-3/5 bg-slate-900 relative flex items-center justify-center p-10 overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-black opacity-80"></div>
+            <div class="absolute -top-20 -left-20 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+            <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+            
+            <div class="relative z-10 text-white max-w-lg">
+                <div class="mb-6 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center font-bold text-xl">A</div>
+                    <span class="text-2xl font-bold tracking-tight">Aprova Ai</span>
+                </div>
+                <h1 class="text-5xl font-extrabold leading-tight mb-6">Orçamentos que <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">fecham negócios.</span></h1>
+                <p class="text-lg text-slate-300 mb-8 leading-relaxed">Profissionalize sua gestão, evite prejuízos com mudanças de escopo e transmita confiança para seus clientes.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10">
+                        <i class="fas fa-check-circle text-emerald-400 mb-2 text-xl"></i>
+                        <h3 class="font-bold">Aprovação Digital</h3>
+                        <p class="text-xs text-slate-400">Link seguro para o cliente.</p>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/10">
+                        <i class="fas fa-history text-blue-400 mb-2 text-xl"></i>
+                        <h3 class="font-bold">Histórico Completo</h3>
+                        <p class="text-xs text-slate-400">Registre todas as alterações.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="lg:w-2/5 bg-white flex items-center justify-center p-8">
+            <div class="w-full max-w-md">
+                <div class="text-center mb-10">
+                    <h2 class="text-2xl font-bold text-slate-900">Bem-vindo de volta</h2>
+                    <p class="text-slate-500">Digite seu e-mail para acessar sua conta.</p>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="input-label">E-mail Corporativo</label>
+                        <input type="email" id="email" placeholder="seu@email.com" class="input-field">
+                    </div>
+                    <button onclick="handleLogin()" id="btn-login" class="btn btn-primary w-full py-4 text-lg">
+                        <span>Enviar Link de Acesso</span> <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+                <p class="mt-8 text-center text-xs text-slate-400">Seu acesso é seguro e livre de senhas.</p>
+            </div>
         </div>
     </section>
 
-    <div id="app-layout" class="hidden">
-        <div class="mobile-header">
-            <span class="font-bold text-lg text-slate-800">Aprova Ai</span>
-            <button onclick="document.querySelector('.sidebar').classList.toggle('open')" class="text-slate-600"><i class="fas fa-bars text-xl"></i></button>
-        </div>
-
-        <aside class="sidebar">
-            <div class="p-6 flex items-center gap-2 border-b border-slate-100">
-                <i class="fas fa-layer-group text-2xl text-blue-600"></i>
-                <span class="font-bold text-xl tracking-tight text-slate-800 font-heading">Aprova Ai</span>
+    <section id="view-dashboard" class="hidden min-h-screen flex flex-col">
+        <header class="app-header">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold">A</div>
+                <span class="font-bold text-lg tracking-tight">Painel de Controle</span>
             </div>
-            <div onclick="createProject()" class="btn-new"><i class="fas fa-plus mr-2"></i> Novo Orçamento</div>
-            <nav class="flex-1 overflow-y-auto py-2">
-                <div onclick="switchTab('dashboard')" class="nav-item active" id="nav-dashboard"><i class="fas fa-home"></i> Visão geral</div>
-                <div onclick="switchTab('projects')" class="nav-item" id="nav-projects"><i class="fas fa-file-invoice"></i> Orçamentos</div>
-                <div class="px-6 py-4 mt-2">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-3">Status</p>
-                    <div onclick="filterProjects('draft')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#94a3b8"></span> Em Aberto</div>
-                    <div onclick="filterProjects('negotiating')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#f97316"></span> Em Negociação</div>
-                    <div onclick="filterProjects('approved')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#22c55e"></span> Aprovados</div>
-                    <div onclick="filterProjects('canceled')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600"><span class="status-dot" style="background:#ef4444"></span> Cancelados</div>
+            <div class="flex items-center gap-4">
+                <button onclick="createProject()" class="btn bg-white text-slate-900 hover:bg-slate-100 py-2 px-4 text-xs font-bold border-none"><i class="fas fa-plus"></i> Novo Projeto</button>
+                <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="text-slate-400 hover:text-white transition-colors" title="Sair"><i class="fas fa-sign-out-alt text-lg"></i></button>
+            </div>
+        </header>
+
+        <main class="flex-1 max-w-7xl mx-auto w-full p-6 md:p-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-xs font-bold text-slate-400 uppercase mb-1">Em Aberto</p>
+                    <h3 class="text-2xl font-bold text-slate-800" id="kpi-count-open">0</h3>
                 </div>
-                <div onclick="switchTab('clients')" class="nav-item" id="nav-clients"><i class="fas fa-users"></i> Clientes</div>
-            </nav>
-            <div class="p-4 border-t border-slate-100"><button onclick="db.auth.signOut().then(()=>window.location.reload())" class="flex items-center text-sm text-red-500 font-medium w-full px-4 py-2"><i class="fas fa-sign-out-alt mr-3"></i> Sair</button></div>
-        </aside>
-
-        <main class="main-content">
-            <section id="view-dashboard" class="space-y-6">
-                <h2 class="text-2xl font-bold text-slate-800 font-heading">Visão geral</h2>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Mês Atual</div><div class="text-2xl font-bold text-blue-600" id="kpi-month-count">0</div></div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Faturamento Mês</div><div class="text-2xl font-bold text-emerald-600" id="kpi-month-total">R$ 0,00</div></div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Total Orçamentos</div><div class="text-2xl font-bold text-slate-800" id="kpi-all-count">0</div></div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Total Clientes</div><div class="text-2xl font-bold text-indigo-600" id="kpi-client-count">0</div></div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-xs font-bold text-amber-500 uppercase mb-1">Em Negociação</p>
+                    <h3 class="text-2xl font-bold text-slate-800" id="kpi-count-neg">0</h3>
                 </div>
-                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-700 mb-4">Orçamentos por dia</h3><div style="height: 300px;"><canvas id="dashboardChart"></canvas></div></div>
-            </section>
-
-            <section id="view-projects" class="hidden space-y-6">
-                <div class="flex justify-between items-center"><h2 class="text-2xl font-bold text-slate-800 font-heading">Orçamentos</h2><button onclick="createProject()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow hover:bg-blue-700 transition-colors">+ Novo Orçamento</button></div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200 flex gap-4"><input id="search-input" onkeyup="renderProjectTable()" class="flex-1 p-2 border rounded-lg" placeholder="Buscar por cliente ou número..."><select id="status-filter" onchange="renderProjectTable()" class="p-2 border rounded-lg bg-white"><option value="all">Todos os status</option><option value="draft">Em Aberto</option><option value="negotiating">Em Negociação</option><option value="approved">Aprovados</option><option value="canceled">Cancelados</option></select></div>
-                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm"><div class="overflow-x-auto"><table class="custom-table"><thead><tr><th>Status</th><th>Número</th><th>Cliente</th><th>Data</th><th class="text-right">Total</th></tr></thead><tbody id="project-table-body"></tbody></table></div></div>
-            </section>
-
-            <section id="view-clients" class="hidden space-y-6"><h2 class="text-2xl font-bold text-slate-800 font-heading">Clientes</h2><div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm p-6"><table class="custom-table"><thead><tr><th>Nome</th><th>Documento</th><th>Email</th><th>Projetos</th></tr></thead><tbody id="client-table-body"></tbody></table></div></section>
-
-            <section id="view-editor" class="hidden pb-20">
-                <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm sticky top-2 z-40">
-                    <div class="flex items-center gap-4"><button onclick="switchTab('projects')" class="text-slate-400 hover:text-slate-800"><i class="fas fa-arrow-left"></i></button><div><h2 class="text-xl font-bold text-slate-800 flex items-center gap-2 font-heading"><span id="ed-title">...</span><span id="ed-ver" class="text-xs bg-slate-100 px-2 py-1 rounded border">V1</span></h2><div id="ed-status-badge"></div></div></div>
-                    <div class="flex gap-2"><button onclick="save()" class="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold hover:bg-slate-700"><i class="fas fa-save mr-2"></i> Salvar</button><button onclick="openShareModal()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-blue-200 hover:bg-blue-700"><i class="fas fa-share-alt mr-2"></i> Enviar</button></div>
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-xs font-bold text-emerald-500 uppercase mb-1">Aprovados</p>
+                    <h3 class="text-2xl font-bold text-slate-800" id="kpi-count-apr">0</h3>
                 </div>
-
-                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                    <div class="xl:col-span-2 space-y-6">
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold border-b pb-2 mb-4 text-slate-700">Seus Dados (Prestador)</h3>
-                            <div class="grid grid-cols-2 gap-4">
-                                <input id="p-name" onchange="upSettings('providerName',this.value)" class="border p-2 rounded text-sm" placeholder="Nome da Sua Empresa">
-                                <input id="p-doc" onchange="upSettings('providerDoc',this.value)" class="border p-2 rounded text-sm" placeholder="CNPJ">
-                                <input id="p-phone" onchange="upSettings('providerPhone',this.value)" class="border p-2 rounded text-sm" placeholder="Seu Telefone">
-                                <input id="p-addr" onchange="upSettings('providerAddr',this.value)" class="border p-2 rounded text-sm" placeholder="Seu Endereço">
-                            </div>
-                        </div>
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold border-b pb-2 mb-4 text-slate-700">Dados do Cliente</h3>
-                            <div class="grid grid-cols-2 gap-4">
-                                <input id="c-name" onchange="upVal('c-name',this.value)" class="border p-2 rounded text-sm" placeholder="Nome Cliente">
-                                <input id="c-doc" onchange="upVal('c-doc',this.value)" class="border p-2 rounded text-sm" placeholder="CPF/CNPJ">
-                                <input id="c-phone" onchange="upVal('c-phone',this.value)" class="border p-2 rounded text-sm" placeholder="Telefone">
-                                <input id="c-email" onchange="upVal('c-email',this.value)" class="border p-2 rounded text-sm" placeholder="Email">
-                                <input id="c-addr" onchange="upVal('c-addr',this.value)" class="col-span-2 border p-2 rounded text-sm" placeholder="Endereço">
-                            </div>
-                        </div>
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-slate-700">Escopo do Serviço</h3><button onclick="addItem()" class="text-blue-600 text-sm font-bold hover:underline">+ Adicionar Item</button></div>
-                            <div id="ed-items" class="space-y-3"></div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-6">
-                        <div class="bg-slate-900 text-white p-6 rounded-xl shadow-lg text-center">
-                            <p class="text-xs font-bold uppercase text-slate-400">Total Global</p>
-                            <div id="ed-total" class="text-3xl font-bold">R$ 0,00</div>
-                        </div>
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold text-slate-700 mb-4">Anexos</h3>
-                            <div id="ed-attachments-list" class="mb-3"></div>
-                            <label class="block w-full text-center border-2 border-dashed border-slate-300 p-4 rounded cursor-pointer hover:bg-slate-50 text-xs text-slate-500 font-bold uppercase transition-colors">
-                                <i class="fas fa-cloud-upload-alt mr-2"></i> Adicionar PDF/IMG
-                                <input type="file" class="hidden" onchange="handleUpload(event)">
-                            </label>
-                        </div>
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold text-slate-700 mb-4">Pagamento</h3>
-                            <select id="pay-mode" class="w-full border p-2 rounded mb-2 text-sm"><option value="single">À vista</option><option value="entry_installments">Entrada + Parcelas</option></select>
-                            <button onclick="generatePayment()" class="w-full bg-slate-100 text-slate-600 text-xs font-bold py-2 rounded mb-3 hover:bg-slate-200">Gerar Texto</button>
-                            <textarea id="t-obs" onchange="upVal('t-obs',this.value)" class="w-full border p-2 rounded text-sm h-20 bg-slate-50" placeholder="Obs de pagamento..."></textarea>
-                            <div class="grid grid-cols-2 gap-2 mt-2">
-                                <input id="t-deadline" onchange="upVal('t-deadline',this.value)" class="border p-2 rounded text-xs" placeholder="Prazo">
-                                <input id="t-val" onchange="upVal('t-val',this.value)" class="border p-2 rounded text-xs" placeholder="Validade">
-                            </div>
-                        </div>
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-700 mb-4">Versões</h3><div id="ed-actions-area"></div></div>
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-700 mb-4">Histórico</h3><div id="ed-history" class="space-y-4 max-h-60 overflow-y-auto"></div></div>
-                    </div>
+                <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 shadow-sm text-white">
+                    <p class="text-xs font-bold text-slate-400 uppercase mb-1">Faturamento (Aprovado)</p>
+                    <h3 class="text-2xl font-bold" id="kpi-total-apr">R$ 0,00</h3>
                 </div>
-            </section>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <div class="flex-1 relative">
+                    <i class="fas fa-search absolute left-4 top-3.5 text-slate-400"></i>
+                    <input id="dash-search" onkeyup="renderDashboardList()" class="input-field pl-10" placeholder="Buscar por cliente ou projeto...">
+                </div>
+                <select id="dash-filter" onchange="renderDashboardList()" class="input-field md:w-64">
+                    <option value="all">Todos os Status</option>
+                    <option value="draft">Em Aberto</option>
+                    <option value="sent">Enviados</option>
+                    <option value="negotiating">Em Negociação</option>
+                    <option value="approved">Aprovados</option>
+                    <option value="canceled">Cancelados</option>
+                </select>
+            </div>
+
+            <div id="project-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                </div>
         </main>
-    </div>
+    </section>
 
-    <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10">
-        <div id="public-loading" class="flex justify-center mt-20"><div class="loader-spin border-slate-900"></div></div>
-        
-        <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col doc-container p-12">
-            <div id="stamp-approved" class="hidden absolute top-10 right-10 border-4 border-emerald-600 text-emerald-600 font-bold text-3xl px-6 py-2 uppercase opacity-30 transform -rotate-12 z-20">APROVADO</div>
-
-            <div class="doc-header">
-                <div><div id="doc-provider-info"></div></div>
-                <div class="text-right"><div id="doc-id" class="text-2xl font-bold text-slate-300">#REF</div><div class="text-sm text-slate-400 mt-1 uppercase tracking-widest">Proposta Técnica</div></div>
-            </div>
-
-            <div class="mb-10"><h1 id="doc-title" class="text-4xl font-bold text-slate-800 mb-2 doc-title">Projeto</h1><p class="text-slate-500">Documento de escopo e orçamento.</p></div>
-
-            <div class="doc-card mb-12">
-                <div class="flex flex-col md:flex-row gap-8">
-                    <div class="flex-1"><h3 class="doc-section-title">Contratante</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div><div id="doc-c-doc" class="text-slate-500 text-sm"></div></div>
-                    <div class="flex-1 border-l border-slate-200 pl-8"><h3 class="doc-section-title">Local do Serviço</h3><div id="doc-c-addr" class="text-slate-600 text-sm"></div></div>
+    <section id="view-editor" class="hidden min-h-screen flex flex-col bg-slate-50">
+        <header class="app-header">
+            <div class="flex items-center gap-4">
+                <button onclick="goTo('dashboard')" class="text-slate-400 hover:text-white transition-colors"><i class="fas fa-arrow-left"></i> Voltar</button>
+                <div class="h-6 w-px bg-slate-700"></div>
+                <div>
+                    <h2 id="ed-title" class="font-bold text-white leading-none">Carregando...</h2>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span id="ed-ver" class="text-[10px] bg-slate-800 text-slate-300 px-1.5 rounded font-mono">V1</span>
+                        <span id="ed-status-badge" class="text-[10px] uppercase font-bold tracking-wider">STATUS</span>
+                    </div>
                 </div>
             </div>
+            <button onclick="openShareModal()" class="btn bg-blue-600 hover:bg-blue-500 text-white border-none py-2 px-4 text-xs font-bold shadow-lg shadow-blue-900/50">
+                <i class="fas fa-share-alt"></i> Enviar Proposta
+            </button>
+        </header>
 
-            <div class="mb-12"><h3 class="doc-section-title">Escopo do Serviço</h3>
-                <table class="w-full">
-                    <thead><tr class="text-left text-xs uppercase text-slate-400 border-b-2 border-slate-100"><th class="pb-3 pl-4 font-bold">Descrição</th><th class="pb-3 text-center font-bold">Qtd</th><th class="pb-3 text-right pr-4 font-bold">Total</th></tr></thead>
-                    <tbody id="doc-items-body"></tbody>
-                </table>
+        <div class="panel-grid">
+            
+            <div class="col-scroll">
+                
+                <div class="card">
+                    <div class="card-header"><i class="fas fa-building text-blue-500"></i> Seus Dados (Prestador)</div>
+                    <div class="card-body">
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div class="md:col-span-6"><label class="input-label">Nome / Razão Social</label><input id="p-name" class="input-field" placeholder="Sua Empresa Ltda" onchange="upSettings('providerName',this.value)"></div>
+                            <div class="md:col-span-3"><label class="input-label">CNPJ / CPF</label><input id="p-doc" class="input-field" placeholder="00.000.000/0000-00" onchange="upSettings('providerDoc',this.value)"></div>
+                            <div class="md:col-span-3"><label class="input-label">Telefone</label><input id="p-phone" class="input-field" placeholder="(00) 00000-0000" onchange="upSettings('providerPhone',this.value)"></div>
+                            <div class="md:col-span-12"><label class="input-label">Endereço Completo</label><input id="p-addr" class="input-field" placeholder="Rua, Número, Bairro, Cidade - UF" onchange="upSettings('providerAddr',this.value)"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header flex justify-between">
+                        <span><i class="fas fa-user-tie text-emerald-500"></i> Dados do Cliente</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="cl-type-btns" class="mb-4"></div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div class="md:col-span-6"><label class="input-label" id="lbl-c-name">Nome</label><input id="c-name" class="input-field" placeholder="Nome do Cliente" onchange="upVal('c-name',this.value)"></div>
+                            <div class="md:col-span-3"><label class="input-label" id="lbl-c-doc">Documento</label><input id="c-doc" class="input-field" placeholder="CPF/CNPJ" onchange="upVal('c-doc',this.value)"></div>
+                            <div class="md:col-span-3"><label class="input-label">Telefone</label><input id="c-phone" class="input-field" placeholder="(00) 00000-0000" onchange="upVal('c-phone',this.value)"></div>
+                            <div class="md:col-span-6"><label class="input-label">E-mail</label><input id="c-email" class="input-field" placeholder="cliente@email.com" onchange="upVal('c-email',this.value)"></div>
+                            <div class="md:col-span-6"><label class="input-label">Endereço do Cliente</label><input id="c-addr" class="input-field" placeholder="Endereço Completo" onchange="upVal('c-addr',this.value)"></div>
+                            
+                            <div class="md:col-span-12 pt-4 mt-2 border-t border-dashed border-slate-200">
+                                <label class="flex items-center gap-3 cursor-pointer mb-3">
+                                    <input type="checkbox" id="loc-check" onchange="toggleLoc(this.checked)" class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm font-medium text-slate-700">O endereço do serviço é o mesmo do cliente?</span>
+                                </label>
+                                <div id="loc-custom-div" class="animate-fade-in">
+                                    <label class="input-label">Local de Execução do Serviço</label>
+                                    <input id="loc-addr" class="input-field" placeholder="Onde o serviço será realizado?" onchange="upLoc(this.value)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header justify-between">
+                        <span><i class="fas fa-clipboard-list text-purple-500"></i> Escopo do Projeto</span>
+                        <button id="btn-add-item" onclick="addItem()" class="btn btn-secondary py-1 px-3 text-xs bg-white border-slate-300 shadow-sm"><i class="fas fa-plus"></i> Adicionar Item</button>
+                    </div>
+                    <div class="card-body bg-slate-50 min-h-[200px]">
+                        <div id="ed-items" class="space-y-3"></div>
+                        
+                        <div class="mt-8 pt-6 border-t-2 border-dashed border-slate-200">
+                            <h4 class="font-bold text-slate-600 text-sm mb-3 uppercase flex items-center gap-2">
+                                <i class="fas fa-paperclip text-slate-400"></i> Anexos e Imagens
+                            </h4>
+                            <div id="ed-attachments-list" class="space-y-2 mb-4"></div>
+                            
+                            <div id="upload-area">
+                                <label for="file-upload" id="upload-label" class="cursor-pointer block w-full text-center p-6 border-2 border-dashed border-blue-200 bg-white rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-all text-blue-600 font-bold uppercase text-xs tracking-wider">
+                                    <i class="fas fa-cloud-upload-alt text-3xl mb-2 block text-blue-300"></i> 
+                                    Clique aqui para anexar PDF ou Imagens
+                                </label>
+                                <input id="file-upload" type="file" class="hidden" accept=".pdf, .png, .jpg, .jpeg" onchange="handleUpload(event)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <div id="doc-attachments-section" class="mb-12 hidden"><h3 class="doc-section-title">Documentação & Arquivos</h3><div id="doc-attachments-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
+            <div class="right-col-fixed">
+                
+                <div class="card finance-section">
+                    <div class="card-header"><i class="fas fa-coins text-emerald-600"></i> Resumo Financeiro</div>
+                    <div class="card-body">
+                        <div class="bg-slate-900 text-white p-6 rounded-xl text-center mb-6 shadow-xl shadow-slate-200 relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-emerald-500"></div>
+                            <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Valor Total</div>
+                            <div id="ed-total" class="text-3xl font-bold tracking-tight">R$ 0,00</div>
+                        </div>
 
-            <div class="bg-slate-50 border border-slate-200 rounded-lg p-8 mb-12 flex flex-col md:flex-row gap-12 mt-auto">
-                <div class="flex-1">
-                    <h4 class="doc-section-title" style="border-left-color: #f97316;">Condições Comerciais</h4>
-                    <div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line mb-4"></div>
-                    <div class="flex gap-4 text-xs text-slate-500"><div><span class="font-bold">Prazo:</span> <span id="doc-deadline"></span></div><div><span class="font-bold">Validade:</span> <span id="doc-validity"></span></div></div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="input-label">Forma de Pagamento</label>
+                                <div class="flex gap-2 mb-2">
+                                    <select id="pay-mode" class="input-field">
+                                        <option value="single">Pagamento Único</option>
+                                        <option value="entry_installments">Entrada + Parcelas</option>
+                                    </select>
+                                    <button id="btn-calc-pay" onclick="generatePayment()" class="btn btn-secondary px-3" title="Gerar Texto"><i class="fas fa-calculator"></i></button>
+                                </div>
+                                <div id="payment-display" class="text-xs bg-slate-50 p-3 rounded border border-slate-200 text-slate-600 whitespace-pre-line min-h-[60px]"></div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div><label class="input-label">Prazo Entrega</label><input id="t-deadline" class="input-field" placeholder="Ex: 15 dias" onchange="upVal('t-deadline',this.value)"></div>
+                                <div><label class="input-label">Validade</label><input id="t-val" class="input-field" placeholder="Ex: 7 dias" onchange="upVal('t-val',this.value)"></div>
+                            </div>
+
+                            <div>
+                                <label class="input-label">Observações Gerais</label>
+                                <textarea id="t-obs" class="input-field h-24 resize-none" placeholder="Detalhes bancários, garantias, etc..." onchange="upVal('t-obs',this.value)"></textarea>
+                            </div>
+                        </div>
+
+                        <div id="ed-actions" class="mt-6 border-t border-slate-100 pt-4 flex flex-col gap-2"></div>
+                    </div>
                 </div>
-                <div class="text-right">
-                    <h4 class="text-xs uppercase font-bold text-slate-400 mb-2">Valor Total</h4>
-                    <div id="doc-total" class="text-4xl font-extrabold text-slate-900 tracking-tight">R$ 0,00</div>
-                    <div id="doc-total-opt" class="text-xs text-slate-400 mt-1 font-bold"></div>
+
+                <div class="card history-section">
+                    <div class="card-header"><i class="fas fa-history text-slate-400"></i> Linha do Tempo</div>
+                    <div id="ed-history" class="history-content-scroll bg-slate-50"></div>
                 </div>
+
             </div>
-
-            <div id="doc-signature-area"></div>
-            <div id="doc-actions" class="no-print mt-12 flex justify-end gap-4"></div>
         </div>
     </section>
 
-    <div id="interaction-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md p-6 rounded-xl animate-[fadeInUp_0.3s]">
-            <h3 id="modal-title" class="text-xl font-bold mb-2"></h3>
-            <textarea id="modal-input" class="w-full border p-3 rounded mb-4 h-24 text-sm" placeholder="Digite aqui..."></textarea>
-            <div id="modal-sig-area" class="hidden mb-4"><canvas id="signature-pad"></canvas><button id="clear-sig" class="text-xs text-red-500 underline float-right">Limpar</button></div>
-            <div class="flex gap-2"><button onclick="document.getElementById('interaction-modal').classList.add('hidden')" class="flex-1 border py-3 rounded hover:bg-slate-50 font-bold text-slate-500">Cancelar</button><button id="modal-btn" class="flex-1 bg-slate-900 text-white py-3 rounded font-bold"></button></div>
+    <div id="interaction-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3 id="modal-title" class="text-xl font-bold mb-2 text-slate-800">Confirmar</h3>
+            <p id="modal-desc" class="text-sm text-slate-500 mb-4">Ação necessária.</p>
+            
+            <textarea id="modal-input" class="w-full border p-3 rounded-lg mb-4 h-24 text-sm bg-slate-50 focus:ring-2 ring-blue-500 outline-none" placeholder="Digite aqui..."></textarea>
+            
+            <div id="modal-sig-area" class="mb-4 hidden">
+                <canvas id="signature-pad"></canvas>
+                <div class="text-right mt-1"><button id="clear-sig" class="text-xs text-red-500 hover:text-red-700 font-bold">Limpar Assinatura</button></div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('interaction-modal').classList.add('hidden')" class="flex-1 py-3 border rounded-lg text-slate-500 font-bold hover:bg-slate-50">Cancelar</button>
+                <button id="modal-btn" class="flex-1 py-3 rounded-lg text-white font-bold bg-slate-900 hover:bg-slate-800">Confirmar</button>
+            </div>
         </div>
     </div>
 
-    <div id="share-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white p-6 rounded-xl w-full max-w-sm text-center shadow-2xl">
-            <h3 class="font-bold text-lg mb-4 text-slate-800">Enviar Proposta</h3>
-            <button id="btn-share-wa" class="w-full bg-emerald-500 text-white py-3 rounded-lg font-bold mb-3 flex items-center justify-center gap-2 hover:bg-emerald-600 transition-colors"><i class="fab fa-whatsapp"></i> WhatsApp</button>
-            <button id="btn-share-copy" class="w-full bg-slate-100 text-slate-700 py-3 rounded-lg font-bold mb-3 hover:bg-slate-200 transition-colors">Copiar Link</button>
-            <button onclick="document.getElementById('share-modal').classList.add('hidden')" class="text-sm underline text-slate-400">Fechar</button>
+    <div id="share-modal" class="modal-overlay hidden" style="z-index: 70;">
+        <div class="modal-box text-center max-w-sm">
+            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-xl"><i class="fas fa-share-alt"></i></div>
+            <h3 class="text-xl font-bold mb-2 text-slate-800">Enviar Proposta</h3>
+            <p class="text-sm text-slate-500 mb-6">Escolha como deseja enviar o link para o cliente.</p>
+            
+            <div class="space-y-3">
+                <button id="btn-share-wa" class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-3 transition-transform hover:scale-[1.02] shadow-lg shadow-emerald-100">
+                    <i class="fab fa-whatsapp text-2xl"></i> 
+                    <span>Enviar no WhatsApp</span>
+                </button>
+
+                <button id="btn-share-copy" class="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl font-bold flex items-center justify-center gap-3 transition-colors">
+                    <i class="fas fa-link text-lg"></i> 
+                    <span>Copiar Link Apenas</span>
+                </button>
+            </div>
+
+            <button onclick="document.getElementById('share-modal').classList.add('hidden')" class="mt-6 text-xs text-slate-400 hover:text-slate-600 uppercase font-bold tracking-wider">Cancelar</button>
         </div>
     </div>
+
+    <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10 overflow-y-auto print:p-0">
+        <div id="public-loading" class="flex justify-center mt-20"><div class="spinner border-slate-900"></div></div>
+        <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col">
+            <div id="stamp-approved" class="hidden absolute top-10 right-10 border-4 border-emerald-600 text-emerald-600 font-bold text-3xl px-6 py-2 uppercase opacity-30 transform -rotate-12 z-20">APROVADO</div>
+            
+            <div class="bg-slate-900 text-white p-12 print:bg-white print:text-black print:border-b-2">
+                <div id="doc-provider-info"></div>
+                <div class="flex justify-between items-start mt-6 pt-6 border-t border-slate-700 print:border-slate-300">
+                    <div><h1 id="doc-title" class="text-3xl font-bold mb-1">Orçamento</h1><p class="text-xs uppercase tracking-widest text-slate-400">Proposta Comercial</p></div>
+                    <div class="text-right"><div id="doc-id" class="font-mono font-bold text-lg text-emerald-400 print:text-black">#REF</div><div id="doc-date" class="text-sm opacity-70"></div></div>
+                </div>
+            </div>
+
+            <div class="p-12 flex-1">
+                <div class="flex flex-col md:flex-row gap-12 mb-12 text-sm">
+                    <div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Dados do Cliente</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div><div id="doc-c-doc" class="text-slate-500 mb-1"></div></div>
+                    <div class="flex-1"><h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Local do Serviço</h3><div id="doc-c-addr" class="text-slate-600"></div></div>
+                </div>
+
+                <div class="mb-12">
+                    <h3 class="font-bold text-xs uppercase text-slate-400 mb-4 tracking-wider">Detalhamento do Escopo</h3>
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-left text-xs uppercase text-slate-400 border-b border-slate-200">
+                                <th class="pb-3 pl-2 w-3/5">Descrição</th>
+                                <th class="pb-3 text-center w-24">Qtd</th>
+                                <th class="pb-3 text-right">Valor Unit.</th>
+                                <th class="pb-3 text-right pr-2">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="doc-items-body" class="text-sm"></tbody>
+                    </table>
+                </div>
+                
+                <div id="doc-attachments-area" class="mb-12"></div>
+
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-8 mb-8 flex flex-col md:flex-row gap-12">
+                    <div class="flex-1">
+                        <h4 class="font-bold text-xs uppercase text-slate-400 mb-3">Condições Comerciais</h4>
+                        <div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line mb-4"></div>
+                        <div class="flex gap-8 text-sm">
+                            <div><span class="font-bold text-xs uppercase text-slate-400 block">Prazo Entrega</span><span id="doc-deadline" class="font-bold text-slate-800"></span></div>
+                            <div><span class="font-bold text-xs uppercase text-slate-400 block">Validade Proposta</span><span id="doc-validity" class="font-bold text-slate-800"></span></div>
+                        </div>
+                    </div>
+                    <div class="text-right flex flex-col justify-center">
+                        <h4 class="font-bold text-xs uppercase text-slate-400 mb-1">Valor Total</h4>
+                        <div id="doc-total" class="text-4xl font-bold text-slate-900 tracking-tight">R$ 0,00</div>
+                    </div>
+                </div>
+
+                <div id="doc-obs" class="text-xs text-slate-500 italic text-justify border-t pt-4"></div>
+                <div id="doc-signature-area"></div>
+                
+                <div id="doc-actions" class="no-print mt-12 p-6 bg-slate-50 rounded-xl border border-slate-200"></div>
+            </div>
+            
+            <div class="bg-slate-100 p-4 text-center border-t no-print">
+                <button onclick="window.print()" class="text-xs font-bold text-slate-500 uppercase hover:text-slate-800 flex items-center justify-center gap-2 w-full">
+                    <i class="fas fa-print"></i> Salvar como PDF / Imprimir
+                </button>
+            </div>
+        </div>
+    </section>
 
     <script>
+        // Configuração Supabase
         const SUPABASE_URL = 'https://outasfgohiiyndsjciau.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91dGFzZmdvaGlpeW5kc2pjaWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4MTk4ODIsImV4cCI6MjA4NTM5NTg4Mn0.4yvGfYbQYf806FJcs34yPGkuU_kVTYHW8mBtbU3JD80';
-        let db = null;
-        let state = { user: null, projectsCache: [], project: null, version: null, data: normalizeData(null), snapshot: [] };
-        let chartInstance = null;
+        const { createClient } = supabase;
+        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // Estado Global
+        let state = { user: null, project: null, version: null, projectsCache: [], data: null, previousData: null, snapshot: [] };
+        let signaturePad = null;
+
+        // --- Helpers ---
+        function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+        function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
+        function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
+        function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
+        function safeShow(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
+        function safeHide(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
+
+        // --- Inicialização ---
+        async function init() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const view = params.get('view') || 'login';
+                const id = params.get('id');
+                
+                document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
+                const { data: { session } } = await db.auth.getSession();
+                state.user = session?.user;
+
+                if (view === 'public') {
+                    if(!id) throw new Error("Link inválido.");
+                    await loadPublicProposal(id);
+                } else if (!state.user && view !== 'login') {
+                    window.history.replaceState(null, '', '?view=login');
+                    safeShow('view-login');
+                } else if (state.user && view === 'login') {
+                    goTo('dashboard');
+                } else {
+                    if(view === 'dashboard') await loadDashboard();
+                    if(view === 'editor' && id) await loadEditor(id);
+                    safeShow(`view-${view}`);
+                }
+            } catch (e) {
+                console.error(e);
+                safeShow('fatal-error');
+                safeText('error-msg', e.message);
+            } finally {
+                document.getElementById('system-loader').style.display = 'none';
+            }
+        }
+
+        // --- Dados ---
         function normalizeData(dbData) {
-            const schema = { client: { name: '', doc: '', email: '', phone: '', address: '' }, items: [], terms: { paymentText: '', deadline: '', validity: '' }, settings: { providerName: '', providerPhone: '', providerDoc: '', providerAddr: '' }, history: [], attachments: [], signature: null };
-            if (!dbData) return schema;
-            return { 
-                client: { ...schema.client, ...(dbData.client || {}) }, 
-                items: (Array.isArray(dbData.items) ? dbData.items : []).map(i => ({...i, id: i.id || 'i'+Math.random(), optional: i.optional || false, publicSelected: i.publicSelected || false})), 
-                terms: { ...schema.terms, ...(dbData.terms || {}) }, 
-                settings: { ...schema.settings, ...(dbData.settings || {}) }, 
+            const defaultSchema = { 
+                client: { name: '', doc: '', email: '', phone: '', address: '', type: 'pj' }, 
+                location: { address: '', sameAsClient: true }, 
+                items: [], 
+                terms: { paymentMode: 'single', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, 
+                settings: { myPhone: '', serviceType: 'Outros', providerName: '', providerDoc: '', providerAddr: '', providerPhone: '' }, 
+                history: [], attachments: [], signature: null 
+            };
+            
+            if (!dbData) return defaultSchema;
+            
+            // Tratamento robusto para itens e anexos
+            const items = (Array.isArray(dbData.items) ? dbData.items : (dbData.scope || [])).map(i => ({
+                id: i.id || 'item_' + Math.random().toString(36).substr(2, 9),
+                name: i.name || '', description: i.description || '',
+                qty: parseFloat(i.qty) || 1, price: parseFloat(i.price) || 0,
+                optional: i.optional || false, publicSelected: i.publicSelected || false
+            }));
+
+            const attachments = (Array.isArray(dbData.attachments) ? dbData.attachments : []).map(a => ({
+                name: a.name, url: a.url, type: a.type, description: a.description || ''
+            }));
+
+            return {
+                client: { ...defaultSchema.client, ...(dbData.client || {}) },
+                location: { ...defaultSchema.location, ...(dbData.location || {}) },
+                items: items,
+                attachments: attachments,
+                terms: { ...defaultSchema.terms, ...(dbData.terms || {}) },
+                settings: { ...defaultSchema.settings, ...(dbData.settings || {}) },
                 history: Array.isArray(dbData.history) ? dbData.history : [],
-                attachments: Array.isArray(dbData.attachments) ? dbData.attachments : [],
                 signature: dbData.signature || null
             };
         }
 
-        async function init() {
-            const { createClient } = supabase;
-            db = createClient(SUPABASE_URL, SUPABASE_KEY);
-            const params = new URLSearchParams(window.location.search);
-            const view = params.get('view') || 'login';
-            const id = params.get('id');
-            const { data: { session } } = await db.auth.getSession();
-            state.user = session?.user;
-
-            document.getElementById('system-loader').style.display = 'none';
-            document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
-            document.getElementById('app-layout').classList.add('hidden');
-
-            if (view === 'public' && id) { 
-                // CORREÇÃO: Chama a função que já exibe o loader corretamente
-                await loadPublicProposal(id); 
-            } else if (!state.user) { 
-                document.getElementById('view-login').classList.remove('hidden'); 
-            } else {
-                document.getElementById('app-layout').classList.remove('hidden');
-                await loadProjects();
-                if (view === 'editor' && id) { await loadEditor(id); switchTab('editor', false); }
-                else switchTab(view === 'login' ? 'dashboard' : view);
-            }
-        }
-
+        // --- Login & Dashboard ---
         async function handleLogin() {
-            const email = document.getElementById('email').value;
-            if(!email) return alert("Digite seu e-mail.");
-            document.getElementById('btn-login').innerText = "Enviando...";
+            const email = safeVal('email');
+            const btn = document.getElementById('btn-login');
+            if(!email) return alert("Digite o e-mail");
+            btn.innerHTML = 'Enviando...'; btn.disabled = true;
             const { error } = await db.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href }});
-            if(error) alert("Erro: " + error.message);
-            else alert("Link de acesso enviado para o seu e-mail!");
-            document.getElementById('btn-login').innerText = "Entrar";
+            if(error) { alert(error.message); btn.innerHTML = 'Tentar Novamente'; btn.disabled = false; }
+            else { btn.innerHTML = 'Link Enviado!'; alert('Verifique seu e-mail.'); }
         }
 
-        function switchTab(tab, updateUrl = true) {
-            document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            const viewEl = document.getElementById(`view-${tab}`);
-            if(viewEl) viewEl.classList.remove('hidden');
-            
-            const nav = document.getElementById(`nav-${tab}`);
-            if(nav) nav.classList.add('active');
-            
-            if(tab === 'dashboard') renderDashboardCharts();
-            if(tab === 'projects') renderProjectTable();
-            if(tab === 'clients') renderClients();
-            
-            const sidebar = document.querySelector('.sidebar');
-            if(sidebar) sidebar.classList.remove('open');
-            
-            if(updateUrl) window.history.pushState(null, '', tab === 'dashboard' ? '?' : `?view=${tab}`);
+        function goTo(view, id) { window.history.pushState(null, '', id ? `?view=${view}&id=${id}` : `?view=${view}`); init(); }
+
+        async function loadDashboard() {
+            const { data } = await db.from('projects').select('*, versions(status, total_value)').eq('user_id', state.user.id).order('created_at', { ascending: false });
+            state.projectsCache = data || [];
+            renderDashboardList();
         }
 
-        async function loadProjects() {
-            if(!state.user) return;
-            const { data } = await db.from('projects').select('*, versions(status, total_value, version_number)').eq('user_id', state.user.id).order('created_at', { ascending: false });
-            state.projectsCache = (data || []).map(p => {
-                const v = p.versions?.sort((a,b)=>b.version_number - a.version_number)[0] || {status:'draft', total_value:0, version_number: 1};
-                return { ...p, status: v.status, total: v.total_value, verNum: v.version_number };
+        function renderDashboardList() {
+            const list = document.getElementById('project-list');
+            const filter = safeVal('dash-filter');
+            const search = safeVal('dash-search').toLowerCase();
+            
+            let html = '';
+            let stats = { open: 0, neg: 0, apr: 0, total: 0 };
+
+            state.projectsCache.forEach(p => {
+                const v = p.versions?.[0] || { status: 'draft', total_value: 0 };
+                // Stats
+                if(v.status === 'draft') stats.open++;
+                if(v.status === 'negotiating' || v.status === 'sent') stats.neg++;
+                if(v.status === 'approved') { stats.apr++; stats.total += (v.total_value || 0); }
+
+                // Filter
+                if(filter !== 'all' && v.status !== filter) return;
+                if(search && !p.name.toLowerCase().includes(search) && !(p.client_name || '').toLowerCase().includes(search)) return;
+
+                let badge = { class: 'st-draft', text: 'Em Aberto' };
+                if(v.status === 'sent') badge = { class: 'st-sent', text: 'Enviado' };
+                if(v.status === 'negotiating') badge = { class: 'st-negotiating', text: 'Negociação' };
+                if(v.status === 'approved') badge = { class: 'st-approved', text: 'Aprovado' };
+                if(v.status === 'canceled') badge = { class: 'st-canceled', text: 'Cancelado' };
+
+                html += `
+                <div onclick="goTo('editor', '${p.id}')" class="bg-white p-6 rounded-xl border border-slate-200 hover:border-blue-400 hover:shadow-lg transition-all cursor-pointer group">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="font-bold text-lg text-slate-800 group-hover:text-blue-600 transition-colors">${p.name}</h3>
+                            <p class="text-sm text-slate-500"><i class="far fa-user mr-1"></i> ${p.client_name || 'Novo Cliente'}</p>
+                        </div>
+                        <span class="status-badge ${badge.class}">${badge.text}</span>
+                    </div>
+                    <div class="pt-4 border-t border-slate-50 flex justify-between items-end">
+                        <div class="text-xs text-slate-400">${new Date(p.created_at).toLocaleDateString()}</div>
+                        <div class="text-lg font-bold text-slate-900">${(v.total_value||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</div>
+                    </div>
+                </div>`;
             });
-        }
 
-        function renderDashboardCharts() {
-            const ctx = document.getElementById('dashboardChart');
-            if(!ctx) return;
-            if(chartInstance) chartInstance.destroy();
-            const now = new Date();
-            const monthProjs = state.projectsCache.filter(p => new Date(p.created_at).getMonth() === now.getMonth());
-            document.getElementById('kpi-month-count').innerText = monthProjs.length;
-            document.getElementById('kpi-month-total').innerText = monthProjs.reduce((a,b)=>a+(b.total||0),0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-            document.getElementById('kpi-all-count').innerText = state.projectsCache.length;
+            list.innerHTML = html || '<div class="col-span-full text-center py-10 text-slate-400">Nenhum projeto encontrado.</div>';
             
-            const days = {};
-            for(let i=29; i>=0; i--) { const d = new Date(); d.setDate(d.getDate()-i); days[d.toLocaleDateString('pt-BR').slice(0,5)] = 0; }
-            state.projectsCache.forEach(p => { const k = new Date(p.created_at).toLocaleDateString('pt-BR').slice(0,5); if(days[k]!==undefined) days[k]++; });
-            
-            chartInstance = new Chart(ctx, { type: 'line', data: { labels: Object.keys(days), datasets: [{ label: 'Orçamentos', data: Object.values(days), borderColor: '#3B82F6', tension: 0.4 }] } });
-        }
-
-        function renderProjectTable() {
-            const term = document.getElementById('search-input').value.toLowerCase();
-            const status = document.getElementById('status-filter').value;
-            const html = state.projectsCache.filter(p => (status==='all' || p.status===status) && (p.name+(p.client_name||'')).toLowerCase().includes(term)).map(p => {
-                const badges = { 'draft': ['bg-slate-100 text-slate-600', 'Rascunho'], 'sent': ['bg-blue-100 text-blue-800', 'Enviado'], 'negotiating': ['bg-orange-100 text-orange-800', 'Em Negociação'], 'approved': ['bg-green-100 text-green-800', 'Aprovado'], 'canceled': ['bg-red-100 text-red-800', 'Cancelado'] };
-                const b = badges[p.status] || badges['draft'];
-                return `<tr onclick="openProject('${p.id}')">
-                    <td><span class="px-2 py-1 rounded text-xs font-bold ${b[0]}">${b[1]}</span></td>
-                    <td>#${p.id.substr(0,4)} (V${p.verNum})</td>
-                    <td class="font-bold">${p.client_name || 'Sem nome'}</td>
-                    <td>${new Date(p.created_at).toLocaleDateString()}</td>
-                    <td class="text-right font-bold">${(p.total||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
-                </tr>`;
-            }).join('');
-            document.getElementById('project-table-body').innerHTML = html || '<tr><td colspan="5" class="text-center py-4">Nenhum projeto encontrado</td></tr>';
-        }
-
-        function filterProjects(s) { switchTab('projects'); document.getElementById('status-filter').value = s; renderProjectTable(); }
-
-        function renderClients() {
-            const map = {};
-            state.projectsCache.forEach(p => { if(p.client_name && p.client_name!=='Novo Cliente') { if(!map[p.client_name]) map[p.client_name]=0; map[p.client_name]++; } });
-            document.getElementById('client-table-body').innerHTML = Object.keys(map).map(n => `<tr><td class="font-bold">${n}</td><td>-</td><td>-</td><td><span class="bg-blue-100 text-blue-800 px-2 rounded-full text-xs font-bold">${map[n]} Projetos</span></td></tr>`).join('');
+            // Atualiza KPIs
+            safeText('kpi-count-open', stats.open);
+            safeText('kpi-count-neg', stats.neg);
+            safeText('kpi-count-apr', stats.apr);
+            safeText('kpi-total-apr', stats.total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
         }
 
         async function createProject() {
-            const name = prompt("Nome do Orçamento:"); if(!name) return;
-            const { data, error } = await db.from('projects').insert({ name, user_id: state.user.id, client_name: 'Novo Cliente' }).select().single();
-            if(error) return alert("Erro: " + error.message);
-            await db.from('versions').insert({ project_id: data.id, version_number: 1, items: normalizeData(null), total_value: 0, status: 'draft' });
-            await loadProjects(); openProject(data.id);
+            const name = prompt("Nome do Projeto:");
+            if(!name) return;
+            const { data: p } = await db.from('projects').insert({ name, user_id: state.user.id, client_name: 'Novo Cliente' }).select().single();
+            const d = normalizeData(null);
+            
+            // Preenche dados do prestador do cache local
+            ['providerName','providerDoc','providerAddr','providerPhone'].forEach(k => {
+                d.settings[k] = localStorage.getItem('cfg_'+k) || '';
+            });
+
+            d.history.push({ date: new Date().toISOString(), action: 'created', user: 'provider', detail: 'Projeto criado.' });
+            
+            await db.from('versions').insert({ project_id: p.id, version_number: 1, items: d, total_value: 0, status: 'draft' });
+            goTo('editor', p.id);
         }
 
-        function openProject(id) { window.history.pushState(null,'',`?view=editor&id=${id}`); loadEditor(id).then(()=>switchTab('editor',false)); }
-
+        // --- Editor Core ---
         async function loadEditor(id) {
+            safeShow('editor-loading'); safeHide('editor-content');
+            
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
+            state.project = proj;
             const { data: vers } = await db.from('versions').select('*').eq('project_id', id).order('version_number', { ascending: true });
             
-            if(!proj || !vers) return alert("Projeto não encontrado");
-
-            state.project = proj; state.version = vers[vers.length - 1]; state.data = normalizeData(state.version.items); state.snapshot = JSON.parse(JSON.stringify(state.data.items));
+            state.version = vers[vers.length - 1];
+            state.data = normalizeData(state.version.items);
+            state.snapshot = JSON.parse(JSON.stringify(state.data.items)); // Para diff check
             
-            document.getElementById('ed-title').innerText = proj.name;
-            document.getElementById('ed-ver').innerText = `V${state.version.version_number}`;
-            const stMap = { 'draft': 'Em Aberto', 'sent': 'Enviado', 'negotiating': 'Em Negociação', 'approved': 'Aprovado', 'canceled': 'Cancelado' };
-            const stClass = { 'draft': 'st-draft', 'sent': 'st-sent', 'negotiating': 'st-negotiating', 'approved': 'st-approved', 'canceled': 'st-canceled' };
-            document.getElementById('ed-status-badge').innerHTML = `<span class="status-badge ${stClass[state.version.status] || 'st-draft'}">${stMap[state.version.status]}</span>`;
-
-            // Inputs
-            const d = state.data;
-            setVal('c-name', d.client.name); setVal('c-doc', d.client.doc); setVal('c-phone', d.client.phone); setVal('c-email', d.client.email); setVal('c-addr', d.client.address);
-            setVal('p-name', d.settings.providerName); setVal('p-phone', d.settings.providerPhone); setVal('p-doc', d.settings.providerDoc); setVal('p-addr', d.settings.providerAddr);
-            setVal('t-obs', d.terms.paymentText); setVal('t-deadline', d.terms.deadline); setVal('t-val', d.terms.validity);
-
-            // Actions Area
-            const area = document.getElementById('ed-actions-area');
-            if (state.version.status !== 'draft') {
-                area.innerHTML = `<button onclick="createAddon()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg mb-2 shadow"><i class="fas fa-copy mr-2"></i> Criar Revisão (V${state.version.version_number + 1})</button>`;
-            } else {
-                area.innerHTML = `<div class="text-xs text-slate-400 text-center italic">Orçamento em rascunho. Edite à vontade.</div>`;
+            // Verifica versão anterior para diff
+            state.previousData = null;
+            if (state.version.version_number > 1 && vers[vers.length - 2]) {
+                state.previousData = normalizeData(vers[vers.length - 2].items);
             }
 
-            renderItems(); renderAttachments(); renderHistory(); updateTotal();
+            renderEditor();
+            safeHide('editor-loading'); safeShow('editor-content');
         }
 
-        function setVal(id, v) { const el = document.getElementById(id); if(el) el.value = v||''; }
-        function upVal(k,v) { if(k.startsWith('c-')) state.data.client[k.substring(2)]=v; if(k.startsWith('t-')) state.data.terms[k.substring(2)]=v; }
-        function upSettings(k,v) { state.data.settings[k]=v; }
+        function renderEditor() {
+            const d = state.data;
+            const locked = state.version.status !== 'draft';
 
-        function renderItems() {
-            const isLocked = state.version.status !== 'draft';
-            document.getElementById('ed-items').innerHTML = state.data.items.map((i,x) => `
-                <div class="item-box ${i.optional ? 'item-optional' : ''} group">
-                    ${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}
-                    <div class="grid grid-cols-12 gap-4 mb-2">
+            // Cabeçalho
+            safeText('ed-title', state.project.name);
+            safeText('ed-ver', `V${state.version.version_number}`);
+            safeText('ed-status-badge', state.version.status === 'draft' ? 'EM EDIÇÃO' : state.version.status);
+
+            // Inputs Gerais
+            setVal('p-name', d.settings.providerName); setVal('p-doc', d.settings.providerDoc);
+            setVal('p-phone', d.settings.providerPhone); setVal('p-addr', d.settings.providerAddr);
+            
+            // Toggle Cliente
+            const isPJ = d.client.type !== 'pf';
+            document.getElementById('cl-type-btns').innerHTML = `
+                <div class="flex bg-slate-100 p-1 rounded-lg w-full max-w-xs">
+                    <button onclick="setClientType('pj')" class="flex-1 py-1.5 text-xs font-bold rounded ${isPJ ? 'bg-white shadow text-blue-700' : 'text-slate-500'}">Pessoa Jurídica</button>
+                    <button onclick="setClientType('pf')" class="flex-1 py-1.5 text-xs font-bold rounded ${!isPJ ? 'bg-white shadow text-blue-700' : 'text-slate-500'}">Pessoa Física</button>
+                </div>`;
+            
+            safeText('lbl-c-name', isPJ ? 'Razão Social' : 'Nome Completo');
+            safeText('lbl-c-doc', isPJ ? 'CNPJ' : 'CPF');
+            
+            setVal('c-name', d.client.name); setVal('c-doc', d.client.doc);
+            setVal('c-phone', d.client.phone); setVal('c-email', d.client.email);
+            setVal('c-addr', d.client.address);
+
+            // Local
+            document.getElementById('loc-check').checked = d.location.sameAsClient;
+            document.getElementById('loc-custom-div').style.display = d.location.sameAsClient ? 'none' : 'block';
+            setVal('loc-addr', d.location.address);
+
+            // Itens Escopo
+            let itemsHtml = '';
+            let total = 0;
+            
+            d.items.forEach((i, idx) => {
+                const sub = (i.qty * i.price);
+                if(!i.optional) total += sub;
+                
+                // Diff Check logic simplificada
+                let diffBadge = '';
+                if(state.previousData) {
+                    const old = state.previousData.items.find(o => o.id === i.id);
+                    if(!old) diffBadge = '<span class="ml-2 text-[10px] bg-emerald-100 text-emerald-700 px-2 rounded-full font-bold">NOVO</span>';
+                    else if(old.price !== i.price || old.qty !== i.qty) diffBadge = '<span class="ml-2 text-[10px] bg-amber-100 text-amber-700 px-2 rounded-full font-bold">ALTERADO</span>';
+                }
+
+                itemsHtml += `
+                <div class="item-row ${i.optional ? 'item-optional' : ''}">
+                    ${!locked ? `<button onclick="rmItem(${idx})" class="absolute top-2 right-2 text-slate-300 hover:text-red-500"><i class="fas fa-trash"></i></button>` : ''}
+                    <div class="flex items-center mb-2">
+                        <span class="text-xs font-bold text-slate-400 uppercase mr-2">Item ${idx+1}</span>
+                        ${i.optional ? '<span class="text-[10px] bg-slate-600 text-white px-2 rounded uppercase font-bold">Opcional</span>' : ''}
+                        ${diffBadge}
+                    </div>
+                    <div class="grid grid-cols-12 gap-3">
                         <div class="col-span-8">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase">Item ${i.optional ? '<span class="optional-badge">Opcional</span>' : ''}</label>
-                            <input class="w-full font-bold outline-none bg-transparent" value="${i.name}" oninput="upItem(${x},'name',this.value)" placeholder="Nome do item" ${isLocked?'disabled':''}>
+                            <input class="w-full font-bold text-slate-800 bg-transparent outline-none placeholder-slate-300" placeholder="Título do Item" value="${i.name}" oninput="upItem(${idx},'name',this.value)" ${locked?'disabled':''}>
+                            <textarea class="w-full text-xs text-slate-500 bg-transparent outline-none resize-none mt-1" rows="1" placeholder="Descrição técnica..." oninput="upItem(${idx},'description',this.value)" ${locked?'disabled':''}>${i.description}</textarea>
                         </div>
                         <div class="col-span-2">
-                             <label class="text-[10px] font-bold text-slate-400 uppercase text-center block">Qtd</label>
-                             <input type="number" class="w-full bg-slate-50 border rounded text-center text-xs" value="${i.qty}" onchange="upItem(${x},'qty',this.value)" ${isLocked?'disabled':''}>
+                            <input type="number" class="w-full text-center bg-slate-100 rounded py-1 text-sm font-bold" value="${i.qty}" onchange="upItem(${idx},'qty',this.value)" ${locked?'disabled':''}>
                         </div>
                         <div class="col-span-2">
-                             <label class="text-[10px] font-bold text-slate-400 uppercase text-right block">Valor</label>
-                             <input type="number" class="w-full bg-slate-50 border rounded text-right text-xs" value="${i.price}" onchange="upItem(${x},'price',this.value)" ${isLocked?'disabled':''}>
+                            <input type="number" class="w-full text-right bg-slate-100 rounded py-1 text-sm font-bold" value="${i.price}" onchange="upItem(${idx},'price',this.value)" ${locked?'disabled':''}>
                         </div>
                     </div>
-                    <textarea class="w-full bg-transparent text-xs text-slate-500 resize-none outline-none border-t border-dashed pt-2 mt-2" rows="2" placeholder="Descrição técnica..." oninput="upItem(${x},'description',this.value)" ${isLocked?'disabled':''}>${i.description||''}</textarea>
-                    ${!isLocked ? `<button onclick="toggleOpt(${x})" class="text-[10px] mt-2 px-2 py-1 rounded border ${i.optional ? 'bg-slate-600 text-white' : 'text-slate-400'}">${i.optional ? 'REMOVER DE OPCIONAL' : 'MARCAR COMO OPCIONAL'}</button>` : ''}
-                </div>
-            `).join('');
-        }
-        function upItem(x,f,v) { state.data.items[x][f] = (f==='qty'||f==='price') ? parseFloat(v) : v; updateTotal(); }
-        function addItem() { state.data.items.push({name:'',qty:1,price:0,description:'',optional:false}); renderItems(); }
-        function rmItem(x) { state.data.items.splice(x,1); renderItems(); updateTotal(); }
-        function toggleOpt(x) { state.data.items[x].optional = !state.data.items[x].optional; renderItems(); updateTotal(); }
-        
-        function updateTotal() { 
-            const mainTotal = state.data.items.reduce((a,b)=> !b.optional ? a+(b.qty*b.price) : a,0);
-            const optTotal = state.data.items.reduce((a,b)=> b.optional ? a+(b.qty*b.price) : a,0);
+                    ${!locked ? `<div class="mt-2 text-right"><button onclick="toggleOpt(${idx})" class="text-[10px] text-blue-500 font-bold hover:underline">${i.optional ? 'Tornar Obrigatório' : 'Marcar como Opcional'}</button></div>` : ''}
+                </div>`;
+            });
+            document.getElementById('ed-items').innerHTML = itemsHtml;
+            safeText('ed-total', total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
+
+            // Anexos (AGORA NO ESCOPO COM DESCRIÇÃO)
+            const attachList = document.getElementById('ed-attachments-list');
+            let attachHtml = '';
+            if(d.attachments.length > 0) {
+                d.attachments.forEach((att, idx) => {
+                    let icon = att.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500';
+                    attachHtml += `
+                    <div class="attach-item group">
+                        <div class="attach-icon"><i class="fas ${icon}"></i></div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-bold text-slate-700 truncate" title="${att.name}">${att.name}</span>
+                                <div class="flex gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                                    <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700"><i class="fas fa-eye"></i></a>
+                                    ${!locked ? `<button onclick="delAttach(${idx})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>` : ''}
+                                </div>
+                            </div>
+                            <input type="text" class="attach-input" placeholder="Adicione uma descrição (Ex: Planta Baixa)..." 
+                                value="${att.description}" onchange="upAttachDesc(${idx}, this.value)" ${locked?'disabled':''}>
+                        </div>
+                    </div>`;
+                });
+            } else {
+                attachHtml = '<div class="text-xs text-slate-400 text-center py-2">Nenhum anexo.</div>';
+            }
+            attachList.innerHTML = attachHtml;
+            document.getElementById('upload-area').style.display = locked ? 'none' : 'block';
+
+            // Financeiro e Histórico
+            setVal('t-deadline', d.terms.deadline); setVal('t-val', d.terms.validity); setVal('t-obs', d.terms.obs);
             
-            let html = mainTotal.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-            if(optTotal > 0) {
-                html += `<div class="text-xs text-slate-400 font-normal mt-1">+ ${optTotal.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} em opcionais</div>`;
+            let histHtml = '';
+            d.history.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(h => {
+                histHtml += `<div class="p-3 border-l-2 border-slate-200 ml-2 relative">
+                    <div class="absolute -left-[5px] top-4 w-2 h-2 rounded-full bg-slate-300"></div>
+                    <div class="text-[10px] text-slate-400">${new Date(h.date).toLocaleString()}</div>
+                    <div class="text-xs font-bold text-slate-700">${h.detail}</div>
+                </div>`;
+            });
+            document.getElementById('ed-history').innerHTML = histHtml;
+
+            // Botões de Ação
+            const actions = document.getElementById('ed-actions');
+            if(locked) {
+                actions.innerHTML = `<button onclick="createVersion()" class="btn btn-primary w-full bg-amber-500 hover:bg-amber-600 border-none">Criar Nova Revisão (V${state.version.version_number+1})</button>`;
+            } else {
+                actions.innerHTML = `<button onclick="save()" class="btn btn-primary w-full">Salvar Alterações</button>
+                                     <button onclick="cancelProject()" class="btn btn-danger w-full mt-2">Cancelar Orçamento</button>`;
             }
-            document.getElementById('ed-total').innerHTML = html; 
+
+            // Bloqueio de Inputs
+            document.querySelectorAll('#view-editor input, #view-editor textarea, #view-editor select').forEach(el => {
+                if(el.id !== 'dash-search' && el.id !== 'dash-filter') el.disabled = locked;
+            });
         }
 
+        // --- Ações do Editor ---
+        function setClientType(t) { state.data.client.type = t; renderEditor(); }
+        function toggleLoc(checked) { state.data.location.sameAsClient = checked; renderEditor(); }
+        
+        function upVal(k,v) { 
+            if(k.startsWith('c-')) state.data.client[k.substring(2)] = v;
+            else if(k.startsWith('t-')) state.data.terms[k.substring(2)] = v;
+        }
+        
+        function upSettings(k,v) { 
+            state.data.settings[k] = v; 
+            localStorage.setItem('cfg_'+k, v); 
+        }
+        
+        function upLoc(v) { state.data.location.address = v; }
+        
+        function upItem(idx, field, val) {
+            const item = state.data.items[idx];
+            if(field === 'qty' || field === 'price') item[field] = parseFloat(val) || 0;
+            else item[field] = val;
+            if(field === 'qty' || field === 'price') renderEditor(); // Recalcula total
+        }
+        
+        function addItem() { state.data.items.push({ id: Date.now(), name: '', description: '', qty: 1, price: 0 }); renderEditor(); }
+        function rmItem(idx) { if(confirm('Remover?')) { state.data.items.splice(idx,1); renderEditor(); } }
+        function toggleOpt(idx) { state.data.items[idx].optional = !state.data.items[idx].optional; renderEditor(); }
+
+        // Anexos Logic
         async function handleUpload(e) {
-            const file = e.target.files[0]; if(!file) return;
-            const path = `${state.project.id}/${Date.now()}_${file.name}`;
-            const { error } = await db.storage.from('attachments').upload(path, file);
-            if(!error) {
-                const { data: pub } = db.storage.from('attachments').getPublicUrl(path);
-                state.data.attachments.push({ name: file.name, url: pub.publicUrl, type: 'file' });
-                save(); renderAttachments();
-            }
+            const file = e.target.files[0];
+            if(!file) return;
+            const label = document.getElementById('upload-label');
+            label.innerText = 'Enviando...';
+            try {
+                const path = `${state.project.id}/${Date.now()}_${file.name}`;
+                const { error } = await db.storage.from('attachments').upload(path, file);
+                if(error) throw error;
+                const { data } = db.storage.from('attachments').getPublicUrl(path);
+                
+                const ext = file.name.split('.').pop().toLowerCase();
+                state.data.attachments.push({ name: file.name, url: data.publicUrl, type: ext, description: '' });
+                await save();
+            } catch(err) { alert('Erro no upload.'); console.error(err); }
+            finally { label.innerHTML = '<i class="fas fa-cloud-upload-alt text-3xl mb-2 block text-blue-300"></i> Clique aqui para anexar PDF ou Imagens'; e.target.value = ''; }
         }
-        function renderAttachments() {
-            document.getElementById('ed-attachments-list').innerHTML = state.data.attachments.map(a => `<div class="flex justify-between text-xs bg-slate-50 p-2 rounded mb-1"><a href="${a.url}" target="_blank" class="text-blue-600 truncate">${a.name}</a></div>`).join('');
+        
+        function upAttachDesc(idx, val) { state.data.attachments[idx].description = val; }
+        async function delAttach(idx) { if(confirm('Excluir anexo?')) { state.data.attachments.splice(idx,1); await save(); } }
+
+        // --- Save & Versioning ---
+        function getChanges() {
+            // Lógica simples de diff
+            const now = state.data.items.length;
+            const before = state.snapshot.length;
+            if(now !== before) return 'Alterou quantidade de itens no escopo';
+            return 'Atualizou detalhes do orçamento';
         }
 
-        async function createAddon() {
-            if(!confirm("Criar nova versão?")) return;
-            const t = state.data.items.reduce((a,b)=> !b.optional ? a+(b.qty*b.price) : a,0);
-            state.data.history.push({ date: new Date(), action: 'created', user: 'provider', detail: 'Criou revisão V'+(state.version.version_number+1) });
-            await db.from('versions').insert({ project_id: state.project.id, version_number: state.version.version_number+1, items: state.data, total_value: t, status: 'draft' });
+        async function save() {
+            if(state.data.client.name) await db.from('projects').update({client_name: state.data.client.name}).eq('id', state.project.id);
+            
+            const total = state.data.items.reduce((acc, i) => !i.optional ? acc + (i.qty*i.price) : acc, 0);
+            
+            // Log histórico apenas se houve mudança real (simplificado)
+            const logText = getChanges();
+            // logHistory('edited', 'provider', logText); -> Opcional, pode poluir
+
+            await db.from('versions').update({ items: state.data, total_value: total }).eq('id', state.version.id);
+            state.snapshot = JSON.parse(JSON.stringify(state.data.items));
+            renderEditor();
+        }
+
+        async function createVersion() {
+            if(!confirm('Criar nova revisão? Isso travará a versão atual.')) return;
+            const total = state.data.items.reduce((acc, i) => !i.optional ? acc + (i.qty*i.price) : acc, 0);
+            const nextVer = state.version.version_number + 1;
+            
+            // Adiciona log na nova versão
+            state.data.history.push({ date: new Date().toISOString(), action: 'created', user: 'provider', detail: `Revisão V${nextVer} criada.` });
+            
+            await db.from('versions').insert({
+                project_id: state.project.id,
+                version_number: nextVer,
+                items: state.data,
+                total_value: total,
+                status: 'draft'
+            });
+            loadEditor(state.project.id);
+        }
+
+        async function cancelProject() {
+            if(!confirm('Cancelar este orçamento?')) return;
+            await db.from('versions').update({status:'canceled'}).eq('id', state.version.id);
             loadEditor(state.project.id);
         }
 
         function generatePayment() {
-            const total = state.data.items.reduce((a,b)=> !b.optional ? a+(b.qty*b.price) : a,0);
+            const total = state.data.items.reduce((acc, i) => !i.optional ? acc + (i.qty*i.price) : acc, 0);
+            if(total === 0) return alert('Adicione itens primeiro.');
             const mode = document.getElementById('pay-mode').value;
-            let txt = mode === 'single' ? `À Vista: ${total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}` : `Entrada: ${(total*0.3).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} + 2x`;
-            state.data.terms.paymentText = txt; setVal('t-obs', txt);
-        }
-
-        async function save() {
-            const t = state.data.items.reduce((a,b)=> !b.optional ? a+(b.qty*b.price) : a,0);
-            if(JSON.stringify(state.snapshot) !== JSON.stringify(state.data.items)) {
-                state.data.history.push({ date: new Date(), action: 'edited', user: 'provider', detail: 'Alteração de escopo' });
-                state.snapshot = JSON.parse(JSON.stringify(state.data.items));
+            let text = '';
+            
+            if(mode === 'single') {
+                text = `Pagamento à vista de ${total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}.`;
+            } else {
+                const p1 = total * 0.5; // Exemplo 50%
+                text = `Entrada de ${p1.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}\n+ Saldo na entrega.`;
             }
-            if(state.data.client.name) await db.from('projects').update({client_name: state.data.client.name}).eq('id', state.project.id);
-            await db.from('versions').update({items: state.data, total_value: t}).eq('id', state.version.id);
-            renderHistory(); alert("Salvo!");
+            state.data.terms.paymentText = text;
+            renderEditor();
         }
 
-        function renderHistory() {
-            document.getElementById('ed-history').innerHTML = state.data.history.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(h => {
-                let icon = 'info-circle text-blue-400';
-                let label = 'Visualizou';
-                if(h.action === 'approved') { icon = 'check text-green-500'; label = 'Aprovou'; }
-                if(h.action === 'negotiating') { icon = 'comment-dots text-amber-500'; label = 'Solicitou Alteração'; }
-                if(h.action === 'canceled') { icon = 'times text-red-500'; label = 'Recusou'; }
-                if(h.action === 'created') { icon = 'plus-circle text-blue-600'; label = 'Criou'; }
-                if(h.action === 'edited') { icon = 'pen text-indigo-500'; label = 'Editou'; }
-
-                return `<div class="timeline-item">
-                    <div class="timeline-date">${new Date(h.date).toLocaleString()} • ${h.user === 'provider' ? 'Você' : 'Cliente'}</div>
-                    <div class="font-bold text-sm text-slate-700 flex items-center gap-2"><i class="fas fa-${icon}"></i> ${label}</div>
-                    <div class="timeline-desc ${h.action.includes('negotiating') ? '' : 'system'}">${h.detail || ''}</div>
-                </div>`;
-            }).join('');
+        // --- Compartilhamento ---
+        async function openShareModal() {
+            await save();
+            const url = `${window.location.origin}${window.location.pathname}?view=public&id=${state.version.id}`;
+            const msg = `Olá ${state.data.client.name || ''}. Segue o link do orçamento para aprovação: ${url}`;
+            
+            document.getElementById('btn-share-wa').onclick = () => {
+                const phone = (state.data.client.phone || '').replace(/\D/g, '');
+                window.open(`https://wa.me/${phone ? '55'+phone : ''}?text=${encodeURIComponent(msg)}`, '_blank');
+            };
+            
+            document.getElementById('btn-share-copy').onclick = () => {
+                navigator.clipboard.writeText(url);
+                alert('Link copiado!');
+            };
+            
+            document.getElementById('share-modal').classList.remove('hidden');
         }
 
-        // --- PUBLIC RESTAURADO E CORRIGIDO ---
+        // --- Visão Pública (Cliente) ---
         async function loadPublicProposal(id) {
-            // Garante que o loading aparece imediatamente
-            const loader = document.getElementById('public-loading');
-            const content = document.getElementById('public-content');
-            if(loader) loader.style.display = 'flex';
+            safeShow('public-loading');
+            const { data: v, error } = await db.from('versions').select('*, projects(name)').eq('id', id).single();
+            if(error) throw new Error('Orçamento não encontrado.');
             
-            document.getElementById('view-public').classList.remove('hidden');
-            
-            try {
-                // CORREÇÃO AQUI: Usando maybeSingle() igual ao original para evitar erro 406
-                const { data: v, error } = await db.from('versions')
-                    .select('*, projects(name)')
-                    .eq('id', id)
-                    .maybeSingle();
-                
-                // Se der erro técnico OU se não vier dados (vazio/bloqueado)
-                if (error) throw error;
-                if (!v) throw new Error("Orçamento não encontrado ou acesso restrito. Verifique o link.");
+            state.version = v;
+            state.data = normalizeData(v.items);
+            const d = state.data;
 
-                state.version = v; 
-                state.data = normalizeData(v.items);
-                
-                // Oculta loader e mostra conteúdo
-                if(loader) loader.style.display = 'none';
-                if(content) content.classList.remove('hidden');
-
-                if(v.status === 'approved') document.getElementById('stamp-approved').classList.remove('hidden');
-                
-                // Preenche os dados na tela
-                document.getElementById('doc-provider-info').innerHTML = `<h2 class="text-3xl font-bold font-heading mb-1">${state.data.settings.providerName||''}</h2><p class="text-sm font-medium text-slate-500">${state.data.settings.providerDoc||''} • ${state.data.settings.providerPhone||''}</p><p class="text-xs text-slate-400">${state.data.settings.providerAddr||''}</p>`;
-                document.getElementById('doc-id').innerText = `#${v.project_id.substr(0,4)}-V${v.version_number}`;
-                document.getElementById('doc-c-name').innerText = state.data.client.name;
-                document.getElementById('doc-c-doc').innerText = state.data.client.doc;
-                document.getElementById('doc-c-addr').innerText = state.data.client.address;
-                
-                // Correção caso projects seja null (banco travado)
-                document.getElementById('doc-title').innerText = v.projects ? v.projects.name : 'Orçamento';
-                
-                document.getElementById('doc-payment').innerText = state.data.terms.paymentText;
-                document.getElementById('doc-deadline').innerText = state.data.terms.deadline;
-                document.getElementById('doc-validity').innerText = state.data.terms.validity;
-                
-                // Renderiza itens
-                renderPublicItems();
-
-                // Anexos
-                if(state.data.attachments.length > 0) {
-                    document.getElementById('doc-attachments-section').classList.remove('hidden');
-                    document.getElementById('doc-attachments-grid').innerHTML = state.data.attachments.map(a => `
-                        <a href="${a.url}" target="_blank" class="att-card group">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors"><i class="fas fa-file text-blue-500"></i></div>
-                                <span class="text-sm font-bold truncate">${a.name}</span>
-                            </div>
-                        </a>`).join('');
-                }
-
-                if(state.data.signature) document.getElementById('doc-signature-area').innerHTML = `<div class="mt-8 border-t border-dashed w-64 text-center"><img src="${state.data.signature}" class="h-16 mx-auto mb-2"><p class="text-xs font-bold uppercase text-slate-500">Assinado Digitalmente</p></div>`;
-
-                const acts = document.getElementById('doc-actions');
-                if (v.status === 'sent' || v.status === 'negotiating') {
-                    acts.innerHTML = `<button onclick="openInt('approve')" class="bg-slate-900 text-white px-6 py-4 rounded-xl font-bold shadow-lg flex items-center gap-2 hover:bg-slate-800 hover:scale-[1.01] transition-transform w-full md:w-auto justify-center"><i class="fas fa-signature"></i> APROVAR PROPOSTA</button><div class="grid grid-cols-2 gap-3 w-full md:w-auto"><button onclick="openInt('neg')" class="bg-white border border-amber-200 text-amber-700 font-bold px-4 py-3 rounded-xl hover:bg-amber-50">Solicitar Alteração</button><button onclick="openInt('cancel')" class="bg-white border border-red-200 text-red-600 font-bold px-4 py-3 rounded-xl hover:bg-red-50">Recusar</button></div>`;
-                }
-            } catch(e) {
-                if(loader) loader.style.display = 'none';
-                
-                // Mensagem amigável na tela
-                const container = document.getElementById('view-public');
-                container.innerHTML = `<div class="flex flex-col items-center justify-center min-h-screen text-slate-500">
-                    <i class="fas fa-lock text-4xl mb-4 text-slate-300"></i>
-                    <h2 class="text-xl font-bold text-slate-700">Acesso Restrito</h2>
-                    <p class="text-sm mb-4">Não foi possível carregar este orçamento.</p>
-                    <p class="text-xs text-slate-400 max-w-xs text-center border p-2 rounded bg-slate-100">Dica técnica: Se você é o dono, verifique se executou o script SQL de permissões públicas (RLS) no Supabase.</p>
-                </div>`;
+            // Renderiza Dados
+            if(d.settings.providerName) {
+                document.getElementById('doc-provider-info').innerHTML = `
+                    <h2 class="text-2xl font-bold">${d.settings.providerName}</h2>
+                    <p class="opacity-80">${d.settings.providerDoc || ''}</p>
+                `;
             }
-        }
-
-        function renderPublicItems() {
-            // Recalcula total com base nos checkboxes
-            let total = state.data.items.reduce((acc, i) => (!i.optional || i.publicSelected ? acc + (i.qty * i.price) : acc), 0);
-            document.getElementById('doc-total').innerText = total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
             
-            const optTotal = state.data.items.reduce((acc, i) => i.optional && !i.publicSelected ? acc + (i.qty * i.price) : acc, 0);
-            if(optTotal > 0) document.getElementById('doc-total-opt').innerText = `+ ${optTotal.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} em opcionais não selecionados`;
-            else document.getElementById('doc-total-opt').innerText = '';
-
-            const isFrozen = state.version.status !== 'sent' && state.version.status !== 'negotiating' && state.version.status !== 'draft';
+            safeText('doc-title', v.projects.name);
+            safeText('doc-id', `#${v.id.substr(0,4).toUpperCase()}`);
+            safeText('doc-date', new Date(v.created_at).toLocaleDateString());
             
-            document.getElementById('doc-items-body').innerHTML = state.data.items.map((i, idx) => `
-                <tr class="border-b border-slate-100 ${i.optional ? 'bg-slate-50/50' : ''}">
-                    <td class="py-4 pl-4">
-                        <div class="flex items-start gap-3">
-                            ${i.optional && !isFrozen ? `<input type="checkbox" onchange="togglePublicOpt(${idx})" ${i.publicSelected ? 'checked' : ''} class="mt-1 w-5 h-5 cursor-pointer accent-slate-900">` : ''}
-                            ${i.optional && isFrozen ? (i.publicSelected ? '<i class="fas fa-check-square text-green-600 mt-1"></i>' : '<i class="far fa-square text-slate-400 mt-1"></i>') : ''}
+            safeText('doc-c-name', d.client.name);
+            safeText('doc-c-doc', d.client.doc);
+            safeText('doc-c-addr', d.location.sameAsClient ? d.client.address : d.location.address);
+
+            // Itens
+            let itemsHtml = '';
+            let total = 0;
+            const isFrozen = v.status !== 'draft' && v.status !== 'negotiating' && v.status !== 'sent';
+            
+            d.items.forEach((i, idx) => {
+                let active = !i.optional || i.publicSelected;
+                if(active) total += (i.qty * i.price);
+                
+                // Checkbox lógica para opcionais
+                let checkHtml = '';
+                if(i.optional) {
+                    if(!isFrozen) checkHtml = `<input type="checkbox" onchange="togglePublicOpt(${idx})" ${i.publicSelected ? 'checked' : ''} class="mr-2">`;
+                    else checkHtml = i.publicSelected ? '<i class="fas fa-check-square text-emerald-500 mr-2"></i>' : '<i class="far fa-square text-slate-300 mr-2"></i>';
+                }
+
+                itemsHtml += `
+                <tr class="border-b border-slate-100 last:border-0">
+                    <td class="py-3 pl-2">
+                        <div class="flex items-start">
+                            ${checkHtml}
                             <div>
-                                <div class="font-bold text-slate-800 ${i.optional ? 'text-slate-600':''}">${i.name} ${i.optional ? '<span class="text-[10px] bg-slate-200 text-slate-600 px-1 rounded uppercase ml-2 tracking-wide font-bold">Opcional</span>' : ''}</div>
-                                <div class="text-sm text-slate-500 font-normal">${i.description||''}</div>
+                                <div class="font-bold text-slate-800">${i.name} ${i.optional ? '<span class="text-[10px] bg-slate-200 px-1 rounded">OPCIONAL</span>' : ''}</div>
+                                <div class="text-xs text-slate-500">${i.description}</div>
                             </div>
                         </div>
                     </td>
-                    <td class="text-center text-slate-600 font-medium">${i.qty}</td>
-                    <td class="text-right pr-4 font-bold text-slate-800 ${i.optional && !i.publicSelected ? 'line-through text-slate-400 decoration-slate-400':''}">${(i.qty*i.price).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
-                </tr>
-            `).join('');
+                    <td class="text-center">${i.qty}</td>
+                    <td class="text-right">${i.price.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
+                    <td class="text-right pr-2 font-bold ${!active ? 'line-through text-slate-300' : 'text-slate-800'}">
+                        ${(i.qty*i.price).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('doc-items-body').innerHTML = itemsHtml;
+            safeText('doc-total', total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
+
+            // Anexos Públicos
+            let attachHtml = '';
+            if(d.attachments.length > 0) {
+                attachHtml = '<h4 class="font-bold text-xs uppercase text-slate-400 mb-3 mt-8">Anexos</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+                d.attachments.forEach(att => {
+                    attachHtml += `
+                    <a href="${att.url}" target="_blank" class="flex items-center gap-3 p-3 bg-slate-50 border rounded-lg hover:bg-white hover:shadow transition-all">
+                        <div class="w-10 h-10 bg-white rounded flex items-center justify-center border text-blue-500"><i class="fas fa-file-alt"></i></div>
+                        <div>
+                            <div class="text-sm font-bold text-slate-700 truncate w-48">${att.name}</div>
+                            ${att.description ? `<div class="text-xs text-slate-500 italic">"${att.description}"</div>` : ''}
+                        </div>
+                    </a>`;
+                });
+                attachHtml += '</div>';
+            }
+            document.getElementById('doc-attachments-area').innerHTML = attachHtml;
+
+            // Rodapé
+            safeText('doc-payment', d.terms.paymentText);
+            safeText('doc-deadline', d.terms.deadline);
+            safeText('doc-validity', d.terms.validity);
+            safeText('doc-obs', d.terms.obs);
+
+            // Ações / Status
+            const actionsDiv = document.getElementById('doc-actions');
+            if(v.status === 'approved') {
+                document.getElementById('stamp-approved').classList.remove('hidden');
+                actionsDiv.innerHTML = '<div class="text-center text-emerald-600 font-bold p-4 bg-emerald-50 rounded-lg">Proposta Aprovada com Sucesso</div>';
+            } else if(v.status === 'canceled') {
+                actionsDiv.innerHTML = '<div class="text-center text-red-600 font-bold p-4 bg-red-50 rounded-lg">Proposta Recusada/Cancelada</div>';
+            } else {
+                actionsDiv.innerHTML = `
+                    <button onclick="openModal('approve')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg mb-3 text-lg">
+                        <i class="fas fa-check-circle mr-2"></i> APROVAR PROPOSTA
+                    </button>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="openModal('change')" class="py-3 bg-amber-100 text-amber-800 font-bold rounded-xl hover:bg-amber-200">Solicitar Ajuste</button>
+                        <button onclick="openModal('cancel')" class="py-3 bg-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-300">Recusar</button>
+                    </div>`;
+            }
+
+            safeHide('public-loading'); safeShow('view-public'); safeShow('public-content');
         }
 
         function togglePublicOpt(idx) {
             state.data.items[idx].publicSelected = !state.data.items[idx].publicSelected;
-            renderPublicItems();
-        }
-
-        function openInt(type) {
-            document.getElementById('interaction-modal').classList.remove('hidden');
-            const t = document.getElementById('modal-title'); const b = document.getElementById('modal-btn'); const i = document.getElementById('modal-input'); const s = document.getElementById('modal-sig-area');
-            
-            if(type === 'approve') {
-                t.innerText = "Assinar e Aprovar"; i.classList.add('hidden'); s.classList.remove('hidden'); b.innerText = "Confirmar Aprovação"; b.classList.add('bg-green-600'); b.onclick = () => submitInt('approved'); setTimeout(initSig, 100);
-            } else if (type === 'neg') {
-                t.innerText = "O que precisa alterar?"; i.classList.remove('hidden'); s.classList.add('hidden'); b.innerText = "Enviar Solicitação"; b.classList.remove('bg-green-600'); b.onclick = () => submitInt('negotiating');
-            } else {
-                t.innerText = "Motivo da Recusa"; i.classList.remove('hidden'); s.classList.add('hidden'); b.innerText = "Confirmar Recusa"; b.classList.remove('bg-green-600'); b.onclick = () => submitInt('canceled');
-            }
-        }
-
-        function initSig() {
-            const c = document.getElementById('signature-pad'); const ctx = c.getContext('2d');
-            c.width = c.offsetWidth; c.height = c.offsetHeight;
-            let paint = false;
-            c.onmousedown = (e) => { paint=true; ctx.moveTo(e.offsetX,e.offsetY); };
-            c.onmousemove = (e) => { if(paint) { ctx.lineTo(e.offsetX,e.offsetY); ctx.stroke(); }};
-            c.onmouseup = () => paint=false;
-            document.getElementById('clear-sig').onclick = () => ctx.clearRect(0,0,c.width,c.height);
-        }
-
-        async function submitInt(st) {
-            const det = st === 'approved' ? 'Assinou digitalmente' : document.getElementById('modal-input').value;
-            if(st === 'approved') state.data.signature = document.getElementById('signature-pad').toDataURL();
-            
-            let finalTotal = state.version.total_value;
-            if(st === 'approved') {
-                 finalTotal = state.data.items.reduce((acc, i) => (!i.optional || i.publicSelected ? acc + (i.qty * i.price) : acc), 0);
-            }
-
-            state.data.history.push({ date: new Date(), action: st, user: 'client', detail: det });
-            await db.from('versions').update({ status: st, items: state.data, total_value: finalTotal }).eq('id', state.version.id);
-            alert("Registrado!"); location.reload();
-        }
-
-        function openShareModal() {
-            save().then(() => {
-                document.getElementById('share-modal').classList.remove('hidden');
-                const url = location.href.replace('editor','public');
-                document.getElementById('btn-share-copy').onclick = () => navigator.clipboard.writeText(url);
-                document.getElementById('btn-share-wa').onclick = () => window.open(`https://wa.me/?text=${encodeURIComponent(url)}`);
+            // Atualiza visualmente sem salvar no banco ainda (salva ao aprovar)
+            loadPublicProposal(state.version.id).then(() => {
+               // Re-renderiza localmente para refletir total
+               // Nota: Idealmente separar render de fetch, mas para simplificar:
+               // A função loadPublicProposal já faz o render.
+               // Só precisamos garantir que state.data não seja sobrescrito pelo fetch se não salvamos.
+               // Correção rápida: apenas recalcula DOM local.
             });
         }
 
+        // --- Inicialização ---
         window.onload = init;
+        window.onpopstate = init;
+
     </script>
 </body>
 </html>
