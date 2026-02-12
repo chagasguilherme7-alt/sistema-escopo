@@ -120,6 +120,13 @@
         .project-card:hover { border-color: #3b82f6; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 
         .period-btn.active { background-color: #2563eb; color: white; }
+
+        /* Feed de atividades */
+        .activity-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid #f1f5f9; }
+        .activity-icon { width: 2rem; height: 2rem; border-radius: 9999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .activity-content { flex: 1; }
+        .activity-title { font-weight: 600; color: #0f172a; }
+        .activity-meta { font-size: 0.75rem; color: #64748b; display: flex; gap: 0.5rem; margin-top: 0.125rem; }
     </style>
 </head>
 <body>
@@ -197,9 +204,11 @@
         </aside>
 
         <main class="main-content">
-            <!-- DASHBOARD: KPIs + GRÁFICO AVANÇADO -->
+            <!-- DASHBOARD: KPIs + GRÁFICO + FEED DE ATIVIDADES -->
             <section id="view-dashboard" class="space-y-6">
                 <h2 class="text-2xl font-bold text-slate-800">Visão geral</h2>
+                
+                <!-- KPIs -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                         <div class="text-xs text-slate-500 uppercase mb-1">Faturamento Aprovado</div>
@@ -223,7 +232,7 @@
                     </div>
                 </div>
 
-                <!-- GRÁFICO AVANÇADO -->
+                <!-- GRÁFICO AVANÇADO (com melhorias de visualização) -->
                 <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-slate-700">Atividade de orçamentos</h3>
@@ -233,8 +242,24 @@
                             <button onclick="setChartPeriod(90)" class="period-btn px-3 py-1 text-xs font-medium rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-period="90">90d</button>
                         </div>
                     </div>
-                    <div style="height: 300px;">
+                    <div style="height: 320px;">
                         <canvas id="dashboardChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- FEED DE ATIVIDADES RECENTES -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-slate-700 flex items-center gap-2">
+                            <i class="fas fa-history text-blue-600"></i> Atividade recente
+                        </h3>
+                        <span class="text-xs text-slate-400">últimas 10 ações</span>
+                    </div>
+                    <div id="activity-feed" class="divide-y divide-slate-100">
+                        <!-- preenchido dinamicamente -->
+                        <div class="text-center py-8 text-slate-400 italic">
+                            Nenhuma atividade registrada ainda.
+                        </div>
                     </div>
                 </div>
             </section>
@@ -554,7 +579,7 @@
         function safeShow(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
         function safeHide(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
 
-        // ----- NORMALIZAÇÃO (validade vazia) -----
+        // ----- NORMALIZAÇÃO -----
         function normalizeData(dbData) {
             const schema = { 
                 client: { name: '', doc: '', email: '', phone: '', address: '' }, 
@@ -626,6 +651,121 @@
             });
             oldArr.forEach(i => { if(!newMap.has(i.id)) logs.push(`Removeu: ${i.name}`); });
             return logs.length ? logs.join('; ') : null;
+        }
+
+        // ----- FUNÇÃO PARA COLETAR ATIVIDADES RECENTES -----
+        function getRecentActivities(limit = 10) {
+            let activities = [];
+            state.projectsCache.forEach(project => {
+                const projectName = project.name;
+                const version = project.versions?.[0] || null;
+                if (version?.items?.history && Array.isArray(version.items.history)) {
+                    version.items.history.forEach(h => {
+                        activities.push({
+                            date: h.date,
+                            projectId: project.id,
+                            projectName: projectName,
+                            action: h.action,
+                            user: h.user,
+                            detail: h.detail
+                        });
+                    });
+                }
+            });
+            // Ordenar por data (mais recente primeiro)
+            activities.sort((a, b) => new Date(b.date) - new Date(a.date));
+            return activities.slice(0, limit);
+        }
+
+        // ----- RENDERIZAR FEED DE ATIVIDADES -----
+        function renderActivityFeed() {
+            const feedContainer = document.getElementById('activity-feed');
+            if (!feedContainer) return;
+            const activities = getRecentActivities(10);
+            if (activities.length === 0) {
+                feedContainer.innerHTML = '<div class="text-center py-8 text-slate-400 italic">Nenhuma atividade registrada ainda.</div>';
+                return;
+            }
+            let html = '';
+            activities.forEach(act => {
+                const date = new Date(act.date);
+                const timeAgo = formatTimeAgo(date);
+                let icon = '', bgColor = '', textColor = '', actionText = '';
+                switch (act.action) {
+                    case 'approved':
+                        icon = 'fa-check-circle';
+                        bgColor = 'bg-green-100';
+                        textColor = 'text-green-600';
+                        actionText = 'Aprovou';
+                        break;
+                    case 'created':
+                        icon = 'fa-plus-circle';
+                        bgColor = 'bg-blue-100';
+                        textColor = 'text-blue-600';
+                        actionText = 'Criou';
+                        break;
+                    case 'edited':
+                        icon = 'fa-pen';
+                        bgColor = 'bg-indigo-100';
+                        textColor = 'text-indigo-600';
+                        actionText = 'Editou';
+                        break;
+                    case 'canceled':
+                        icon = 'fa-times-circle';
+                        bgColor = 'bg-red-100';
+                        textColor = 'text-red-600';
+                        actionText = 'Cancelou';
+                        break;
+                    case 'change_request':
+                        icon = 'fa-comment-dots';
+                        bgColor = 'bg-amber-100';
+                        textColor = 'text-amber-600';
+                        actionText = 'Solicitou alteração';
+                        break;
+                    default:
+                        icon = 'fa-info-circle';
+                        bgColor = 'bg-slate-100';
+                        textColor = 'text-slate-600';
+                        actionText = act.action;
+                }
+                const userLabel = act.user === 'provider' ? 'Você' : 'Cliente';
+                const detail = act.detail ? ` – ${act.detail}` : '';
+                html += `
+                    <div class="activity-item">
+                        <div class="activity-icon ${bgColor} ${textColor}">
+                            <i class="fas ${icon}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">${act.projectName}</div>
+                            <div class="text-sm text-slate-700">
+                                <span class="font-medium">${actionText}</span> ${detail}
+                            </div>
+                            <div class="activity-meta">
+                                <span>${userLabel}</span>
+                                <span>•</span>
+                                <span>${timeAgo}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            feedContainer.innerHTML = html;
+        }
+
+        // ----- FORMATAR TEMPO RELATIVO -----
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSec = Math.round(diffMs / 1000);
+            const diffMin = Math.round(diffSec / 60);
+            const diffHour = Math.round(diffMin / 60);
+            const diffDay = Math.round(diffHour / 24);
+            const diffMonth = Math.round(diffDay / 30);
+            if (diffMonth > 0) return `${diffMonth} mês${diffMonth > 1 ? 'es' : ''} atrás`;
+            if (diffDay > 0) return `${diffDay} dia${diffDay > 1 ? 's' : ''} atrás`;
+            if (diffHour > 0) return `${diffHour} hora${diffHour > 1 ? 's' : ''} atrás`;
+            if (diffMin > 0) return `${diffMin} minuto${diffMin > 1 ? 's' : ''} atrás`;
+            return 'agora mesmo';
         }
 
         // ----- INICIALIZAÇÃO -----
@@ -721,6 +861,7 @@
             if (tab === 'dashboard') {
                 renderDashboardKPIs();
                 renderDashboardCharts();
+                renderActivityFeed(); // <-- NOVO
             }
             if (tab === 'projects') {
                 renderProjectCards();
@@ -742,7 +883,7 @@
         async function loadProjects() {
             const { data: projects, error } = await db
                 .from('projects')
-                .select('*, versions(status, total_value, version_number)')
+                .select('*, versions(status, total_value, version_number, items)')
                 .eq('user_id', state.user.id)
                 .order('created_at', { ascending: false });
             if (error) return;
@@ -773,7 +914,7 @@
             safeText('kpi-count-open', countOpen);
         }
 
-        // ----- GRÁFICO AVANÇADO -----
+        // ----- GRÁFICO AVANÇADO (com melhorias visuais) -----
         function setChartPeriod(days) {
             chartPeriod = days;
             document.querySelectorAll('.period-btn').forEach(btn => {
@@ -857,6 +998,12 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 20,
+                            bottom: 10
+                        }
+                    },
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
                         tooltip: {
@@ -876,7 +1023,12 @@
                         legend: {
                             display: true,
                             position: 'top',
-                            labels: { usePointStyle: true, boxWidth: 6 }
+                            align: 'center',
+                            labels: { 
+                                usePointStyle: true, 
+                                boxWidth: 6,
+                                padding: 20
+                            }
                         }
                     },
                     scales: {
@@ -904,6 +1056,16 @@
                                 callback: function(value) {
                                     return 'R$ ' + (value / 1000).toFixed(0) + 'k';
                                 }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 30,
+                                font: { size: 10 },
+                                maxTicksLimit: chartPeriod === 90 ? 15 : undefined,
+                                autoSkip: true,
+                                autoSkipPadding: 5
                             }
                         }
                     }
@@ -967,6 +1129,7 @@
                 renderDashboardCharts();
                 renderProjectCards();
                 renderClients();
+                renderActivityFeed();
             }
         }
 
@@ -1731,6 +1894,8 @@
             }
         }
 
+        // Inicializa período do gráfico
+        setChartPeriod(30);
         window.onload = init;
         window.onpopstate = init;
     </script>
