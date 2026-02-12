@@ -121,7 +121,6 @@
 
         .period-btn.active { background-color: #2563eb; color: white; }
 
-        /* Feed de atividades */
         .activity-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid #f1f5f9; }
         .activity-icon { width: 2rem; height: 2rem; border-radius: 9999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .activity-content { flex: 1; }
@@ -191,7 +190,8 @@
                 <div onclick="switchTab('projects')" class="nav-item" id="nav-projects"><i class="fas fa-file-invoice"></i> Orçamentos</div>
                 <div class="px-6 py-4 mt-2">
                     <p class="text-[10px] font-bold text-slate-400 uppercase mb-3">Filtros rápidos</p>
-                    <div onclick="filterProjects('draft')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#94a3b8"></span> Em Aberto</div>
+                    <div onclick="filterProjects('draft')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#94a3b8"></span> Rascunho</div>
+                    <div onclick="filterProjects('sent')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#3b82f6"></span> Aguardando resposta</div>
                     <div onclick="filterProjects('negotiating')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#f97316"></span> Em Negociação</div>
                     <div onclick="filterProjects('approved')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#22c55e"></span> Aprovados</div>
                     <div onclick="filterProjects('canceled')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600"><span class="status-dot" style="background:#ef4444"></span> Cancelados</div>
@@ -204,11 +204,9 @@
         </aside>
 
         <main class="main-content">
-            <!-- DASHBOARD: KPIs + GRÁFICO + FEED DE ATIVIDADES -->
+            <!-- DASHBOARD -->
             <section id="view-dashboard" class="space-y-6">
                 <h2 class="text-2xl font-bold text-slate-800">Visão geral</h2>
-                
-                <!-- KPIs -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                         <div class="text-xs text-slate-500 uppercase mb-1">Faturamento Aprovado</div>
@@ -219,20 +217,19 @@
                         <div class="text-2xl font-bold text-blue-600" id="kpi-total-est">R$ 0,00</div>
                     </div>
                     <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="text-xs text-slate-500 uppercase mb-1">Aguardando resposta</div>
+                        <div class="text-2xl font-bold text-blue-600" id="kpi-count-sent">0</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                         <div class="text-xs text-slate-500 uppercase mb-1">Em Negociação</div>
                         <div class="text-2xl font-bold text-orange-600" id="kpi-count-neg">0</div>
                     </div>
                     <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <div class="text-xs text-slate-500 uppercase mb-1">Aprovados</div>
-                        <div class="text-2xl font-bold text-green-600" id="kpi-count-apr">0</div>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <div class="text-xs text-slate-500 uppercase mb-1">Em Aberto</div>
+                        <div class="text-xs text-slate-500 uppercase mb-1">Rascunhos</div>
                         <div class="text-2xl font-bold text-slate-600" id="kpi-count-open">0</div>
                     </div>
                 </div>
 
-                <!-- GRÁFICO AVANÇADO (com melhorias de visualização) -->
                 <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-slate-700">Atividade de orçamentos</h3>
@@ -247,7 +244,6 @@
                     </div>
                 </div>
 
-                <!-- FEED DE ATIVIDADES RECENTES -->
                 <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="font-bold text-slate-700 flex items-center gap-2">
@@ -256,7 +252,6 @@
                         <span class="text-xs text-slate-400">últimas 10 ações</span>
                     </div>
                     <div id="activity-feed" class="divide-y divide-slate-100">
-                        <!-- preenchido dinamicamente -->
                         <div class="text-center py-8 text-slate-400 italic">
                             Nenhuma atividade registrada ainda.
                         </div>
@@ -264,7 +259,7 @@
                 </div>
             </section>
 
-            <!-- VIEW PROJETOS (CARDS + BUSCA + FILTRO) -->
+            <!-- VIEW PROJETOS -->
             <section id="view-projects" class="hidden space-y-6">
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-slate-800">Orçamentos</h2>
@@ -277,8 +272,8 @@
                     </div>
                     <select id="project-status-filter" onchange="renderProjectCards()" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
                         <option value="all">Todos os Status</option>
-                        <option value="draft">Em Aberto</option>
-                        <option value="sent">Enviados</option>
+                        <option value="draft">Rascunho</option>
+                        <option value="sent">Aguardando resposta</option>
                         <option value="negotiating">Em Negociação</option>
                         <option value="approved">Aprovados</option>
                         <option value="canceled">Cancelados</option>
@@ -305,7 +300,7 @@
                 </div>
             </section>
 
-            <!-- EDITOR COMPLETO -->
+            <!-- EDITOR -->
             <section id="view-editor" class="hidden pb-20">
                 <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex items-center gap-4">
@@ -314,7 +309,7 @@
                             <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
                                 <span id="ed-title">...</span>
                                 <span id="ed-ver" class="text-xs bg-slate-100 px-2 py-1 rounded border">V1</span>
-                                <span id="ed-status-badge" class="status-badge st-draft ml-2">EM ABERTO</span>
+                                <span id="ed-status-badge" class="status-badge st-draft ml-2">RASCUNHO</span>
                             </h2>
                         </div>
                     </div>
@@ -507,7 +502,6 @@
         </div>
     </section>
 
-    <!-- TELA DE SUCESSO -->
     <section id="view-success" class="hidden min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
         <div class="max-w-md w-full">
             <i id="success-icon" class="fas fa-check-circle text-6xl text-green-500 mb-6 anim-entry"></i>
@@ -518,7 +512,6 @@
         </div>
     </section>
 
-    <!-- MODAL DE INTERAÇÃO -->
     <div id="interaction-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl animate-[fadeInUp_0.3s]">
             <h3 id="modal-title" class="text-xl font-bold mb-2 text-slate-800"></h3>
@@ -535,7 +528,6 @@
         </div>
     </div>
 
-    <!-- MODAL DE COMPARTILHAR -->
     <div id="share-modal" class="hidden fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4">
         <div class="bg-white p-6 rounded-xl w-full max-w-sm text-center">
             <h3 class="text-xl font-bold mb-6 text-slate-800"><i class="fas fa-share-alt mr-2 text-blue-600"></i>Enviar Proposta</h3>
@@ -558,7 +550,6 @@
         const { createClient } = supabase;
         let db = null;
 
-        // ----- ESTADO GLOBAL -----
         let state = { 
             user: null, 
             project: null, 
@@ -571,7 +562,6 @@
         let chartInstance = null;
         let chartPeriod = 30;
 
-        // ----- FUNÇÕES AUXILIARES -----
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
         function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
@@ -579,7 +569,6 @@
         function safeShow(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
         function safeHide(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
 
-        // ----- NORMALIZAÇÃO -----
         function normalizeData(dbData) {
             const schema = { 
                 client: { name: '', doc: '', email: '', phone: '', address: '' }, 
@@ -592,7 +581,6 @@
                 signature: null 
             };
             if (!dbData) return JSON.parse(JSON.stringify(schema));
-            
             let rawItems = Array.isArray(dbData.items) ? dbData.items : (dbData.scope || []);
             const cleanItems = rawItems.map(i => ({ 
                 id: i.id || 'item_' + Math.random().toString(36).substr(2, 9), 
@@ -604,7 +592,6 @@
                 optional: i.optional || false,
                 publicSelected: i.publicSelected || false 
             }));
-            
             let attachments = Array.isArray(dbData.attachments) ? dbData.attachments : [];
             attachments = attachments.map(a => ({
                 name: a.name || '',
@@ -612,7 +599,6 @@
                 type: a.type || 'file',
                 description: a.description || ''
             }));
-
             return { 
                 client: { ...schema.client, ...(dbData.client || {}) }, 
                 location: { ...schema.location, ...(dbData.location || {}) }, 
@@ -625,7 +611,6 @@
             };
         }
 
-        // ----- HISTÓRICO -----
         function logHistory(action, user, detail) {
             if (!state.data.history) state.data.history = [];
             state.data.history.push({ 
@@ -636,7 +621,6 @@
             });
         }
 
-        // ----- DETECTAR MUDANÇAS -----
         function getChanges(oldArr, newArr) {
             let logs = [];
             const oldMap = new Map(oldArr.map(i => [i.id, i]));
@@ -653,7 +637,6 @@
             return logs.length ? logs.join('; ') : null;
         }
 
-        // ----- FUNÇÃO PARA COLETAR ATIVIDADES RECENTES -----
         function getRecentActivities(limit = 10) {
             let activities = [];
             state.projectsCache.forEach(project => {
@@ -672,12 +655,10 @@
                     });
                 }
             });
-            // Ordenar por data (mais recente primeiro)
             activities.sort((a, b) => new Date(b.date) - new Date(a.date));
             return activities.slice(0, limit);
         }
 
-        // ----- RENDERIZAR FEED DE ATIVIDADES -----
         function renderActivityFeed() {
             const feedContainer = document.getElementById('activity-feed');
             if (!feedContainer) return;
@@ -722,6 +703,12 @@
                         textColor = 'text-amber-600';
                         actionText = 'Solicitou alteração';
                         break;
+                    case 'sent':
+                        icon = 'fa-paper-plane';
+                        bgColor = 'bg-blue-100';
+                        textColor = 'text-blue-600';
+                        actionText = 'Enviou link';
+                        break;
                     default:
                         icon = 'fa-info-circle';
                         bgColor = 'bg-slate-100';
@@ -752,7 +739,6 @@
             feedContainer.innerHTML = html;
         }
 
-        // ----- FORMATAR TEMPO RELATIVO -----
         function formatTimeAgo(date) {
             const now = new Date();
             const diffMs = now - date;
@@ -768,7 +754,6 @@
             return 'agora mesmo';
         }
 
-        // ----- INICIALIZAÇÃO -----
         async function init() {
             try {
                 db = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -861,7 +846,7 @@
             if (tab === 'dashboard') {
                 renderDashboardKPIs();
                 renderDashboardCharts();
-                renderActivityFeed(); // <-- NOVO
+                renderActivityFeed();
             }
             if (tab === 'projects') {
                 renderProjectCards();
@@ -898,13 +883,14 @@
         }
 
         function renderDashboardKPIs() {
-            let totalRev = 0, totalAprov = 0, countAprov = 0, countNegoc = 0, countOpen = 0;
+            let totalRev = 0, totalAprov = 0, countAprov = 0, countNegoc = 0, countOpen = 0, countSent = 0;
             state.projectsCache.forEach(p => {
                 const v = p.versions?.[0] || { status: 'draft', total_value: 0 };
                 const val = parseFloat(v.total_value) || 0;
                 totalRev += val; 
                 if(v.status === 'approved') { totalAprov += val; countAprov++; }
-                if(v.status === 'negotiating' || v.status === 'sent') countNegoc++;
+                if(v.status === 'negotiating') countNegoc++;
+                if(v.status === 'sent') countSent++;
                 if(v.status === 'draft') countOpen++;
             });
             safeText('kpi-total-est', totalRev.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
@@ -912,9 +898,9 @@
             safeText('kpi-count-neg', countNegoc);
             safeText('kpi-count-apr', countAprov);
             safeText('kpi-count-open', countOpen);
+            safeText('kpi-count-sent', countSent);
         }
 
-        // ----- GRÁFICO AVANÇADO (com melhorias visuais) -----
         function setChartPeriod(days) {
             chartPeriod = days;
             document.querySelectorAll('.period-btn').forEach(btn => {
@@ -998,12 +984,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            top: 20,
-                            bottom: 10
-                        }
-                    },
+                    layout: { padding: { top: 20, bottom: 10 } },
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
                         tooltip: {
@@ -1024,39 +1005,21 @@
                             display: true,
                             position: 'top',
                             align: 'center',
-                            labels: { 
-                                usePointStyle: true, 
-                                boxWidth: 6,
-                                padding: 20
-                            }
+                            labels: { usePointStyle: true, boxWidth: 6, padding: 20 }
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Orçamentos',
-                                color: '#64748b',
-                                font: { size: 11, weight: '500' }
-                            },
+                            title: { display: true, text: 'Orçamentos', color: '#64748b', font: { size: 11, weight: '500' } },
                             grid: { color: 'rgba(0,0,0,0.05)' }
                         },
                         y1: {
                             beginAtZero: true,
                             position: 'right',
-                            title: {
-                                display: true,
-                                text: 'Valor (R$)',
-                                color: '#64748b',
-                                font: { size: 11, weight: '500' }
-                            },
+                            title: { display: true, text: 'Valor (R$)', color: '#64748b', font: { size: 11, weight: '500' } },
                             grid: { drawOnChartArea: false },
-                            ticks: {
-                                callback: function(value) {
-                                    return 'R$ ' + (value / 1000).toFixed(0) + 'k';
-                                }
-                            }
+                            ticks: { callback: function(value) { return 'R$ ' + (value / 1000).toFixed(0) + 'k'; } }
                         },
                         x: {
                             ticks: {
@@ -1073,7 +1036,6 @@
             });
         }
 
-        // ----- PROJETOS: RENDERIZAÇÃO DOS CARDS -----
         function renderProjectCards() {
             const container = document.getElementById('project-cards-container');
             if (!container) return;
@@ -1092,8 +1054,8 @@
                 filtered.forEach(p => {
                     const v = p.versions?.[0] || { total_value: 0, status: 'draft', version_number: 1 };
                     const val = parseFloat(v.total_value) || 0;
-                    let badgeClass = 'st-draft'; let statusLabel = 'Em Aberto';
-                    if (v.status === 'sent') { badgeClass = 'st-sent'; statusLabel = 'Enviado'; }
+                    let badgeClass = 'st-draft'; let statusLabel = 'Rascunho';
+                    if (v.status === 'sent') { badgeClass = 'st-sent'; statusLabel = 'Aguardando resposta'; }
                     if (v.status === 'negotiating') { badgeClass = 'st-negotiating'; statusLabel = 'Em Negociação'; }
                     if (v.status === 'approved') { badgeClass = 'st-approved'; statusLabel = 'Aprovado'; }
                     if (v.status === 'canceled') { badgeClass = 'st-canceled'; statusLabel = 'Cancelado'; }
@@ -1193,7 +1155,7 @@
 
         function renderEditor() {
             const d = state.data; 
-            const isLocked = state.version.status !== 'draft'; 
+            const isLocked = state.version.status !== 'draft'; // APENAS RASCUNHO É EDITÁVEL!
             safeText('ed-title', state.project.name);
             safeText('ed-ver', `V${state.version.version_number}`);
             const badge = document.getElementById('ed-status-badge');
@@ -1202,11 +1164,13 @@
                     state.version.status === 'approved' ? 'st-approved' : 
                     state.version.status === 'canceled' ? 'st-canceled' : 
                     state.version.status === 'negotiating' ? 'st-negotiating' : 
+                    state.version.status === 'sent' ? 'st-sent' : 
                     'st-draft'
                 }`;
-                badge.innerText = state.version.status === 'draft' ? 'EM ABERTO' : 
-                                 state.version.status === 'sent' ? 'ENVIADO' : 
-                                 state.version.status.toUpperCase();
+                badge.innerText = 
+                    state.version.status === 'draft' ? 'RASCUNHO' : 
+                    state.version.status === 'sent' ? 'AGUARDANDO RESPOSTA' : 
+                    state.version.status.toUpperCase();
             }
             setVal('p-name', d.settings.providerName);
             setVal('p-doc', d.settings.providerDoc);
@@ -1533,43 +1497,18 @@
             loadEditor(state.project.id);
         }
 
-        async function changeStatus(newStatus) {
-            if(!confirm(`Mudar status para ${newStatus}?`)) return;
+        async function changeStatus(newStatus, skipConfirm = false) {
+            if (!skipConfirm && !confirm(`Mudar status para ${newStatus}?`)) return;
             await db.from('versions').update({status: newStatus}).eq('id', state.version.id);
-            logHistory(newStatus, 'provider', 'Alteração manual de status.');
-            await save();
+            logHistory(newStatus, 'provider', skipConfirm ? 'Status alterado automaticamente (envio de link)' : 'Alteração manual de status.');
             loadEditor(state.project.id);
-        }
-
-        function renderHistory() {
-            const hist = state.data.history || [];
-            let histHtml = '';
-            if(hist.length > 0) {
-                hist.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(h => {
-                    const date = new Date(h.date).toLocaleString('pt-BR');
-                    let icon = 'info-circle text-blue-400';
-                    let actionLabel = 'Visualizou';
-                    if (h.action === 'approved') { icon = 'check text-green-500'; actionLabel = 'Aprovou'; }
-                    else if (h.action === 'change_request') { icon = 'comment-dots text-amber-500'; actionLabel = 'Solicitou alteração'; }
-                    else if (h.action === 'canceled') { icon = 'times text-red-500'; actionLabel = 'Recusou/Cancelou'; }
-                    else if (h.action === 'created') { icon = 'plus-circle text-blue-600'; actionLabel = 'Criou o orçamento'; }
-                    else if (h.action === 'edited') { icon = 'pen text-indigo-500'; actionLabel = 'Alterou o escopo'; }
-                    histHtml += `<div class="timeline-item">
-                        <div class="text-xs text-slate-400">${date} • ${h.user === 'provider' ? 'Você' : 'Cliente'}</div>
-                        <div class="font-bold text-sm text-slate-700 flex items-center gap-2 mt-1">
-                            <i class="fas fa-${icon}"></i> ${actionLabel}
-                        </div>
-                        ${h.detail ? `<div class="timeline-desc ${h.action.includes('request') ? '' : 'system'}">${h.detail}</div>` : ''}
-                    </div>`;
-                });
-            } else {
-                histHtml = '<div class="text-xs text-slate-400 italic">Sem histórico registrado.</div>';
-            }
-            setHTML('ed-history', histHtml);
         }
 
         async function openShareModal() {
             await save();
+            if (state.version.status === 'draft') {
+                await changeStatus('sent', true);
+            }
             if (!state.version?.id) return alert("Erro ao salvar versão.");
             const url = `${window.location.origin}${window.location.pathname}?view=public&id=${state.version.id}`;
             const clientName = state.data.client.name ? ` ${state.data.client.name}` : '';
@@ -1596,6 +1535,34 @@
                 document.getElementById('share-modal').classList.add('hidden');
             };
             safeShow('share-modal');
+        }
+
+        function renderHistory() {
+            const hist = state.data.history || [];
+            let histHtml = '';
+            if(hist.length > 0) {
+                hist.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(h => {
+                    const date = new Date(h.date).toLocaleString('pt-BR');
+                    let icon = 'info-circle text-blue-400';
+                    let actionLabel = 'Visualizou';
+                    if (h.action === 'approved') { icon = 'check text-green-500'; actionLabel = 'Aprovou'; }
+                    else if (h.action === 'change_request') { icon = 'comment-dots text-amber-500'; actionLabel = 'Solicitou alteração'; }
+                    else if (h.action === 'canceled') { icon = 'times text-red-500'; actionLabel = 'Recusou/Cancelou'; }
+                    else if (h.action === 'created') { icon = 'plus-circle text-blue-600'; actionLabel = 'Criou o orçamento'; }
+                    else if (h.action === 'edited') { icon = 'pen text-indigo-500'; actionLabel = 'Alterou o escopo'; }
+                    else if (h.action === 'sent') { icon = 'paper-plane text-blue-500'; actionLabel = 'Enviou link'; }
+                    histHtml += `<div class="timeline-item">
+                        <div class="text-xs text-slate-400">${date} • ${h.user === 'provider' ? 'Você' : 'Cliente'}</div>
+                        <div class="font-bold text-sm text-slate-700 flex items-center gap-2 mt-1">
+                            <i class="fas fa-${icon}"></i> ${actionLabel}
+                        </div>
+                        ${h.detail ? `<div class="timeline-desc ${h.action.includes('request') ? '' : 'system'}">${h.detail}</div>` : ''}
+                    </div>`;
+                });
+            } else {
+                histHtml = '<div class="text-xs text-slate-400 italic">Sem histórico registrado.</div>';
+            }
+            setHTML('ed-history', histHtml);
         }
 
         // ========== PÁGINA PÚBLICA ==========
@@ -1894,7 +1861,6 @@
             }
         }
 
-        // Inicializa período do gráfico
         setChartPeriod(30);
         window.onload = init;
         window.onpopstate = init;
