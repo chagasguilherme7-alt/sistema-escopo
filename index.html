@@ -30,13 +30,14 @@
         .item-box:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .item-optional { border: 2px dashed #94a3b8 !important; background-color: #f8fafc; opacity: 0.9; }
         .optional-badge { background: #64748b; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; font-weight: bold; text-transform: uppercase; margin-left: 8px; }
+        
         .timeline-item { position: relative; padding-left: 2rem; border-left: 2px solid #e2e8f0; padding-bottom: 1.5rem; }
         .timeline-item::before { content: ''; position: absolute; left: -5px; top: 0; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
         .timeline-item:last-child { border-left: transparent; }
         .timeline-desc { font-size: 0.85rem; color: #334155; margin-top: 6px; background: #fff7ed; padding: 12px; border-radius: 8px; border: 1px solid #fed7aa; font-style: italic; }
         .timeline-desc.system { background: #f8fafc; border-color: #f1f5f9; font-style: normal; }
 
-        /* --- ESTILOS DO DOCUMENTO PÚBLICO (COPIADO DO ORIGINAL) --- */
+        /* --- ESTILOS DO DOCUMENTO PÚBLICO (RESTAURADO 100%) --- */
         .doc-container { font-family: 'Inter', sans-serif; color: #1e293b; line-height: 1.6; }
         .doc-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 2rem; border-bottom: 2px solid #e2e8f0; margin-bottom: 2rem; }
         .doc-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; letter-spacing: -0.02em; }
@@ -55,7 +56,7 @@
         .custom-table tr:hover td { background: #F1F5F9; cursor: pointer; }
         .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
         
-        /* Responsividade */
+        /* Responsividade e Loaders */
         @media (max-width: 1024px) { 
             .sidebar { transform: translateX(-100%); width: 100%; }
             .sidebar.open { transform: translateX(0); }
@@ -80,8 +81,9 @@
     <section id="view-login" class="hidden min-h-screen flex items-center justify-center bg-slate-50 p-4">
         <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
             <h1 class="text-3xl font-bold text-slate-900 mb-2 text-center font-heading">Aprova Aí</h1>
+            <p class="text-slate-500 text-center mb-6">Acesse seu painel de orçamentos</p>
             <input type="email" id="email" class="w-full p-3 border border-slate-300 rounded-lg mb-4" placeholder="seu@email.com">
-            <button onclick="handleLogin()" id="btn-login" class="w-full bg-slate-900 text-white font-bold py-3 rounded-lg hover:bg-slate-800">Entrar</button>
+            <button onclick="handleLogin()" id="btn-login" class="w-full bg-slate-900 text-white font-bold py-3 rounded-lg hover:bg-slate-800 transition-colors">Entrar</button>
         </div>
     </section>
 
@@ -116,32 +118,32 @@
             <section id="view-dashboard" class="space-y-6">
                 <h2 class="text-2xl font-bold text-slate-800 font-heading">Visão geral</h2>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Mês</div><div class="text-2xl font-bold text-blue-600" id="kpi-month-count">0</div></div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Faturamento</div><div class="text-2xl font-bold text-emerald-600" id="kpi-month-total">R$ 0,00</div></div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Total</div><div class="text-2xl font-bold text-slate-800" id="kpi-all-count">0</div></div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Clientes</div><div class="text-2xl font-bold text-indigo-600" id="kpi-client-count">0</div></div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Mês Atual</div><div class="text-2xl font-bold text-blue-600" id="kpi-month-count">0</div></div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Faturamento Mês</div><div class="text-2xl font-bold text-emerald-600" id="kpi-month-total">R$ 0,00</div></div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Total Orçamentos</div><div class="text-2xl font-bold text-slate-800" id="kpi-all-count">0</div></div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Total Clientes</div><div class="text-2xl font-bold text-indigo-600" id="kpi-client-count">0</div></div>
                 </div>
                 <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-700 mb-4">Orçamentos por dia</h3><div style="height: 300px;"><canvas id="dashboardChart"></canvas></div></div>
             </section>
 
             <section id="view-projects" class="hidden space-y-6">
-                <div class="flex justify-between items-center"><h2 class="text-2xl font-bold text-slate-800 font-heading">Orçamentos</h2><button onclick="createProject()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">+ Novo</button></div>
-                <div class="bg-white p-4 rounded-xl border border-slate-200 flex gap-4"><input id="search-input" onkeyup="renderProjectTable()" class="flex-1 p-2 border rounded-lg" placeholder="Buscar..."><select id="status-filter" onchange="renderProjectTable()" class="p-2 border rounded-lg bg-white"><option value="all">Todos</option><option value="draft">Em Aberto</option><option value="negotiating">Em Negociação</option><option value="approved">Aprovados</option><option value="canceled">Cancelados</option></select></div>
-                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm"><table class="custom-table"><thead><tr><th>Status</th><th>Número</th><th>Cliente</th><th>Data</th><th class="text-right">Total</th></tr></thead><tbody id="project-table-body"></tbody></table></div>
+                <div class="flex justify-between items-center"><h2 class="text-2xl font-bold text-slate-800 font-heading">Orçamentos</h2><button onclick="createProject()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow hover:bg-blue-700 transition-colors">+ Novo Orçamento</button></div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 flex gap-4"><input id="search-input" onkeyup="renderProjectTable()" class="flex-1 p-2 border rounded-lg" placeholder="Buscar por cliente ou número..."><select id="status-filter" onchange="renderProjectTable()" class="p-2 border rounded-lg bg-white"><option value="all">Todos os status</option><option value="draft">Em Aberto</option><option value="negotiating">Em Negociação</option><option value="approved">Aprovados</option><option value="canceled">Cancelados</option></select></div>
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm"><div class="overflow-x-auto"><table class="custom-table"><thead><tr><th>Status</th><th>Número</th><th>Cliente</th><th>Data</th><th class="text-right">Total</th></tr></thead><tbody id="project-table-body"></tbody></table></div></div>
             </section>
 
             <section id="view-clients" class="hidden space-y-6"><h2 class="text-2xl font-bold text-slate-800 font-heading">Clientes</h2><div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm p-6"><table class="custom-table"><thead><tr><th>Nome</th><th>Documento</th><th>Email</th><th>Projetos</th></tr></thead><tbody id="client-table-body"></tbody></table></div></section>
 
             <section id="view-editor" class="hidden pb-20">
-                <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm sticky top-2 z-40">
                     <div class="flex items-center gap-4"><button onclick="switchTab('projects')" class="text-slate-400 hover:text-slate-800"><i class="fas fa-arrow-left"></i></button><div><h2 class="text-xl font-bold text-slate-800 flex items-center gap-2 font-heading"><span id="ed-title">...</span><span id="ed-ver" class="text-xs bg-slate-100 px-2 py-1 rounded border">V1</span></h2><div id="ed-status-badge"></div></div></div>
-                    <div class="flex gap-2"><button onclick="save()" class="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold"><i class="fas fa-save mr-2"></i> Salvar</button><button onclick="openShareModal()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-blue-200"><i class="fas fa-share-alt mr-2"></i> Enviar</button></div>
+                    <div class="flex gap-2"><button onclick="save()" class="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold hover:bg-slate-700"><i class="fas fa-save mr-2"></i> Salvar</button><button onclick="openShareModal()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-blue-200 hover:bg-blue-700"><i class="fas fa-share-alt mr-2"></i> Enviar</button></div>
                 </div>
 
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
                     <div class="xl:col-span-2 space-y-6">
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold border-b pb-2 mb-4 text-slate-700">Seus Dados</h3>
+                            <h3 class="font-bold border-b pb-2 mb-4 text-slate-700">Seus Dados (Prestador)</h3>
                             <div class="grid grid-cols-2 gap-4">
                                 <input id="p-name" onchange="upSettings('providerName',this.value)" class="border p-2 rounded text-sm" placeholder="Nome da Sua Empresa">
                                 <input id="p-doc" onchange="upSettings('providerDoc',this.value)" class="border p-2 rounded text-sm" placeholder="CNPJ">
@@ -160,15 +162,34 @@
                             </div>
                         </div>
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-slate-700">Escopo do Serviço</h3><button onclick="addItem()" class="text-blue-600 text-sm font-bold">+ Adicionar Item</button></div>
+                            <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-slate-700">Escopo do Serviço</h3><button onclick="addItem()" class="text-blue-600 text-sm font-bold hover:underline">+ Adicionar Item</button></div>
                             <div id="ed-items" class="space-y-3"></div>
                         </div>
                     </div>
 
                     <div class="space-y-6">
-                        <div class="bg-slate-900 text-white p-6 rounded-xl shadow-lg text-center"><p class="text-xs font-bold uppercase text-slate-400">Total Global</p><div id="ed-total" class="text-3xl font-bold">R$ 0,00</div></div>
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-700 mb-4">Anexos</h3><div id="ed-attachments-list" class="mb-3"></div><label class="block w-full text-center border-2 border-dashed border-slate-300 p-4 rounded cursor-pointer hover:bg-slate-50 text-xs text-slate-500 font-bold uppercase"><i class="fas fa-cloud-upload-alt mr-2"></i> Adicionar PDF/IMG<input type="file" class="hidden" onchange="handleUpload(event)"></label></div>
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-700 mb-4">Pagamento</h3><select id="pay-mode" class="w-full border p-2 rounded mb-2 text-sm"><option value="single">À vista</option><option value="entry_installments">Entrada + Parcelas</option></select><button onclick="generatePayment()" class="w-full bg-slate-100 text-slate-600 text-xs font-bold py-2 rounded mb-3">Gerar Texto</button><textarea id="t-obs" onchange="upVal('t-obs',this.value)" class="w-full border p-2 rounded text-sm h-20" placeholder="Obs de pagamento..."></textarea><div class="grid grid-cols-2 gap-2 mt-2"><input id="t-deadline" onchange="upVal('t-deadline',this.value)" class="border p-2 rounded text-xs" placeholder="Prazo"><input id="t-val" onchange="upVal('t-val',this.value)" class="border p-2 rounded text-xs" placeholder="Validade"></div></div>
+                        <div class="bg-slate-900 text-white p-6 rounded-xl shadow-lg text-center">
+                            <p class="text-xs font-bold uppercase text-slate-400">Total Global</p>
+                            <div id="ed-total" class="text-3xl font-bold">R$ 0,00</div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <h3 class="font-bold text-slate-700 mb-4">Anexos</h3>
+                            <div id="ed-attachments-list" class="mb-3"></div>
+                            <label class="block w-full text-center border-2 border-dashed border-slate-300 p-4 rounded cursor-pointer hover:bg-slate-50 text-xs text-slate-500 font-bold uppercase transition-colors">
+                                <i class="fas fa-cloud-upload-alt mr-2"></i> Adicionar PDF/IMG
+                                <input type="file" class="hidden" onchange="handleUpload(event)">
+                            </label>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <h3 class="font-bold text-slate-700 mb-4">Pagamento</h3>
+                            <select id="pay-mode" class="w-full border p-2 rounded mb-2 text-sm"><option value="single">À vista</option><option value="entry_installments">Entrada + Parcelas</option></select>
+                            <button onclick="generatePayment()" class="w-full bg-slate-100 text-slate-600 text-xs font-bold py-2 rounded mb-3 hover:bg-slate-200">Gerar Texto</button>
+                            <textarea id="t-obs" onchange="upVal('t-obs',this.value)" class="w-full border p-2 rounded text-sm h-20 bg-slate-50" placeholder="Obs de pagamento..."></textarea>
+                            <div class="grid grid-cols-2 gap-2 mt-2">
+                                <input id="t-deadline" onchange="upVal('t-deadline',this.value)" class="border p-2 rounded text-xs" placeholder="Prazo">
+                                <input id="t-val" onchange="upVal('t-val',this.value)" class="border p-2 rounded text-xs" placeholder="Validade">
+                            </div>
+                        </div>
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-700 mb-4">Versões</h3><div id="ed-actions-area"></div></div>
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-700 mb-4">Histórico</h3><div id="ed-history" class="space-y-4 max-h-60 overflow-y-auto"></div></div>
                     </div>
@@ -181,7 +202,6 @@
         <div id="public-loading" class="flex justify-center mt-20"><div class="loader-spin border-slate-900"></div></div>
         
         <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col doc-container p-12">
-            
             <div id="stamp-approved" class="hidden absolute top-10 right-10 border-4 border-emerald-600 text-emerald-600 font-bold text-3xl px-6 py-2 uppercase opacity-30 transform -rotate-12 z-20">APROVADO</div>
 
             <div class="doc-header">
@@ -194,7 +214,7 @@
             <div class="doc-card mb-12">
                 <div class="flex flex-col md:flex-row gap-8">
                     <div class="flex-1"><h3 class="doc-section-title">Contratante</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div><div id="doc-c-doc" class="text-slate-500 text-sm"></div></div>
-                    <div class="flex-1 border-l pl-8"><h3 class="doc-section-title">Local do Serviço</h3><div id="doc-c-addr" class="text-slate-600 text-sm"></div></div>
+                    <div class="flex-1 border-l border-slate-200 pl-8"><h3 class="doc-section-title">Local do Serviço</h3><div id="doc-c-addr" class="text-slate-600 text-sm"></div></div>
                 </div>
             </div>
 
@@ -216,7 +236,7 @@
                 <div class="text-right">
                     <h4 class="text-xs uppercase font-bold text-slate-400 mb-2">Valor Total</h4>
                     <div id="doc-total" class="text-4xl font-extrabold text-slate-900 tracking-tight">R$ 0,00</div>
-                    <div id="doc-total-opt" class="text-xs text-slate-400 mt-1"></div>
+                    <div id="doc-total-opt" class="text-xs text-slate-400 mt-1 font-bold"></div>
                 </div>
             </div>
 
@@ -230,16 +250,16 @@
             <h3 id="modal-title" class="text-xl font-bold mb-2"></h3>
             <textarea id="modal-input" class="w-full border p-3 rounded mb-4 h-24 text-sm" placeholder="Digite aqui..."></textarea>
             <div id="modal-sig-area" class="hidden mb-4"><canvas id="signature-pad"></canvas><button id="clear-sig" class="text-xs text-red-500 underline float-right">Limpar</button></div>
-            <div class="flex gap-2"><button onclick="document.getElementById('interaction-modal').classList.add('hidden')" class="flex-1 border py-3 rounded">Cancelar</button><button id="modal-btn" class="flex-1 bg-slate-900 text-white py-3 rounded font-bold"></button></div>
+            <div class="flex gap-2"><button onclick="document.getElementById('interaction-modal').classList.add('hidden')" class="flex-1 border py-3 rounded hover:bg-slate-50 font-bold text-slate-500">Cancelar</button><button id="modal-btn" class="flex-1 bg-slate-900 text-white py-3 rounded font-bold"></button></div>
         </div>
     </div>
 
     <div id="share-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white p-6 rounded-xl w-full max-w-sm text-center">
-            <h3 class="font-bold text-lg mb-4">Enviar Proposta</h3>
-            <button id="btn-share-wa" class="w-full bg-emerald-500 text-white py-3 rounded-lg font-bold mb-3 flex items-center justify-center gap-2"><i class="fab fa-whatsapp"></i> WhatsApp</button>
-            <button id="btn-share-copy" class="w-full bg-slate-100 text-slate-700 py-3 rounded-lg font-bold mb-3">Copiar Link</button>
-            <button onclick="document.getElementById('share-modal').classList.add('hidden')" class="text-sm underline">Fechar</button>
+        <div class="bg-white p-6 rounded-xl w-full max-w-sm text-center shadow-2xl">
+            <h3 class="font-bold text-lg mb-4 text-slate-800">Enviar Proposta</h3>
+            <button id="btn-share-wa" class="w-full bg-emerald-500 text-white py-3 rounded-lg font-bold mb-3 flex items-center justify-center gap-2 hover:bg-emerald-600 transition-colors"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+            <button id="btn-share-copy" class="w-full bg-slate-100 text-slate-700 py-3 rounded-lg font-bold mb-3 hover:bg-slate-200 transition-colors">Copiar Link</button>
+            <button onclick="document.getElementById('share-modal').classList.add('hidden')" class="text-sm underline text-slate-400">Fechar</button>
         </div>
     </div>
 
@@ -255,7 +275,7 @@
             if (!dbData) return schema;
             return { 
                 client: { ...schema.client, ...(dbData.client || {}) }, 
-                items: (Array.isArray(dbData.items) ? dbData.items : []).map(i => ({...i, id: i.id || 'i'+Math.random(), optional: i.optional || false})), 
+                items: (Array.isArray(dbData.items) ? dbData.items : []).map(i => ({...i, id: i.id || 'i'+Math.random(), optional: i.optional || false, publicSelected: i.publicSelected || false})), 
                 terms: { ...schema.terms, ...(dbData.terms || {}) }, 
                 settings: { ...schema.settings, ...(dbData.settings || {}) }, 
                 history: Array.isArray(dbData.history) ? dbData.history : [],
@@ -277,9 +297,11 @@
             document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
             document.getElementById('app-layout').classList.add('hidden');
 
-            if (view === 'public' && id) { await loadPublicProposal(id); }
-            else if (!state.user) { document.getElementById('view-login').classList.remove('hidden'); }
-            else {
+            if (view === 'public' && id) { 
+                await loadPublicProposal(id); 
+            } else if (!state.user) { 
+                document.getElementById('view-login').classList.remove('hidden'); 
+            } else {
                 document.getElementById('app-layout').classList.remove('hidden');
                 await loadProjects();
                 if (view === 'editor' && id) { await loadEditor(id); switchTab('editor', false); }
@@ -289,26 +311,35 @@
 
         async function handleLogin() {
             const email = document.getElementById('email').value;
-            if(!email) return alert("Email?");
+            if(!email) return alert("Digite seu e-mail.");
             document.getElementById('btn-login').innerText = "Enviando...";
-            await db.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href }});
-            alert("Link enviado!");
+            const { error } = await db.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href }});
+            if(error) alert("Erro: " + error.message);
+            else alert("Link de acesso enviado para o seu e-mail!");
+            document.getElementById('btn-login').innerText = "Entrar";
         }
 
         function switchTab(tab, updateUrl = true) {
             document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            const viewEl = document.getElementById(`view-${tab}`);
+            if(viewEl) viewEl.classList.remove('hidden');
+            
             const nav = document.getElementById(`nav-${tab}`);
             if(nav) nav.classList.add('active');
+            
             if(tab === 'dashboard') renderDashboardCharts();
             if(tab === 'projects') renderProjectTable();
             if(tab === 'clients') renderClients();
-            document.querySelector('.sidebar').classList.remove('open');
+            
+            const sidebar = document.querySelector('.sidebar');
+            if(sidebar) sidebar.classList.remove('open');
+            
             if(updateUrl) window.history.pushState(null, '', tab === 'dashboard' ? '?' : `?view=${tab}`);
         }
 
         async function loadProjects() {
+            if(!state.user) return;
             const { data } = await db.from('projects').select('*, versions(status, total_value, version_number)').eq('user_id', state.user.id).order('created_at', { ascending: false });
             state.projectsCache = (data || []).map(p => {
                 const v = p.versions?.sort((a,b)=>b.version_number - a.version_number)[0] || {status:'draft', total_value:0, version_number: 1};
@@ -318,33 +349,36 @@
 
         function renderDashboardCharts() {
             const ctx = document.getElementById('dashboardChart');
+            if(!ctx) return;
             if(chartInstance) chartInstance.destroy();
             const now = new Date();
             const monthProjs = state.projectsCache.filter(p => new Date(p.created_at).getMonth() === now.getMonth());
             document.getElementById('kpi-month-count').innerText = monthProjs.length;
             document.getElementById('kpi-month-total').innerText = monthProjs.reduce((a,b)=>a+(b.total||0),0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
             document.getElementById('kpi-all-count').innerText = state.projectsCache.length;
+            
             const days = {};
             for(let i=29; i>=0; i--) { const d = new Date(); d.setDate(d.getDate()-i); days[d.toLocaleDateString('pt-BR').slice(0,5)] = 0; }
             state.projectsCache.forEach(p => { const k = new Date(p.created_at).toLocaleDateString('pt-BR').slice(0,5); if(days[k]!==undefined) days[k]++; });
+            
             chartInstance = new Chart(ctx, { type: 'line', data: { labels: Object.keys(days), datasets: [{ label: 'Orçamentos', data: Object.values(days), borderColor: '#3B82F6', tension: 0.4 }] } });
         }
 
         function renderProjectTable() {
             const term = document.getElementById('search-input').value.toLowerCase();
             const status = document.getElementById('status-filter').value;
-            const html = state.projectsCache.filter(p => (status==='all' || p.status===status) && (p.name+p.client_name).toLowerCase().includes(term)).map(p => {
+            const html = state.projectsCache.filter(p => (status==='all' || p.status===status) && (p.name+(p.client_name||'')).toLowerCase().includes(term)).map(p => {
                 const badges = { 'draft': ['bg-slate-100 text-slate-600', 'Rascunho'], 'sent': ['bg-blue-100 text-blue-800', 'Enviado'], 'negotiating': ['bg-orange-100 text-orange-800', 'Em Negociação'], 'approved': ['bg-green-100 text-green-800', 'Aprovado'], 'canceled': ['bg-red-100 text-red-800', 'Cancelado'] };
                 const b = badges[p.status] || badges['draft'];
                 return `<tr onclick="openProject('${p.id}')">
                     <td><span class="px-2 py-1 rounded text-xs font-bold ${b[0]}">${b[1]}</span></td>
                     <td>#${p.id.substr(0,4)} (V${p.verNum})</td>
-                    <td class="font-bold">${p.client_name}</td>
+                    <td class="font-bold">${p.client_name || 'Sem nome'}</td>
                     <td>${new Date(p.created_at).toLocaleDateString()}</td>
                     <td class="text-right font-bold">${(p.total||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
                 </tr>`;
             }).join('');
-            document.getElementById('project-table-body').innerHTML = html || '<tr><td colspan="5" class="text-center py-4">Nada encontrado</td></tr>';
+            document.getElementById('project-table-body').innerHTML = html || '<tr><td colspan="5" class="text-center py-4">Nenhum projeto encontrado</td></tr>';
         }
 
         function filterProjects(s) { switchTab('projects'); document.getElementById('status-filter').value = s; renderProjectTable(); }
@@ -356,8 +390,9 @@
         }
 
         async function createProject() {
-            const name = prompt("Nome:"); if(!name) return;
-            const { data } = await db.from('projects').insert({ name, user_id: state.user.id, client_name: 'Novo Cliente' }).select().single();
+            const name = prompt("Nome do Orçamento:"); if(!name) return;
+            const { data, error } = await db.from('projects').insert({ name, user_id: state.user.id, client_name: 'Novo Cliente' }).select().single();
+            if(error) return alert("Erro: " + error.message);
             await db.from('versions').insert({ project_id: data.id, version_number: 1, items: normalizeData(null), total_value: 0, status: 'draft' });
             await loadProjects(); openProject(data.id);
         }
@@ -367,6 +402,9 @@
         async function loadEditor(id) {
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
             const { data: vers } = await db.from('versions').select('*').eq('project_id', id).order('version_number', { ascending: true });
+            
+            if(!proj || !vers) return alert("Projeto não encontrado");
+
             state.project = proj; state.version = vers[vers.length - 1]; state.data = normalizeData(state.version.items); state.snapshot = JSON.parse(JSON.stringify(state.data.items));
             
             document.getElementById('ed-title').innerText = proj.name;
@@ -386,7 +424,7 @@
             if (state.version.status !== 'draft') {
                 area.innerHTML = `<button onclick="createAddon()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg mb-2 shadow"><i class="fas fa-copy mr-2"></i> Criar Revisão (V${state.version.version_number + 1})</button>`;
             } else {
-                area.innerHTML = `<div class="text-xs text-gray-400 text-center italic">Orçamento em rascunho. Edite à vontade.</div>`;
+                area.innerHTML = `<div class="text-xs text-slate-400 text-center italic">Orçamento em rascunho. Edite à vontade.</div>`;
             }
 
             renderItems(); renderAttachments(); renderHistory(); updateTotal();
@@ -403,15 +441,15 @@
                     ${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}
                     <div class="grid grid-cols-12 gap-4 mb-2">
                         <div class="col-span-8">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase">Item ${i.optional ? '<span class="optional-badge">Opcional</span>' : ''}</label>
-                            <input class="w-full font-bold outline-none" value="${i.name}" oninput="upItem(${x},'name',this.value)" placeholder="Nome do item" ${isLocked?'disabled':''}>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase">Item ${i.optional ? '<span class="optional-badge">Opcional</span>' : ''}</label>
+                            <input class="w-full font-bold outline-none bg-transparent" value="${i.name}" oninput="upItem(${x},'name',this.value)" placeholder="Nome do item" ${isLocked?'disabled':''}>
                         </div>
                         <div class="col-span-2">
-                             <label class="text-[10px] font-bold text-gray-400 uppercase text-center block">Qtd</label>
+                             <label class="text-[10px] font-bold text-slate-400 uppercase text-center block">Qtd</label>
                              <input type="number" class="w-full bg-slate-50 border rounded text-center text-xs" value="${i.qty}" onchange="upItem(${x},'qty',this.value)" ${isLocked?'disabled':''}>
                         </div>
                         <div class="col-span-2">
-                             <label class="text-[10px] font-bold text-gray-400 uppercase text-right block">Valor</label>
+                             <label class="text-[10px] font-bold text-slate-400 uppercase text-right block">Valor</label>
                              <input type="number" class="w-full bg-slate-50 border rounded text-right text-xs" value="${i.price}" onchange="upItem(${x},'price',this.value)" ${isLocked?'disabled':''}>
                         </div>
                     </div>
@@ -494,35 +532,77 @@
             }).join('');
         }
 
-        // --- PUBLIC ORIGINAL (RESTAURADO) ---
+        // --- PUBLIC RESTAURADO E CORRIGIDO ---
         async function loadPublicProposal(id) {
-            document.getElementById('public-loading').style.display = 'flex';
-            const { data: v } = await db.from('versions').select('*, projects(name)').eq('id', id).single();
-            state.version = v; state.data = normalizeData(v.items);
+            // Garante que o loading aparece imediatamente
+            const loader = document.getElementById('public-loading');
+            const content = document.getElementById('public-content');
+            if(loader) loader.style.display = 'flex';
             
-            document.getElementById('public-loading').style.display = 'none';
-            document.getElementById('public-content').classList.remove('hidden');
             document.getElementById('view-public').classList.remove('hidden');
-
-            if(v.status === 'approved') document.getElementById('stamp-approved').classList.remove('hidden');
             
-            document.getElementById('doc-provider-info').innerHTML = `<h2 class="text-3xl font-bold font-heading mb-1">${state.data.settings.providerName||''}</h2><p class="text-sm font-medium text-slate-500">${state.data.settings.providerDoc||''} • ${state.data.settings.providerPhone||''}</p><p class="text-xs text-slate-400">${state.data.settings.providerAddr||''}</p>`;
-            document.getElementById('doc-id').innerText = `#${v.project_id.substr(0,4)}-V${v.version_number}`;
-            document.getElementById('doc-c-name').innerText = state.data.client.name;
-            document.getElementById('doc-c-doc').innerText = state.data.client.doc;
-            document.getElementById('doc-c-addr').innerText = state.data.client.address;
-            document.getElementById('doc-total').innerText = (v.total_value||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-            document.getElementById('doc-title').innerText = v.projects.name;
-            document.getElementById('doc-payment').innerText = state.data.terms.paymentText;
-            document.getElementById('doc-deadline').innerText = state.data.terms.deadline;
-            document.getElementById('doc-validity').innerText = state.data.terms.validity;
-            
-            // Total Opcionais
-            const optTotal = state.data.items.reduce((a,b)=> b.optional ? a+(b.qty*b.price) : a,0);
-            if(optTotal > 0) document.getElementById('doc-total-opt').innerText = `+ ${optTotal.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} em opcionais`;
+            try {
+                const { data: v, error } = await db.from('versions').select('*, projects(name)').eq('id', id).single();
+                
+                if (error || !v) throw new Error("Orçamento não encontrado.");
 
-            // Itens com Checkbox Original
-            const isFrozen = v.status !== 'sent' && v.status !== 'negotiating' && v.status !== 'draft';
+                state.version = v; 
+                state.data = normalizeData(v.items);
+                
+                // Oculta loader e mostra conteúdo
+                if(loader) loader.style.display = 'none';
+                if(content) content.classList.remove('hidden');
+
+                if(v.status === 'approved') document.getElementById('stamp-approved').classList.remove('hidden');
+                
+                document.getElementById('doc-provider-info').innerHTML = `<h2 class="text-3xl font-bold font-heading mb-1">${state.data.settings.providerName||''}</h2><p class="text-sm font-medium text-slate-500">${state.data.settings.providerDoc||''} • ${state.data.settings.providerPhone||''}</p><p class="text-xs text-slate-400">${state.data.settings.providerAddr||''}</p>`;
+                document.getElementById('doc-id').innerText = `#${v.project_id.substr(0,4)}-V${v.version_number}`;
+                document.getElementById('doc-c-name').innerText = state.data.client.name;
+                document.getElementById('doc-c-doc').innerText = state.data.client.doc;
+                document.getElementById('doc-c-addr').innerText = state.data.client.address;
+                document.getElementById('doc-title').innerText = v.projects.name;
+                document.getElementById('doc-payment').innerText = state.data.terms.paymentText;
+                document.getElementById('doc-deadline').innerText = state.data.terms.deadline;
+                document.getElementById('doc-validity').innerText = state.data.terms.validity;
+                
+                // Renderiza itens
+                renderPublicItems();
+
+                // Anexos
+                if(state.data.attachments.length > 0) {
+                    document.getElementById('doc-attachments-section').classList.remove('hidden');
+                    document.getElementById('doc-attachments-grid').innerHTML = state.data.attachments.map(a => `
+                        <a href="${a.url}" target="_blank" class="att-card group">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors"><i class="fas fa-file text-blue-500"></i></div>
+                                <span class="text-sm font-bold truncate">${a.name}</span>
+                            </div>
+                        </a>`).join('');
+                }
+
+                if(state.data.signature) document.getElementById('doc-signature-area').innerHTML = `<div class="mt-8 border-t border-dashed w-64 text-center"><img src="${state.data.signature}" class="h-16 mx-auto mb-2"><p class="text-xs font-bold uppercase text-slate-500">Assinado Digitalmente</p></div>`;
+
+                const acts = document.getElementById('doc-actions');
+                if (v.status === 'sent' || v.status === 'negotiating') {
+                    acts.innerHTML = `<button onclick="openInt('approve')" class="bg-slate-900 text-white px-6 py-4 rounded-xl font-bold shadow-lg flex items-center gap-2 hover:bg-slate-800 hover:scale-[1.01] transition-transform w-full md:w-auto justify-center"><i class="fas fa-signature"></i> APROVAR PROPOSTA</button><div class="grid grid-cols-2 gap-3 w-full md:w-auto"><button onclick="openInt('neg')" class="bg-white border border-amber-200 text-amber-700 font-bold px-4 py-3 rounded-xl hover:bg-amber-50">Solicitar Alteração</button><button onclick="openInt('cancel')" class="bg-white border border-red-200 text-red-600 font-bold px-4 py-3 rounded-xl hover:bg-red-50">Recusar</button></div>`;
+                }
+            } catch(e) {
+                if(loader) loader.style.display = 'none';
+                alert("Erro ao carregar proposta: " + e.message);
+            }
+        }
+
+        function renderPublicItems() {
+            // Recalcula total com base nos checkboxes
+            let total = state.data.items.reduce((acc, i) => (!i.optional || i.publicSelected ? acc + (i.qty * i.price) : acc), 0);
+            document.getElementById('doc-total').innerText = total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+            
+            const optTotal = state.data.items.reduce((acc, i) => i.optional && !i.publicSelected ? acc + (i.qty * i.price) : acc, 0);
+            if(optTotal > 0) document.getElementById('doc-total-opt').innerText = `+ ${optTotal.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} em opcionais não selecionados`;
+            else document.getElementById('doc-total-opt').innerText = '';
+
+            const isFrozen = state.version.status !== 'sent' && state.version.status !== 'negotiating' && state.version.status !== 'draft';
+            
             document.getElementById('doc-items-body').innerHTML = state.data.items.map((i, idx) => `
                 <tr class="border-b border-slate-100 ${i.optional ? 'bg-slate-50/50' : ''}">
                     <td class="py-4 pl-4">
@@ -539,33 +619,11 @@
                     <td class="text-right pr-4 font-bold text-slate-800 ${i.optional && !i.publicSelected ? 'line-through text-slate-400 decoration-slate-400':''}">${(i.qty*i.price).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
                 </tr>
             `).join('');
-
-            // Anexos
-            if(state.data.attachments.length > 0) {
-                document.getElementById('doc-attachments-section').classList.remove('hidden');
-                document.getElementById('doc-attachments-grid').innerHTML = state.data.attachments.map(a => `
-                    <a href="${a.url}" target="_blank" class="att-card group">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors"><i class="fas fa-file text-blue-500"></i></div>
-                            <span class="text-sm font-bold truncate">${a.name}</span>
-                        </div>
-                    </a>`).join('');
-            }
-
-            if(state.data.signature) document.getElementById('doc-signature-area').innerHTML = `<div class="mt-8 border-t border-dashed w-64 text-center"><img src="${state.data.signature}" class="h-16 mx-auto mb-2"><p class="text-xs font-bold uppercase text-slate-500">Assinado Digitalmente</p></div>`;
-
-            const acts = document.getElementById('doc-actions');
-            if (v.status === 'sent' || v.status === 'negotiating') {
-                acts.innerHTML = `<button onclick="openInt('approve')" class="bg-slate-900 text-white px-6 py-4 rounded-xl font-bold shadow-lg flex items-center gap-2 hover:bg-slate-800 hover:scale-[1.01] transition-transform w-full md:w-auto justify-center"><i class="fas fa-signature"></i> APROVAR PROPOSTA</button><div class="grid grid-cols-2 gap-3 w-full md:w-auto"><button onclick="openInt('neg')" class="bg-white border border-amber-200 text-amber-700 font-bold px-4 py-3 rounded-xl hover:bg-amber-50">Solicitar Alteração</button><button onclick="openInt('cancel')" class="bg-white border border-red-200 text-red-600 font-bold px-4 py-3 rounded-xl hover:bg-red-50">Recusar</button></div>`;
-            }
         }
 
         function togglePublicOpt(idx) {
             state.data.items[idx].publicSelected = !state.data.items[idx].publicSelected;
-            // Recalcula total visualmente (só para o cliente ver na hora)
-            let total = state.data.items.reduce((acc, i) => (!i.optional || i.publicSelected ? acc + (i.qty * i.price) : acc), 0);
-            document.getElementById('doc-total').innerText = total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-            loadPublicProposal(state.version.id); // Re-renderiza para atualizar strikethrough
+            renderPublicItems();
         }
 
         function openInt(type) {
@@ -595,7 +653,6 @@
             const det = st === 'approved' ? 'Assinou digitalmente' : document.getElementById('modal-input').value;
             if(st === 'approved') state.data.signature = document.getElementById('signature-pad').toDataURL();
             
-            // Se aprovou, salva os opcionais selecionados
             let finalTotal = state.version.total_value;
             if(st === 'approved') {
                  finalTotal = state.data.items.reduce((acc, i) => (!i.optional || i.publicSelected ? acc + (i.qty * i.price) : acc), 0);
