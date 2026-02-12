@@ -298,6 +298,7 @@
             document.getElementById('app-layout').classList.add('hidden');
 
             if (view === 'public' && id) { 
+                // CORREÇÃO: Chama a função que já exibe o loader corretamente
                 await loadPublicProposal(id); 
             } else if (!state.user) { 
                 document.getElementById('view-login').classList.remove('hidden'); 
@@ -542,9 +543,15 @@
             document.getElementById('view-public').classList.remove('hidden');
             
             try {
-                const { data: v, error } = await db.from('versions').select('*, projects(name)').eq('id', id).single();
+                // CORREÇÃO AQUI: Usando maybeSingle() igual ao original para evitar erro 406
+                const { data: v, error } = await db.from('versions')
+                    .select('*, projects(name)')
+                    .eq('id', id)
+                    .maybeSingle();
                 
-                if (error || !v) throw new Error("Orçamento não encontrado.");
+                // Se der erro técnico OU se não vier dados (vazio/bloqueado)
+                if (error) throw error;
+                if (!v) throw new Error("Orçamento não encontrado ou acesso restrito. Verifique o link.");
 
                 state.version = v; 
                 state.data = normalizeData(v.items);
@@ -555,12 +562,16 @@
 
                 if(v.status === 'approved') document.getElementById('stamp-approved').classList.remove('hidden');
                 
+                // Preenche os dados na tela
                 document.getElementById('doc-provider-info').innerHTML = `<h2 class="text-3xl font-bold font-heading mb-1">${state.data.settings.providerName||''}</h2><p class="text-sm font-medium text-slate-500">${state.data.settings.providerDoc||''} • ${state.data.settings.providerPhone||''}</p><p class="text-xs text-slate-400">${state.data.settings.providerAddr||''}</p>`;
                 document.getElementById('doc-id').innerText = `#${v.project_id.substr(0,4)}-V${v.version_number}`;
                 document.getElementById('doc-c-name').innerText = state.data.client.name;
                 document.getElementById('doc-c-doc').innerText = state.data.client.doc;
                 document.getElementById('doc-c-addr').innerText = state.data.client.address;
-                document.getElementById('doc-title').innerText = v.projects.name;
+                
+                // Correção caso projects seja null (banco travado)
+                document.getElementById('doc-title').innerText = v.projects ? v.projects.name : 'Orçamento';
+                
                 document.getElementById('doc-payment').innerText = state.data.terms.paymentText;
                 document.getElementById('doc-deadline').innerText = state.data.terms.deadline;
                 document.getElementById('doc-validity').innerText = state.data.terms.validity;
@@ -588,7 +599,15 @@
                 }
             } catch(e) {
                 if(loader) loader.style.display = 'none';
-                alert("Erro ao carregar proposta: " + e.message);
+                
+                // Mensagem amigável na tela
+                const container = document.getElementById('view-public');
+                container.innerHTML = `<div class="flex flex-col items-center justify-center min-h-screen text-slate-500">
+                    <i class="fas fa-lock text-4xl mb-4 text-slate-300"></i>
+                    <h2 class="text-xl font-bold text-slate-700">Acesso Restrito</h2>
+                    <p class="text-sm mb-4">Não foi possível carregar este orçamento.</p>
+                    <p class="text-xs text-slate-400 max-w-xs text-center border p-2 rounded bg-slate-100">Dica técnica: Se você é o dono, verifique se executou o script SQL de permissões públicas (RLS) no Supabase.</p>
+                </div>`;
             }
         }
 
