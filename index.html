@@ -13,7 +13,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        /* ----- ESTILOS NOVOS (SIDEBAR, TABELAS) ----- */
         body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; color: #334155; }
         .sidebar { width: 260px; background: white; height: 100vh; position: fixed; left: 0; top: 0; border-right: 1px solid #E2E8F0; display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s; }
         .main-content { margin-left: 260px; padding: 2rem; min-height: 100vh; transition: margin 0.3s; }
@@ -35,7 +34,6 @@
             .mobile-header { display: flex !important; }
         }
 
-        /* ----- ESTILOS ORIGINAIS (PRESERVADOS) ----- */
         .item-box { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s; }
         .item-box:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .item-optional { border: 2px dashed #94a3b8 !important; background-color: #f8fafc; opacity: 0.9; }
@@ -58,10 +56,8 @@
         .st-approved { background: #dcfce7; color: #166534; } 
         .st-canceled { background: #fee2e2; color: #991b1b; }
         
-        /* Assinatura */
         #signature-pad { border: 2px dashed #cbd5e1; border-radius: 12px; background: #f8fafc; cursor: crosshair; touch-action: none; width: 100%; height: 200px; }
         
-        /* Animações */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .anim-entry { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
         
@@ -69,7 +65,6 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .hidden { display: none !important; }
 
-        /* Página pública */
         #view-public { background: #f1f5f9; }
         #public-content { max-width: 1200px; margin: 0 auto; background: white; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
         #stamp-approved { position: absolute; top: 30px; right: 30px; border: 4px solid #16a34a; color: #16a34a; font-size: 2rem; font-weight: 800; padding: 0.5rem 2rem; text-transform: uppercase; opacity: 0.3; transform: rotate(-12deg); z-index: 20; }
@@ -77,7 +72,6 @@
         .att-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; transition: all 0.2s; display: flex; flex-direction: column; gap: 0.5rem; }
         .att-card:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
 
-        /* ----- LOGIN ORIGINAL ----- */
         .split-screen { display: flex; min-height: 100vh; width: 100%; position: absolute; top: 0; left: 0; z-index: 50; background: white; }
         .left-area { width: 60%; background: radial-gradient(circle at top left, #1e1b4b, #0f172a), linear-gradient(135deg, #172554 0%, #1e3a8a 100%); color: white; display: flex; flex-direction: column; justify-content: center; padding: 5rem 6rem; position: relative; overflow: hidden; }
         .glow-orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.35; }
@@ -111,7 +105,6 @@
             .glow-orb { display: none; } 
         }
 
-        /* ----- MELHORIAS PARA O PDF ----- */
         @media print {
             body { background: white; }
             .no-print { display: none !important; }
@@ -123,20 +116,19 @@
             .print-break-inside { page-break-inside: avoid; }
         }
 
-        /* Cards de projeto */
         .project-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; transition: all 0.2s; cursor: pointer; }
         .project-card:hover { border-color: #3b82f6; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+        .period-btn.active { background-color: #2563eb; color: white; }
     </style>
 </head>
 <body>
 
-    <!-- LOADER GLOBAL -->
     <div id="system-loader" style="position:fixed; inset:0; background:white; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <div class="loader-spin mb-4"></div>
         <p class="text-sm text-slate-500 font-medium">Carregando Sistema...</p>
     </div>
 
-    <!-- FATAL ERROR -->
     <div id="fatal-error" class="hidden fixed inset-0 bg-rose-50 z-[10000] flex flex-col items-center justify-center p-8 text-center">
         <i class="fas fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i>
         <h2 class="text-2xl font-bold text-slate-800">Ops! Algo deu errado.</h2>
@@ -144,7 +136,6 @@
         <button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button>
     </div>
 
-    <!-- LOGIN ORIGINAL -->
     <section id="view-login" class="hidden split-screen">
         <div class="left-area">
             <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
@@ -174,7 +165,6 @@
         </div>
     </section>
 
-    <!-- LAYOUT PRINCIPAL (SIDEBAR) -->
     <div id="app-layout" class="hidden">
         <div class="mobile-header">
             <span class="font-bold text-lg text-slate-800">Aprova Ai</span>
@@ -207,7 +197,7 @@
         </aside>
 
         <main class="main-content">
-            <!-- DASHBOARD: SOMENTE INDICADORES E GRÁFICO -->
+            <!-- DASHBOARD: KPIs + GRÁFICO AVANÇADO -->
             <section id="view-dashboard" class="space-y-6">
                 <h2 class="text-2xl font-bold text-slate-800">Visão geral</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -232,8 +222,17 @@
                         <div class="text-2xl font-bold text-slate-600" id="kpi-count-open">0</div>
                     </div>
                 </div>
+
+                <!-- GRÁFICO AVANÇADO -->
                 <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                    <h3 class="font-bold text-slate-700 mb-4">Orçamentos por dia</h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-slate-700">Atividade de orçamentos</h3>
+                        <div class="flex gap-2">
+                            <button onclick="setChartPeriod(7)" class="period-btn px-3 py-1 text-xs font-medium rounded-lg bg-blue-600 text-white" data-period="7">7d</button>
+                            <button onclick="setChartPeriod(30)" class="period-btn px-3 py-1 text-xs font-medium rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-period="30">30d</button>
+                            <button onclick="setChartPeriod(90)" class="period-btn px-3 py-1 text-xs font-medium rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-period="90">90d</button>
+                        </div>
+                    </div>
                     <div style="height: 300px;">
                         <canvas id="dashboardChart"></canvas>
                     </div>
@@ -303,7 +302,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                    <!-- Coluna esquerda (2/3) -->
                     <div class="xl:col-span-2 space-y-6">
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold border-b pb-2 mb-4 text-slate-700 flex items-center gap-2"><i class="fas fa-id-card text-blue-600"></i> Seus Dados</h3>
@@ -369,7 +367,6 @@
                         </div>
                     </div>
 
-                    <!-- Coluna direita (1/3) -->
                     <div class="space-y-6">
                         <div class="bg-slate-900 text-white p-6 rounded-xl shadow-lg text-center">
                             <p class="text-xs font-bold uppercase text-slate-400">Total Global</p>
@@ -547,6 +544,7 @@
             snapshot: [] 
         };
         let chartInstance = null;
+        let chartPeriod = 30;
 
         // ----- FUNÇÕES AUXILIARES -----
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
@@ -686,7 +684,6 @@
             }, 3000);
         }
 
-        // ----- LOGIN -----
         async function handleLogin() {
             const email = safeVal('email');
             const btn = document.getElementById('btn-login');
@@ -707,7 +704,6 @@
             }
         }
 
-        // ----- NAVEGAÇÃO -----
         function goTo(view, id = null) {
             window.history.pushState(null, '', id ? `?view=${view}&id=${id}` : `?view=${view}`);
             init();
@@ -734,7 +730,6 @@
             }
         }
 
-        // ----- FILTRO RÁPIDO -----
         function filterProjects(status) {
             switchTab('projects');
             const filterEl = document.getElementById('project-status-filter');
@@ -744,7 +739,6 @@
             }
         }
 
-        // ----- CARREGAR PROJETOS -----
         async function loadProjects() {
             const { data: projects, error } = await db
                 .from('projects')
@@ -762,7 +756,6 @@
             state.projectsCache = projects || [];
         }
 
-        // ----- DASHBOARD: KPIs -----
         function renderDashboardKPIs() {
             let totalRev = 0, totalAprov = 0, countAprov = 0, countNegoc = 0, countOpen = 0;
             state.projectsCache.forEach(p => {
@@ -780,36 +773,140 @@
             safeText('kpi-count-open', countOpen);
         }
 
-        // ----- DASHBOARD: GRÁFICO -----
+        // ----- GRÁFICO AVANÇADO -----
+        function setChartPeriod(days) {
+            chartPeriod = days;
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('bg-slate-100', 'text-slate-700');
+            });
+            const activeBtn = document.querySelector(`.period-btn[data-period="${days}"]`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-slate-100', 'text-slate-700');
+                activeBtn.classList.add('bg-blue-600', 'text-white');
+            }
+            renderDashboardCharts();
+        }
+
         function renderDashboardCharts() {
             const ctx = document.getElementById('dashboardChart');
             if (!ctx) return;
             if (chartInstance) chartInstance.destroy();
+
             const days = {};
-            for(let i=29; i>=0; i--) { 
+            for (let i = chartPeriod - 1; i >= 0; i--) { 
                 const d = new Date(); 
-                d.setDate(d.getDate()-i); 
-                days[d.toLocaleDateString('pt-BR').slice(0,5)] = 0; 
+                d.setDate(d.getDate() - i); 
+                const key = d.toLocaleDateString('pt-BR').slice(0,5);
+                days[key] = { count: 0, total: 0 };
             }
-            state.projectsCache.forEach(p => { 
-                const k = new Date(p.created_at).toLocaleDateString('pt-BR').slice(0,5); 
-                if(days[k]!==undefined) days[k]++; 
+
+            state.projectsCache.forEach(p => {
+                const v = p.versions?.[0] || { total_value: 0 };
+                const created = new Date(p.created_at);
+                const today = new Date();
+                const diffTime = today - created;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays <= chartPeriod) {
+                    const key = created.toLocaleDateString('pt-BR').slice(0,5);
+                    if (days[key]) {
+                        days[key].count += 1;
+                        days[key].total += parseFloat(v.total_value) || 0;
+                    }
+                }
             });
-            chartInstance = new Chart(ctx, { 
-                type: 'line', 
-                data: { 
-                    labels: Object.keys(days), 
-                    datasets: [{ 
-                        label: 'Orçamentos', 
-                        data: Object.values(days), 
-                        borderColor: '#3B82F6', 
-                        tension: 0.4,
-                        fill: false
-                    }] 
+
+            const labels = Object.keys(days);
+            const countData = Object.values(days).map(d => d.count);
+            const totalData = Object.values(days).map(d => d.total);
+
+            const formatMoney = (value) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Orçamentos',
+                            data: countData,
+                            backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y',
+                            order: 2
+                        },
+                        {
+                            label: 'Valor total (R$)',
+                            data: totalData,
+                            type: 'line',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                            pointBorderColor: 'white',
+                            pointBorderWidth: 1,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            yAxisID: 'y1',
+                            order: 1,
+                            tension: 0.3
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.dataset.label === 'Valor total (R$)') {
+                                        label += formatMoney(context.raw);
+                                    } else {
+                                        label += context.raw;
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: { usePointStyle: true, boxWidth: 6 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Orçamentos',
+                                color: '#64748b',
+                                font: { size: 11, weight: '500' }
+                            },
+                            grid: { color: 'rgba(0,0,0,0.05)' }
+                        },
+                        y1: {
+                            beginAtZero: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Valor (R$)',
+                                color: '#64748b',
+                                font: { size: 11, weight: '500' }
+                            },
+                            grid: { drawOnChartArea: false },
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + (value / 1000).toFixed(0) + 'k';
+                                }
+                            }
+                        }
+                    }
                 }
             });
         }
@@ -859,7 +956,6 @@
             container.innerHTML = html;
         }
 
-        // ----- DELETAR PROJETO -----
         async function deleteProject(id, event) {
             event.stopPropagation(); 
             if(!confirm("Tem certeza que deseja EXCLUIR este orçamento permanentemente?")) return;
@@ -874,13 +970,11 @@
             }
         }
 
-        // ----- ABRIR PROJETO -----
         function openProject(id) {
             window.history.pushState(null, '', `?view=editor&id=${id}`);
             loadEditor(id).then(() => switchTab('editor', false));
         }
 
-        // ----- CRIAÇÃO DE PROJETO -----
         async function createProject() {
             const name = prompt("Nome do Orçamento:"); 
             if(!name) return;
@@ -906,7 +1000,6 @@
             openProject(p.id);
         }
 
-        // ----- CLIENTES -----
         function renderClients() {
             const map = {};
             state.projectsCache.forEach(p => { 
@@ -1108,7 +1201,6 @@
             document.getElementById('ed-total').innerText = total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
         }
 
-        // ----- FUNÇÕES DE VALORES CORRIGIDAS -----
         function upVal(k,v) { 
             if (k.startsWith('c-')) {
                 if (k === 'c-addr') {
@@ -1140,7 +1232,6 @@
         }
         function upLoc(v) { state.data.location.address = v; }
 
-        // ----- PAGAMENTO -----
         function generatePayment() {
             const total = state.data.items.reduce((acc, i) => (!i.optional ? acc + (i.qty * i.price) : acc), 0);
             if(total === 0) return alert("Adicione valores (não opcionais) primeiro.");
@@ -1169,7 +1260,6 @@
             setVal('t-obs', text);
         }
 
-        // ----- ANEXOS -----
         async function handleUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1247,7 +1337,6 @@
             attachList.innerHTML = attHtml;
         }
 
-        // ----- SALVAR -----
         async function save() {
             const t = state.data.items.reduce((a,b)=> (!b.optional ? a+(b.qty*b.price) : a),0);
             const changes = getChanges(state.snapshot, state.data.items);
@@ -1266,7 +1355,6 @@
             renderHistory();
         }
 
-        // ----- CRIAR NOVA VERSÃO -----
         async function createAddon() {
             await save();
             if(!confirm("Criar nova versão (Aditivo)?")) return;
@@ -1282,7 +1370,6 @@
             loadEditor(state.project.id);
         }
 
-        // ----- ALTERAR STATUS -----
         async function changeStatus(newStatus) {
             if(!confirm(`Mudar status para ${newStatus}?`)) return;
             await db.from('versions').update({status: newStatus}).eq('id', state.version.id);
@@ -1291,7 +1378,6 @@
             loadEditor(state.project.id);
         }
 
-        // ----- HISTÓRICO -----
         function renderHistory() {
             const hist = state.data.history || [];
             let histHtml = '';
@@ -1319,7 +1405,6 @@
             setHTML('ed-history', histHtml);
         }
 
-        // ----- COMPARTILHAR -----
         async function openShareModal() {
             await save();
             if (!state.version?.id) return alert("Erro ao salvar versão.");
@@ -1458,7 +1543,6 @@
             renderPublicItems();
         }
 
-        // ----- PDF -----
         function downloadPDF() {
             const element = document.getElementById('public-content');
             const btn = document.getElementById('btn-download-pdf');
@@ -1482,7 +1566,6 @@
             });
         }
 
-        // ----- MODAIS PÚBLICOS -----
         function openModal(type) {
             const modal = document.getElementById('interaction-modal');
             const title = document.getElementById('modal-title');
