@@ -69,7 +69,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .hidden { display: none !important; }
 
-        /* Página pública (idêntica ao original) */
+        /* Página pública (idêntica ao original com melhorias) */
         #view-public { background: #f1f5f9; }
         #public-content { max-width: 1200px; margin: 0 auto; background: white; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
         #stamp-approved { position: absolute; top: 30px; right: 30px; border: 4px solid #16a34a; color: #16a34a; font-size: 2rem; font-weight: 800; padding: 0.5rem 2rem; text-transform: uppercase; opacity: 0.3; transform: rotate(-12deg); z-index: 20; }
@@ -110,6 +110,14 @@
             .benefit-item { flex-direction: column; align-items: center; text-align: center; } 
             .glow-orb { display: none; } 
         }
+
+        /* Melhorias no PDF */
+        @media print {
+            body { background: white; }
+            .no-print { display: none !important; }
+            #public-content { box-shadow: none; margin: 0; width: 100%; max-width: 100%; }
+            .print-break-inside { page-break-inside: avoid; }
+        }
     </style>
 </head>
 <body>
@@ -128,7 +136,7 @@
         <button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button>
     </div>
 
-    <!-- LOGIN ORIGINAL (COMPLETO) -->
+    <!-- LOGIN ORIGINAL -->
     <section id="view-login" class="hidden split-screen">
         <div class="left-area">
             <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
@@ -191,7 +199,7 @@
         </aside>
 
         <main class="main-content">
-            <!-- DASHBOARD (KPIs e lista de projetos IGUAIS AO ORIGINAL) -->
+            <!-- DASHBOARD -->
             <section id="view-dashboard" class="space-y-6">
                 <h2 class="text-2xl font-bold text-slate-800">Visão geral</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -235,7 +243,7 @@
                 <div id="project-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
 
-            <!-- VIEW PROJECTS (TABELA) -->
+            <!-- VIEW PROJECTS -->
             <section id="view-projects" class="hidden space-y-6">
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-slate-800">Orçamentos</h2>
@@ -285,9 +293,9 @@
                 </div>
             </section>
 
-            <!-- EDITOR COMPLETO COM BOTÃO ENVIAR LINK (SEMPRE VISÍVEL) -->
+            <!-- EDITOR COM MELHORIAS -->
             <section id="view-editor" class="hidden pb-20">
-                <!-- Header com botão "Enviar Link" sempre visível -->
+                <!-- Header com botão Enviar Link -->
                 <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex items-center gap-4">
                         <button onclick="switchTab('projects')" class="text-slate-400 hover:text-slate-800"><i class="fas fa-arrow-left"></i></button>
@@ -344,7 +352,7 @@
                                 </div>
                             </div>
 
-                            <!-- WHATSAPP PARA NOTIFICAÇÕES (ORIGINAL) -->
+                            <!-- WHATSAPP PARA NOTIFICAÇÕES -->
                             <div class="mt-4 pt-4 border-t">
                                 <label class="text-xs font-bold text-slate-500 mb-1 block flex items-center gap-1">
                                     <i class="fab fa-whatsapp text-emerald-600"></i> Seu WhatsApp (para notificações)
@@ -353,13 +361,35 @@
                             </div>
                         </div>
 
-                        <!-- ESCOPO DO SERVIÇO -->
+                        <!-- ESCOPO DO SERVIÇO (com PRAZO DE ENTREGA e ANEXOS) -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-list-ol text-blue-600"></i> Escopo do Serviço</h3>
                                 <button id="btn-add-item" onclick="addItem()" class="text-blue-600 text-sm font-bold border border-blue-200 px-3 py-1 rounded hover:bg-blue-50">+ Adicionar Item</button>
                             </div>
+                            
+                            <!-- Itens do escopo -->
                             <div id="ed-items" class="space-y-3"></div>
+
+                            <!-- Campo PRAZO DE ENTREGA (movido para o escopo) -->
+                            <div class="mt-6 pt-4 border-t border-dashed">
+                                <label class="text-xs font-bold text-slate-500 mb-1 block flex items-center gap-1">
+                                    <i class="fas fa-truck text-blue-600"></i> Prazo de entrega
+                                </label>
+                                <input id="t-deadline" onchange="upVal('t-deadline',this.value)" class="w-full border p-2 rounded text-sm" placeholder="Ex: 30 dias úteis após aprovação">
+                            </div>
+
+                            <!-- SEÇÃO DE ANEXOS (movida para cá) -->
+                            <div class="mt-6 pt-4 border-t border-dashed">
+                                <h4 class="font-bold text-slate-700 mb-3 flex items-center gap-2"><i class="fas fa-paperclip text-blue-600"></i> Anexos e Documentos</h4>
+                                <div id="ed-attachments-list" class="mb-3 space-y-3"></div>
+                                <div id="upload-area">
+                                    <label for="file-upload" id="upload-label" class="cursor-pointer block w-full text-center border-2 border-dashed border-slate-300 p-4 rounded hover:bg-slate-50 text-xs text-slate-500 font-bold uppercase">
+                                        <i class="fas fa-cloud-upload-alt mr-2"></i> Adicionar PDF/IMG
+                                    </label>
+                                    <input id="file-upload" type="file" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleUpload(event)">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -372,23 +402,12 @@
                             <div id="ed-total-optional" class="text-xs text-slate-400 mt-1"></div>
                         </div>
 
-                        <!-- ANEXOS -->
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-paperclip text-blue-600"></i> Anexos</h3>
-                            <div id="ed-attachments-list" class="mb-3"></div>
-                            <div id="upload-area">
-                                <label for="file-upload" id="upload-label" class="cursor-pointer block w-full text-center border-2 border-dashed border-slate-300 p-4 rounded hover:bg-slate-50 text-xs text-slate-500 font-bold uppercase">
-                                    <i class="fas fa-cloud-upload-alt mr-2"></i> Adicionar PDF/IMG
-                                </label>
-                                <input id="file-upload" type="file" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleUpload(event)">
-                            </div>
-                        </div>
-
-                        <!-- FINANCEIRO / PAGAMENTO -->
+                        <!-- FINANCEIRO / PAGAMENTO (AGORA COM PARCELAS SEM ENTRADA) -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-coins text-blue-600"></i> Pagamento</h3>
                             <select id="pay-mode" class="w-full border p-2 rounded mb-2 text-sm">
                                 <option value="entry_installments">Entrada + Parcelas</option>
+                                <option value="no_entry_installments">Parcelas sem entrada</option>
                                 <option value="single">À vista</option>
                             </select>
                             <button id="btn-calc-pay" onclick="generatePayment()" class="w-full bg-slate-100 text-slate-600 text-xs font-bold py-2 rounded mb-3 flex items-center justify-center gap-2">
@@ -396,18 +415,18 @@
                             </button>
                             <textarea id="t-obs" onchange="upVal('t-obs',this.value)" class="w-full border p-2 rounded text-sm h-20" placeholder="Condições de pagamento..."></textarea>
                             <div class="grid grid-cols-2 gap-2 mt-2">
-                                <input id="t-deadline" onchange="upVal('t-deadline',this.value)" class="border p-2 rounded text-xs" placeholder="Prazo de entrega">
+                                <!-- Prazo foi removido daqui, agora está no escopo -->
                                 <input id="t-val" onchange="upVal('t-val',this.value)" class="border p-2 rounded text-xs" placeholder="Validade (ex: 10 dias)">
                             </div>
                         </div>
 
-                        <!-- VERSÕES / AÇÕES (BOTÃO CRIAR REVISÃO / CANCELAR) -->
+                        <!-- VERSÕES / AÇÕES -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-code-branch text-blue-600"></i> Versões</h3>
                             <div id="ed-actions-area" class="space-y-3"></div>
                         </div>
 
-                        <!-- HISTÓRICO (COMPLETO, IGUAL AO ORIGINAL) -->
+                        <!-- HISTÓRICO -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-history text-blue-600"></i> Histórico</h3>
                             <div id="ed-history" class="space-y-4 max-h-80 overflow-y-auto pr-1"></div>
@@ -418,10 +437,10 @@
         </main>
     </div>
 
-    <!-- VIEW PÚBLICA (IDÊNTICA AO ORIGINAL) -->
+    <!-- VIEW PÚBLICA (com melhorias: descrição dos anexos e PDF mais bonito) -->
     <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10 overflow-y-auto print:p-0">
         <div id="public-loading" class="flex justify-center mt-20"><div class="loader-spin"></div></div>
-        <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col">
+        <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col print:shadow-none print:min-h-0">
             <div id="stamp-approved" class="hidden">APROVADO</div>
             <div class="bg-slate-900 text-white p-12 print:bg-white print:text-black print:border-b-2">
                 <div id="doc-provider-info"></div>
@@ -436,7 +455,7 @@
                     </div>
                 </div>
             </div>
-            <div class="p-12 flex-1">
+            <div class="p-12 flex-1 print:p-8">
                 <div class="flex gap-12 mb-12 text-sm">
                     <div class="flex-1">
                         <h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Contratante</h3>
@@ -450,7 +469,7 @@
                 </div>
 
                 <div class="mb-12">
-                    <h3 class="font-bold text-xs uppercase text-slate-400 mb-4 tracking-wider">Escopo</h3>
+                    <h3 class="font-bold text-xs uppercase text-slate-400 mb-4 tracking-wider">Escopo do Serviço</h3>
                     <table class="w-full">
                         <thead>
                             <tr class="text-left text-xs uppercase text-slate-400 border-b">
@@ -462,16 +481,21 @@
                         </thead>
                         <tbody id="doc-items-body"></tbody>
                     </table>
+                    
+                    <!-- PRAZO DE ENTREGA exibido aqui -->
+                    <div id="doc-deadline-container" class="mt-4 text-sm text-slate-700 font-medium">
+                        <span class="font-bold">Prazo de entrega:</span> <span id="doc-deadline"></span>
+                    </div>
                 </div>
 
-                <div id="doc-attachments-area"></div>
+                <!-- SEÇÃO DE ANEXOS COM DESCRIÇÃO -->
+                <div id="doc-attachments-area" class="mb-12"></div>
 
-                <div class="bg-slate-50 border border-slate-100 rounded-lg p-8 mb-12 flex gap-12 mt-8">
+                <div class="bg-slate-50 border border-slate-100 rounded-lg p-8 mb-12 flex flex-col md:flex-row gap-12 mt-8 print:bg-white print:border">
                     <div class="flex-1">
                         <h4 class="font-bold text-xs uppercase text-slate-400 mb-2">Pagamento</h4>
                         <div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line"></div>
                         <div class="mt-4 flex gap-6 text-sm">
-                            <div><span class="font-bold text-xs uppercase text-slate-400 block">Entrega</span><span id="doc-deadline"></span></div>
                             <div><span class="font-bold text-xs uppercase text-slate-400 block">Validade</span><span id="doc-validity"></span></div>
                         </div>
                     </div>
@@ -493,7 +517,7 @@
         </div>
     </section>
 
-    <!-- TELA DE SUCESSO (APÓS APROVAÇÃO/RECUSA) -->
+    <!-- TELA DE SUCESSO -->
     <section id="view-success" class="hidden min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
         <div class="max-w-md w-full">
             <i id="success-icon" class="fas fa-check-circle text-6xl text-green-500 mb-6 anim-entry"></i>
@@ -504,7 +528,7 @@
         </div>
     </section>
 
-    <!-- MODAL DE INTERAÇÃO (ASSINATURA / SOLICITAÇÃO / RECUSA) -->
+    <!-- MODAL DE INTERAÇÃO -->
     <div id="interaction-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl animate-[fadeInUp_0.3s]">
             <h3 id="modal-title" class="text-xl font-bold mb-2 text-slate-800"></h3>
@@ -521,7 +545,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE COMPARTILHAR (ORIGINAL) -->
+    <!-- MODAL DE COMPARTILHAR -->
     <div id="share-modal" class="hidden fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4">
         <div class="bg-white p-6 rounded-xl w-full max-w-sm text-center">
             <h3 class="text-xl font-bold mb-6 text-slate-800"><i class="fas fa-share-alt mr-2 text-blue-600"></i>Enviar Proposta</h3>
@@ -544,7 +568,7 @@
         const { createClient } = supabase;
         let db = null;
 
-        // ----- ESTADO GLOBAL (ORIGINAL) -----
+        // ----- ESTADO GLOBAL -----
         let state = { 
             user: null, 
             project: null, 
@@ -556,7 +580,7 @@
         };
         let signaturePad = null;
 
-        // ----- FUNÇÕES AUXILIARES (ORIGINAIS) -----
+        // ----- FUNÇÕES AUXILIARES -----
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
         function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
@@ -564,7 +588,7 @@
         function safeShow(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
         function safeHide(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
 
-        // ----- NORMALIZAÇÃO DE DADOS (ORIGINAL) -----
+        // ----- NORMALIZAÇÃO DE DADOS (com descrição do anexo) -----
         function normalizeData(dbData) {
             const schema = { 
                 client: { name: '', doc: '', email: '', phone: '', address: '' }, 
@@ -588,6 +612,16 @@
                 optional: i.optional || false,
                 publicSelected: i.publicSelected || false 
             }));
+            
+            // Normalizar anexos com descrição
+            let attachments = Array.isArray(dbData.attachments) ? dbData.attachments : [];
+            attachments = attachments.map(a => ({
+                name: a.name || '',
+                url: a.url || '',
+                type: a.type || 'file',
+                description: a.description || '' // novo campo
+            }));
+
             return { 
                 client: { ...schema.client, ...(dbData.client || {}) }, 
                 location: { ...schema.location, ...(dbData.location || {}) }, 
@@ -595,12 +629,12 @@
                 terms: { ...schema.terms, ...(dbData.terms || {}) }, 
                 settings: { ...schema.settings, ...(dbData.settings || {}) }, 
                 history: Array.isArray(dbData.history) ? dbData.history : [],
-                attachments: Array.isArray(dbData.attachments) ? dbData.attachments : [],
+                attachments: attachments,
                 signature: dbData.signature || null
             };
         }
 
-        // ----- HISTÓRICO (ORIGINAL) -----
+        // ----- HISTÓRICO -----
         function logHistory(action, user, detail) {
             if (!state.data.history) state.data.history = [];
             state.data.history.push({ 
@@ -611,7 +645,7 @@
             });
         }
 
-        // ----- DETECTAR MUDANÇAS ENTRE VERSÕES -----
+        // ----- DETECTAR MUDANÇAS -----
         function getChanges(oldArr, newArr) {
             let logs = [];
             const oldMap = new Map(oldArr.map(i => [i.id, i]));
@@ -628,7 +662,7 @@
             return logs.length ? logs.join('; ') : null;
         }
 
-        // ----- INICIALIZAÇÃO CORRIGIDA (NUNCA TENTA ACESSAR state.user.id SEM USUÁRIO) -----
+        // ----- INICIALIZAÇÃO -----
         async function init() {
             try {
                 db = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -641,20 +675,16 @@
                 const { data: { session } } = await db.auth.getSession();
                 state.user = session?.user;
 
-                // Roteamento seguro
                 if (view === 'public' && id) {
                     await loadPublicProposal(id);
                     safeShow('view-public');
                 } else if (!state.user) {
-                    // Sem usuário -> força tela de login
                     window.history.replaceState(null, '', '?view=login');
                     safeShow('view-login');
                     initRotator();
                 } else {
-                    // Usuário logado -> exibe app e navega
                     document.getElementById('app-layout').classList.remove('hidden');
                     await loadProjects();
-                    
                     if (view === 'editor' && id) {
                         await loadEditor(id);
                         switchTab('editor', false);
@@ -735,7 +765,7 @@
             renderProjectTable();
         }
 
-        // ----- CARREGAR PROJETOS (ORIGINAL) -----
+        // ----- CARREGAR PROJETOS -----
         async function loadProjects() {
             const { data: projects, error } = await db
                 .from('projects')
@@ -753,7 +783,7 @@
             state.projectsCache = projects || [];
         }
 
-        // ----- DASHBOARD (LISTA DE PROJETOS) -----
+        // ----- DASHBOARD -----
         function renderDashboardList() {
             const list = document.getElementById('project-list');
             if(!list) return;
@@ -834,7 +864,7 @@
             loadEditor(id).then(() => switchTab('editor', false));
         }
 
-        // ----- CRIAÇÃO DE PROJETO (COM DADOS DO LOCALSTORAGE) -----
+        // ----- CRIAÇÃO DE PROJETO -----
         async function createProject() {
             const name = prompt("Nome do Orçamento:"); 
             if(!name) return;
@@ -862,7 +892,7 @@
             openProject(p.id);
         }
 
-        // ----- TABELA DE PROJETOS (VIEW PROJECTS) -----
+        // ----- TABELA DE PROJETOS -----
         function renderProjectTable() {
             const term = safeVal('search-input').toLowerCase();
             const status = safeVal('status-filter') || 'all';
@@ -906,7 +936,7 @@
             document.getElementById('client-table-body').innerHTML = html || '<tr><td colspan="4" class="text-center py-4 text-slate-400">Nenhum cliente encontrado</td></tr>';
         }
 
-        // ----- EDITOR (FUNÇÕES ORIGINAIS RESTAURADAS) -----
+        // ----- EDITOR -----
         async function loadEditor(id) {
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
             state.project = proj;
@@ -1008,7 +1038,7 @@
             }
 
             renderItems();
-            renderAttachments();
+            renderAttachments(); // Agora com descrição
             renderHistory();
             updateTotal();
         }
@@ -1124,7 +1154,7 @@
             document.getElementById('ed-total').innerText = total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
         }
 
-        // ----- FUNÇÕES DE VALORES (ORIGINAL) -----
+        // ----- FUNÇÕES DE VALORES -----
         function upVal(k,v) { 
             if(k.startsWith('c-')) state.data.client[k.substring(2)] = v; 
             else if(k.startsWith('t-')) {
@@ -1148,12 +1178,13 @@
         }
         function upLoc(v) { state.data.location.address = v; }
 
-        // ----- GERAÇÃO DE TEXTO DE PAGAMENTO (ORIGINAL) -----
+        // ----- GERAÇÃO DE TEXTO DE PAGAMENTO (AGORA COM PARCELAS SEM ENTRADA) -----
         function generatePayment() {
             const total = state.data.items.reduce((acc, i) => (!i.optional ? acc + (i.qty * i.price) : acc), 0);
             if(total === 0) return alert("Adicione valores (não opcionais) primeiro.");
             const mode = document.getElementById('pay-mode').value;
             let text = "";
+            
             if(mode === 'entry_installments') {
                 const entryP = prompt("Porcentagem de Entrada? (Ex: 30)", "30");
                 const inst = prompt("Restante em quantas vezes?", "2");
@@ -1162,14 +1193,22 @@
                 const restVal = (total - entryVal) / parseInt(inst);
                 text = `CRONOGRAMA:\n1. Entrada: ${entryVal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}\n`;
                 for(let i=1; i<=parseInt(inst); i++) text += `${i+1}. Parcela (30d): ${restVal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}\n`;
-            } else {
+            } 
+            else if(mode === 'no_entry_installments') {
+                const inst = prompt("Número de parcelas?", "3");
+                if(!inst) return;
+                const parcelValue = total / parseInt(inst);
+                text = `PAGAMENTO PARCELADO SEM ENTRADA:\n`;
+                for(let i=1; i<=parseInt(inst); i++) text += `${i}. Parcela (30d): ${parcelValue.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}\n`;
+            }
+            else {
                 text = `Pagamento Único: ${total.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}`;
             }
             state.data.terms.paymentText = text;
             setVal('t-obs', text);
         }
 
-        // ----- ANEXOS -----
+        // ----- ANEXOS COM DESCRIÇÃO -----
         async function handleUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1187,7 +1226,13 @@
                 if (error) throw error;
                 const { data: pubData } = db.storage.from('attachments').getPublicUrl(path);
                 if (!state.data.attachments) state.data.attachments = [];
-                state.data.attachments.push({ name: file.name, url: pubData.publicUrl, type: ext });
+                // Inclui campo description vazio
+                state.data.attachments.push({ 
+                    name: file.name, 
+                    url: pubData.publicUrl, 
+                    type: ext,
+                    description: '' 
+                });
                 await save();
                 renderAttachments();
             } catch (err) {
@@ -1204,21 +1249,38 @@
             save().then(() => renderAttachments());
         }
 
+        function updateAttachmentDescription(idx, desc) {
+            state.data.attachments[idx].description = desc;
+        }
+
         function renderAttachments() {
             const attachList = document.getElementById('ed-attachments-list');
             if (!attachList) return;
+            const isLocked = state.version.status !== 'draft';
             let attHtml = '';
             if (state.data.attachments && state.data.attachments.length > 0) {
                 state.data.attachments.forEach((att, idx) => {
                     let icon = att.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500';
-                    attHtml += `<div class="flex items-center justify-between bg-white border p-2 rounded mb-2 text-xs">
-                        <div class="flex items-center gap-2 overflow-hidden">
-                            <i class="fas ${icon}"></i> 
-                            <span class="truncate">${att.name}</span>
+                    attHtml += `<div class="flex flex-col bg-white border p-3 rounded mb-2 text-sm">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2 overflow-hidden">
+                                <i class="fas ${icon}"></i> 
+                                <span class="truncate font-medium">${att.name}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700"><i class="fas fa-eye"></i></a>
+                                ${!isLocked ? `<button onclick="deleteAttachment(${idx})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>` : ''}
+                            </div>
                         </div>
-                        <div class="flex gap-2">
-                            <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700"><i class="fas fa-eye"></i></a>
-                            ${state.version.status === 'draft' ? `<button onclick="deleteAttachment(${idx})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>` : ''}
+                        <div class="mt-2">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase">Descrição</label>
+                            ${!isLocked 
+                                ? `<input type="text" class="w-full border-0 border-b border-slate-200 bg-transparent text-xs p-1 focus:border-blue-500 focus:ring-0" 
+                                    value="${att.description || ''}" 
+                                    placeholder="Ex: Nota fiscal, memorial fotográfico..."
+                                    onchange="updateAttachmentDescription(${idx}, this.value); save();">`
+                                : `<p class="text-xs text-slate-600 mt-1">${att.description || '—'}</p>`
+                            }
                         </div>
                     </div>`;
                 });
@@ -1228,7 +1290,7 @@
             attachList.innerHTML = attHtml;
         }
 
-        // ----- SALVAR (COM HISTÓRICO E SNAPSHOT) -----
+        // ----- SALVAR -----
         async function save() {
             const t = state.data.items.reduce((a,b)=> (!b.optional ? a+(b.qty*b.price) : a),0);
             
@@ -1250,7 +1312,7 @@
             renderHistory();
         }
 
-        // ----- CRIAR NOVA VERSÃO (ADITIVO) -----
+        // ----- CRIAR NOVA VERSÃO -----
         async function createAddon() {
             if(!confirm("Criar nova versão (Aditivo)?")) return;
             const t = state.data.items.reduce((a,b)=> (!b.optional ? a+(b.qty*b.price) : a),0);
@@ -1265,7 +1327,7 @@
             loadEditor(state.project.id);
         }
 
-        // ----- ALTERAR STATUS MANUALMENTE -----
+        // ----- ALTERAR STATUS -----
         async function changeStatus(newStatus) {
             if(!confirm(`Mudar status para ${newStatus}?`)) return;
             await db.from('versions').update({status: newStatus}).eq('id', state.version.id);
@@ -1274,7 +1336,7 @@
             loadEditor(state.project.id);
         }
 
-        // ----- HISTÓRICO (IGUAL AO ORIGINAL) -----
+        // ----- HISTÓRICO -----
         function renderHistory() {
             const hist = state.data.history || [];
             let histHtml = '';
@@ -1303,7 +1365,7 @@
             setHTML('ed-history', histHtml);
         }
 
-        // ----- COMPARTILHAR (MODAL ORIGINAL COM LINK CORRETO) -----
+        // ----- COMPARTILHAR -----
         async function openShareModal() {
             await save();
             if (!state.version?.id) return alert("Erro ao salvar versão.");
@@ -1338,7 +1400,7 @@
             safeShow('share-modal');
         }
 
-        // ----- PÁGINA PÚBLICA (IDÊNTICA AO ORIGINAL) -----
+        // ----- PÁGINA PÚBLICA (com descrição dos anexos) -----
         async function loadPublicProposal(id) {
             try {
                 safeShow('public-loading');
@@ -1365,15 +1427,23 @@
                 renderPublicItems(); 
 
                 safeText('doc-payment', d.terms.paymentText); 
-                safeText('doc-deadline', d.terms.deadline); 
+                safeText('doc-deadline', d.terms.deadline || 'Não informado'); 
                 safeText('doc-validity', d.terms.validity); 
                 safeText('doc-obs', d.terms.obs);
 
+                // Anexos com descrição
                 if(d.attachments && d.attachments.length > 0) {
-                    let attHtml = '<h3 class="font-bold text-xs uppercase text-slate-400 mb-2 mt-8 tracking-wider">Documentos Anexos</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-2">';
+                    let attHtml = '<h3 class="font-bold text-xs uppercase text-slate-400 mb-2 mt-8 tracking-wider">Documentos Anexos</h3><div class="grid grid-cols-1 gap-3">';
                     d.attachments.forEach(att => {
                         let icon = att.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500';
-                        attHtml += `<a href="${att.url}" target="_blank" class="flex items-center gap-3 p-3 border rounded hover:bg-slate-50 transition-colors"><i class="fas ${icon} text-lg"></i><span class="text-sm font-medium text-slate-700 truncate">${att.name}</span></a>`;
+                        attHtml += `<div class="att-card">
+                            <div class="flex items-center gap-3">
+                                <i class="fas ${icon} text-lg"></i>
+                                <span class="text-sm font-medium text-slate-700 truncate">${att.name}</span>
+                                <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700 ml-auto"><i class="fas fa-eye"></i></a>
+                            </div>
+                            ${att.description ? `<p class="text-xs text-slate-500 mt-1 pl-2 border-l-2 border-blue-200">${att.description}</p>` : ''}
+                        </div>`;
                     });
                     attHtml += '</div>';
                     setHTML('doc-attachments-area', attHtml);
@@ -1454,7 +1524,7 @@
             renderPublicItems();
         }
 
-        // ----- PDF (ORIGINAL) -----
+        // ----- PDF (MELHORADO) -----
         function downloadPDF() {
             const element = document.getElementById('public-content');
             const btn = document.getElementById('btn-download-pdf');
@@ -1463,13 +1533,15 @@
             const originalDisplay = stamp.style.display;
             stamp.style.display = 'block';
             document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
+            
             const opt = { 
-                margin: 0, 
+                margin: [0.5, 0.5, 0.5, 0.5], // margens em mm
                 filename: `Comprovante_${state.version?.projects?.name || 'proposta'}.pdf`, 
                 image: { type: 'jpeg', quality: 0.98 }, 
-                html2canvas: { scale: 2 }, 
+                html2canvas: { scale: 2, letterRendering: true }, 
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
             };
+            
             html2pdf().set(opt).from(element).save().then(() => {
                 if(btn) btn.innerText = "Baixar Comprovante PDF";
                 document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
@@ -1477,7 +1549,7 @@
             });
         }
 
-        // ----- MODAL DE INTERAÇÃO PÚBLICA (ORIGINAL) -----
+        // ----- MODAL DE INTERAÇÃO PÚBLICA -----
         function openModal(type) {
             const modal = document.getElementById('interaction-modal');
             const title = document.getElementById('modal-title');
