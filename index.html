@@ -126,6 +126,27 @@
         .activity-content { flex: 1; }
         .activity-title { font-weight: 600; color: #0f172a; }
         .activity-meta { font-size: 0.75rem; color: #64748b; display: flex; gap: 0.5rem; margin-top: 0.125rem; }
+
+        /* Autocomplete */
+        .autocomplete-suggestions {
+            position: absolute;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            width: 100%;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .autocomplete-suggestion {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .autocomplete-suggestion:hover {
+            background-color: #f8fafc;
+        }
     </style>
 </head>
 <body>
@@ -253,7 +274,7 @@
                     </div>
                     <div id="activity-feed" class="divide-y divide-slate-100">
                         <div class="text-center py-8 text-slate-400 italic">
-                            Nenhuma atividade registrada ainda.
+                            Nenhuma atividade do cliente registrada ainda.
                         </div>
                     </div>
                 </div>
@@ -282,17 +303,32 @@
                 <div id="project-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
 
-            <!-- VIEW CLIENTES -->
+            <!-- VIEW CLIENTES (CRUD COMPLETO) -->
             <section id="view-clients" class="hidden space-y-6">
-                <h2 class="text-2xl font-bold text-slate-800">Clientes</h2>
-                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm p-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-slate-800">Clientes</h2>
+                    <button onclick="openClientModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">
+                        <i class="fas fa-plus mr-2"></i> Novo Cliente
+                    </button>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex gap-4 items-center">
+                        <div class="flex-1 relative">
+                            <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
+                            <input id="client-search" onkeyup="renderClients()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Buscar cliente...">
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
                     <table class="custom-table">
                         <thead>
                             <tr>
                                 <th>Nome</th>
                                 <th>Documento</th>
+                                <th>Telefone</th>
                                 <th>Email</th>
-                                <th>Projetos</th>
+                                <th>Endereço</th>
+                                <th class="text-right">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="client-table-body"></tbody>
@@ -300,7 +336,7 @@
                 </div>
             </section>
 
-            <!-- EDITOR -->
+            <!-- EDITOR COM BUSCA DE CLIENTES -->
             <section id="view-editor" class="hidden pb-20">
                 <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex items-center gap-4">
@@ -333,8 +369,21 @@
                             </div>
                         </div>
 
+                        <!-- DADOS DO CLIENTE COM BUSCA -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold border-b pb-2 mb-4 text-slate-700 flex items-center gap-2"><i class="fas fa-user-tie text-blue-600"></i> Dados do Cliente</h3>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-user-tie text-blue-600"></i> Dados do Cliente</h3>
+                                <div class="flex gap-2">
+                                    <div class="relative w-64">
+                                        <input type="text" id="client-search-input" placeholder="Buscar cliente..." class="w-full border p-2 rounded text-sm pr-8" onkeyup="searchClients(event)" autocomplete="off">
+                                        <i class="fas fa-search absolute right-3 top-3 text-slate-400"></i>
+                                        <div id="client-suggestions" class="autocomplete-suggestions hidden"></div>
+                                    </div>
+                                    <button onclick="openClientModal(true)" class="text-blue-600 text-sm font-bold border border-blue-200 px-3 py-1 rounded hover:bg-blue-50">
+                                        <i class="fas fa-plus mr-1"></i> Novo
+                                    </button>
+                                </div>
+                            </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <input id="c-name" onchange="upVal('c-name',this.value)" class="border p-2 rounded text-sm" placeholder="Nome / Razão Social">
                                 <input id="c-doc" onchange="upVal('c-doc',this.value)" class="border p-2 rounded text-sm" placeholder="CPF/CNPJ">
@@ -423,6 +472,25 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- MODAL DE CLIENTE (CRUD) -->
+    <div id="client-modal" class="hidden fixed inset-0 bg-black/50 z-[80] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-6 rounded-xl">
+            <h3 id="client-modal-title" class="text-xl font-bold mb-4 text-slate-800">Novo Cliente</h3>
+            <input type="hidden" id="client-id">
+            <div class="space-y-3">
+                <input id="client-name" class="w-full border p-2 rounded text-sm" placeholder="Nome / Razão Social *">
+                <input id="client-doc" class="w-full border p-2 rounded text-sm" placeholder="CPF/CNPJ">
+                <input id="client-phone" class="w-full border p-2 rounded text-sm" placeholder="Telefone">
+                <input id="client-email" class="w-full border p-2 rounded text-sm" placeholder="E-mail">
+                <input id="client-addr" class="w-full border p-2 rounded text-sm" placeholder="Endereço">
+            </div>
+            <div class="flex gap-2 mt-6">
+                <button onclick="closeClientModal()" class="flex-1 border py-2 rounded text-slate-600 font-bold hover:bg-slate-50">Cancelar</button>
+                <button onclick="saveClient()" class="flex-1 bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700">Salvar</button>
+            </div>
+        </div>
     </div>
 
     <!-- VIEW PÚBLICA -->
@@ -555,6 +623,7 @@
             project: null, 
             version: null, 
             projectsCache: [], 
+            clientsCache: [],   // <-- NOVO: cache de clientes
             data: null, 
             previousData: null, 
             snapshot: [] 
@@ -637,7 +706,188 @@
             return logs.length ? logs.join('; ') : null;
         }
 
-        // ----- FEED DE ATIVIDADES: APENAS AÇÕES DO CLIENTE -----
+        // ----- CLIENTES (CRUD) -----
+        async function loadClients() {
+            if (!state.user) return;
+            const { data, error } = await db
+                .from('clients')
+                .select('*')
+                .eq('user_id', state.user.id)
+                .order('name', { ascending: true });
+            if (error) {
+                console.error("Erro ao carregar clientes:", error);
+                return;
+            }
+            state.clientsCache = data || [];
+        }
+
+        function renderClients() {
+            const tbody = document.getElementById('client-table-body');
+            if (!tbody) return;
+            const search = safeVal('client-search').toLowerCase();
+            const filtered = state.clientsCache.filter(c => 
+                c.name.toLowerCase().includes(search) || 
+                (c.doc && c.doc.toLowerCase().includes(search)) ||
+                (c.email && c.email.toLowerCase().includes(search))
+            );
+            let html = '';
+            if (filtered.length === 0) {
+                html = '<tr><td colspan="6" class="text-center py-4 text-slate-400">Nenhum cliente encontrado.</td></tr>';
+            } else {
+                filtered.forEach(c => {
+                    html += `<tr>
+                        <td class="font-bold">${c.name}</td>
+                        <td>${c.doc || '-'}</td>
+                        <td>${c.phone || '-'}</td>
+                        <td>${c.email || '-'}</td>
+                        <td>${c.address || '-'}</td>
+                        <td class="text-right">
+                            <button onclick="editClient('${c.id}')" class="text-blue-600 hover:text-blue-800 mr-2"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteClient('${c.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+                });
+            }
+            tbody.innerHTML = html;
+        }
+
+        function openClientModal(fromEditor = false) {
+            document.getElementById('client-modal').classList.remove('hidden');
+            document.getElementById('client-modal-title').innerText = 'Novo Cliente';
+            document.getElementById('client-id').value = '';
+            document.getElementById('client-name').value = '';
+            document.getElementById('client-doc').value = '';
+            document.getElementById('client-phone').value = '';
+            document.getElementById('client-email').value = '';
+            document.getElementById('client-addr').value = '';
+            // Se veio do editor, salva referência para callback
+            window.__clientModalCallback = fromEditor ? (client) => {
+                // Preenche os campos do cliente no editor
+                setVal('c-name', client.name);
+                setVal('c-doc', client.doc || '');
+                setVal('c-phone', client.phone || '');
+                setVal('c-email', client.email || '');
+                setVal('c-addr', client.address || '');
+                // Atualiza state.data
+                state.data.client.name = client.name;
+                state.data.client.doc = client.doc || '';
+                state.data.client.phone = client.phone || '';
+                state.data.client.email = client.email || '';
+                state.data.client.address = client.address || '';
+            } : null;
+        }
+
+        function closeClientModal() {
+            document.getElementById('client-modal').classList.add('hidden');
+            window.__clientModalCallback = null;
+        }
+
+        async function saveClient() {
+            const id = document.getElementById('client-id').value;
+            const name = document.getElementById('client-name').value.trim();
+            if (!name) {
+                alert("Nome é obrigatório.");
+                return;
+            }
+            const clientData = {
+                name,
+                doc: document.getElementById('client-doc').value,
+                phone: document.getElementById('client-phone').value,
+                email: document.getElementById('client-email').value,
+                address: document.getElementById('client-addr').value,
+                user_id: state.user.id
+            };
+            let savedClient;
+            if (id) {
+                // Editar
+                const { data, error } = await db.from('clients').update(clientData).eq('id', id).select().single();
+                if (error) { alert("Erro ao atualizar: " + error.message); return; }
+                savedClient = data;
+            } else {
+                // Criar
+                const { data, error } = await db.from('clients').insert(clientData).select().single();
+                if (error) { alert("Erro ao criar: " + error.message); return; }
+                savedClient = data;
+            }
+            await loadClients();
+            renderClients();
+            closeClientModal();
+            // Se tiver callback (veio do editor), chama
+            if (window.__clientModalCallback) {
+                window.__clientModalCallback(savedClient);
+                window.__clientModalCallback = null;
+            }
+        }
+
+        async function editClient(id) {
+            const client = state.clientsCache.find(c => c.id === id);
+            if (!client) return;
+            document.getElementById('client-modal').classList.remove('hidden');
+            document.getElementById('client-modal-title').innerText = 'Editar Cliente';
+            document.getElementById('client-id').value = client.id;
+            document.getElementById('client-name').value = client.name;
+            document.getElementById('client-doc').value = client.doc || '';
+            document.getElementById('client-phone').value = client.phone || '';
+            document.getElementById('client-email').value = client.email || '';
+            document.getElementById('client-addr').value = client.address || '';
+        }
+
+        async function deleteClient(id) {
+            if (!confirm("Tem certeza que deseja excluir este cliente?")) return;
+            const { error } = await db.from('clients').delete().eq('id', id);
+            if (error) {
+                alert("Erro ao excluir: " + error.message);
+                return;
+            }
+            await loadClients();
+            renderClients();
+        }
+
+        // ----- BUSCA DE CLIENTES (AUTOCOMPLETE) -----
+        function searchClients(event) {
+            const input = document.getElementById('client-search-input');
+            const query = input.value.toLowerCase();
+            const suggestionsDiv = document.getElementById('client-suggestions');
+            if (query.length < 2) {
+                suggestionsDiv.classList.add('hidden');
+                return;
+            }
+            const results = state.clientsCache.filter(c => 
+                c.name.toLowerCase().includes(query)
+            ).slice(0, 5);
+            if (results.length === 0) {
+                suggestionsDiv.classList.add('hidden');
+                return;
+            }
+            let html = '';
+            results.forEach(c => {
+                html += `<div class="autocomplete-suggestion" onclick="selectClient('${c.id}')">${c.name}</div>`;
+            });
+            suggestionsDiv.innerHTML = html;
+            suggestionsDiv.classList.remove('hidden');
+        }
+
+        function selectClient(id) {
+            const client = state.clientsCache.find(c => c.id === id);
+            if (!client) return;
+            // Preenche os campos
+            setVal('c-name', client.name);
+            setVal('c-doc', client.doc || '');
+            setVal('c-phone', client.phone || '');
+            setVal('c-email', client.email || '');
+            setVal('c-addr', client.address || '');
+            // Atualiza state.data
+            state.data.client.name = client.name;
+            state.data.client.doc = client.doc || '';
+            state.data.client.phone = client.phone || '';
+            state.data.client.email = client.email || '';
+            state.data.client.address = client.address || '';
+            // Limpa sugestões
+            document.getElementById('client-search-input').value = '';
+            document.getElementById('client-suggestions').classList.add('hidden');
+        }
+
+        // ----- FEED DE ATIVIDADES (apenas cliente) -----
         function getRecentActivities(limit = 10) {
             let activities = [];
             state.projectsCache.forEach(project => {
@@ -645,7 +895,6 @@
                 const version = project.versions?.[0] || null;
                 if (version?.items?.history && Array.isArray(version.items.history)) {
                     version.items.history.forEach(h => {
-                        // Filtrar apenas ações do cliente (approved, change_request, canceled)
                         if (h.user === 'client' && ['approved', 'change_request', 'canceled'].includes(h.action)) {
                             activities.push({
                                 date: h.date,
@@ -762,6 +1011,7 @@
                 } else {
                     document.getElementById('app-layout').classList.remove('hidden');
                     await loadProjects();
+                    await loadClients(); // <-- CARREGA CLIENTES
                     if (view === 'editor' && id) {
                         await loadEditor(id);
                         switchTab('editor', false);
@@ -1111,19 +1361,6 @@
             openProject(p.id);
         }
 
-        function renderClients() {
-            const map = {};
-            state.projectsCache.forEach(p => { 
-                if(p.client_name && p.client_name !== 'Novo Cliente') { 
-                    map[p.client_name] = (map[p.client_name] || 0) + 1; 
-                } 
-            });
-            const html = Object.keys(map).map(n => 
-                `<tr><td class="font-bold">${n}</td><td>-</td><td>-</td><td><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-bold">${map[n]} Projetos</span></td></tr>`
-            ).join('');
-            document.getElementById('client-table-body').innerHTML = html || '<tr><td colspan="4" class="text-center py-4 text-slate-400">Nenhum cliente encontrado</td></tr>';
-        }
-
         // ========== EDITOR ==========
         async function loadEditor(id) {
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
@@ -1141,7 +1378,7 @@
 
         function renderEditor() {
             const d = state.data; 
-            const isLocked = state.version.status !== 'draft'; // APENAS RASCUNHO É EDITÁVEL!
+            const isLocked = state.version.status !== 'draft';
             safeText('ed-title', state.project.name);
             safeText('ed-ver', `V${state.version.version_number}`);
             const badge = document.getElementById('ed-status-badge');
@@ -1487,17 +1724,11 @@
             if (!skipConfirm && !confirm(`Mudar status para ${newStatus}?`)) return;
             await db.from('versions').update({status: newStatus}).eq('id', state.version.id);
             logHistory(newStatus, 'provider', skipConfirm ? 'Status alterado automaticamente (envio de link)' : 'Alteração manual de status.');
-            
-            // Recarrega o projeto atual no cache
             await loadProjects();
-            
-            // Atualiza todas as visualizações
             renderDashboardKPIs();
             renderDashboardCharts();
             renderProjectCards();
             renderActivityFeed();
-            
-            // Recarrega o editor para refletir o novo status e bloqueio
             loadEditor(state.project.id);
         }
 
@@ -1805,14 +2036,11 @@
                 items: state.data 
             }).eq('id', state.version.id);
             document.getElementById('interaction-modal').classList.add('hidden');
-            
-            // Recarrega os projetos e atualiza dashboard
             await loadProjects();
             renderDashboardKPIs();
             renderDashboardCharts();
             renderProjectCards();
             renderActivityFeed();
-            
             showSuccessScreen(action);
         }
 
@@ -1839,14 +2067,11 @@
                 window.open(`https://wa.me/${phone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
             }
             document.getElementById('interaction-modal').classList.add('hidden');
-            
-            // Recarrega os projetos e atualiza dashboard
             await loadProjects();
             renderDashboardKPIs();
             renderDashboardCharts();
             renderProjectCards();
             renderActivityFeed();
-            
             showSuccessScreen('approved');
         }
 
