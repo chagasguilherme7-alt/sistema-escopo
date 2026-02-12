@@ -14,8 +14,9 @@
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; color: #334155; }
+        .font-heading { font-family: 'Plus Jakarta Sans', sans-serif; }
         
-        /* --- LAYOUT NOVO (SIDEBAR MEORÇAMENTOS) --- */
+        /* --- SIDEBAR (Visual MeOrçamentos) --- */
         .sidebar { width: 260px; background: white; height: 100vh; position: fixed; left: 0; top: 0; border-right: 1px solid #E2E8F0; display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s; }
         .main-content { margin-left: 260px; padding: 2rem; min-height: 100vh; transition: margin 0.3s; }
         
@@ -26,20 +27,25 @@
         .btn-new { background: #3B82F6; color: white; border-radius: 8px; padding: 12px; margin: 20px; text-align: center; font-weight: 600; cursor: pointer; transition: background 0.2s; display: block; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5); }
         .btn-new:hover { background: #2563EB; }
 
-        /* --- ELEMENTOS DO EDITOR ORIGINAL (RESTAURADOS) --- */
+        /* --- VISUAL ORIGINAL RESTAURADO (Editor & Public) --- */
+        
+        /* Itens do Editor */
         .item-box { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s; }
         .item-box:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .item-optional { border: 2px dashed #94a3b8 !important; background-color: #f8fafc; opacity: 0.9; }
         .optional-badge { background: #64748b; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; font-weight: bold; text-transform: uppercase; margin-left: 8px; }
 
+        /* Histórico (Original) */
         .timeline-item { position: relative; padding-left: 2rem; border-left: 2px solid #e2e8f0; padding-bottom: 1.5rem; }
         .timeline-item::before { content: ''; position: absolute; left: -5px; top: 0; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
         .timeline-item:last-child { border-left: transparent; }
         .timeline-desc { font-size: 0.85rem; color: #334155; margin-top: 6px; background: #fff7ed; padding: 12px; border-radius: 8px; border: 1px solid #fed7aa; font-style: italic; }
+        .timeline-desc.system { background: #f8fafc; border-color: #f1f5f9; font-style: normal; }
 
-        /* --- DOCUMENTO PÚBLICO (RESTAURADO) --- */
+        /* Documento Público (Identidade Original) */
         .doc-container { font-family: 'Inter', sans-serif; color: #1e293b; line-height: 1.6; }
         .doc-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 2rem; border-bottom: 2px solid #e2e8f0; margin-bottom: 2rem; }
+        .doc-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; letter-spacing: -0.02em; }
         .doc-section-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #64748b; margin-bottom: 1rem; border-left: 3px solid #3b82f6; padding-left: 0.75rem; }
         .doc-card { background: #f8fafc; border-radius: 8px; padding: 1.5rem; border: 1px solid #e2e8f0; }
         .att-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; transition: all 0.2s; display: flex; flex-direction: column; gap: 0.5rem; }
@@ -48,16 +54,14 @@
         /* Assinatura */
         #signature-pad { border: 2px dashed #cbd5e1; border-radius: 12px; background: #f8fafc; cursor: crosshair; touch-action: none; width: 100%; height: 200px; }
 
-        /* Tabelas Clean (MeOrçamentos) */
+        /* Tabela Clean (Dashboard) */
         .custom-table { width: 100%; text-align: left; border-collapse: separate; border-spacing: 0; }
         .custom-table th { padding: 16px; background: #F8FAFC; color: #64748B; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #E2E8F0; }
         .custom-table td { padding: 16px; border-bottom: 1px solid #E2E8F0; background: white; font-size: 0.9rem; }
         .custom-table tr:hover td { background: #F1F5F9; cursor: pointer; }
-
-        /* Status Dots */
         .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
 
-        /* Responsividade Mobile */
+        /* Responsividade */
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); width: 100%; }
             .sidebar.open { transform: translateX(0); }
@@ -74,19 +78,18 @@
 
     <div id="system-loader" style="position:fixed; inset:0; background:white; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <div class="loader-spin mb-4"></div>
-        <p class="text-sm text-slate-500 font-medium">Carregando Sistema...</p>
+        <p class="text-sm text-slate-500 font-medium">Carregando...</p>
     </div>
 
     <section id="view-login" class="hidden min-h-screen flex items-center justify-center bg-slate-50 p-4">
         <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
-            <h1 class="text-3xl font-bold text-slate-900 mb-2 text-center">Aprova Aí</h1>
+            <h1 class="text-3xl font-bold text-slate-900 mb-2 text-center font-heading">Aprova Aí</h1>
             <input type="email" id="email" class="w-full p-3 border border-slate-300 rounded-lg mb-4" placeholder="seu@email.com">
             <button onclick="handleLogin()" id="btn-login" class="w-full bg-slate-900 text-white font-bold py-3 rounded-lg hover:bg-slate-800">Entrar</button>
         </div>
     </section>
 
     <div id="app-layout" class="hidden">
-        
         <div class="mobile-header">
             <span class="font-bold text-lg text-slate-800">Aprova Ai</span>
             <button onclick="document.querySelector('.sidebar').classList.toggle('open')" class="text-slate-600"><i class="fas fa-bars text-xl"></i></button>
@@ -95,17 +98,12 @@
         <aside class="sidebar">
             <div class="p-6 flex items-center gap-2 border-b border-slate-100">
                 <i class="fas fa-layer-group text-2xl text-blue-600"></i>
-                <span class="font-bold text-xl tracking-tight text-slate-800">Aprova Ai</span>
+                <span class="font-bold text-xl tracking-tight text-slate-800 font-heading">Aprova Ai</span>
             </div>
-
-            <div onclick="createProject()" class="btn-new">
-                <i class="fas fa-plus mr-2"></i> Novo Orçamento
-            </div>
-
+            <div onclick="createProject()" class="btn-new"><i class="fas fa-plus mr-2"></i> Novo Orçamento</div>
             <nav class="flex-1 overflow-y-auto py-2">
                 <div onclick="switchTab('dashboard')" class="nav-item active" id="nav-dashboard"><i class="fas fa-home"></i> Visão geral</div>
                 <div onclick="switchTab('projects')" class="nav-item" id="nav-projects"><i class="fas fa-file-invoice"></i> Orçamentos</div>
-                
                 <div class="px-6 py-4 mt-2">
                     <p class="text-[10px] font-bold text-slate-400 uppercase mb-3">Status</p>
                     <div onclick="filterProjects('draft')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#94a3b8"></span> Em Aberto</div>
@@ -113,19 +111,15 @@
                     <div onclick="filterProjects('approved')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#22c55e"></span> Aprovados</div>
                     <div onclick="filterProjects('canceled')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600"><span class="status-dot" style="background:#ef4444"></span> Cancelados</div>
                 </div>
-
                 <div onclick="switchTab('clients')" class="nav-item" id="nav-clients"><i class="fas fa-users"></i> Clientes</div>
             </nav>
-            <div class="p-4 border-t border-slate-100">
-                <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="flex items-center text-sm text-red-500 font-medium w-full px-4 py-2"><i class="fas fa-sign-out-alt mr-3"></i> Sair</button>
-            </div>
+            <div class="p-4 border-t border-slate-100"><button onclick="db.auth.signOut().then(()=>window.location.reload())" class="flex items-center text-sm text-red-500 font-medium w-full px-4 py-2"><i class="fas fa-sign-out-alt mr-3"></i> Sair</button></div>
         </aside>
 
         <main class="main-content">
-            
             <section id="view-dashboard" class="space-y-6">
-                <h2 class="text-2xl font-bold text-slate-800">Visão geral</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <h2 class="text-2xl font-bold text-slate-800 font-heading">Visão geral</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Mês</div><div class="text-2xl font-bold text-blue-600" id="kpi-month-count">0</div></div>
                     <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Faturamento</div><div class="text-2xl font-bold text-emerald-600" id="kpi-month-total">R$ 0,00</div></div>
                     <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><div class="text-sm text-slate-500 mb-1">Total</div><div class="text-2xl font-bold text-slate-800" id="kpi-all-count">0</div></div>
@@ -135,16 +129,16 @@
             </section>
 
             <section id="view-projects" class="hidden space-y-6">
-                <div class="flex justify-between items-center"><h2 class="text-2xl font-bold text-slate-800">Orçamentos</h2><button onclick="createProject()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">+ Novo</button></div>
+                <div class="flex justify-between items-center"><h2 class="text-2xl font-bold text-slate-800 font-heading">Orçamentos</h2><button onclick="createProject()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">+ Novo</button></div>
                 <div class="bg-white p-4 rounded-xl border border-slate-200 flex gap-4"><input id="search-input" onkeyup="renderProjectTable()" class="flex-1 p-2 border rounded-lg" placeholder="Buscar..."><select id="status-filter" onchange="renderProjectTable()" class="p-2 border rounded-lg bg-white"><option value="all">Todos</option><option value="draft">Em Aberto</option><option value="negotiating">Em Negociação</option><option value="approved">Aprovados</option><option value="canceled">Cancelados</option></select></div>
                 <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm"><table class="custom-table"><thead><tr><th>Status</th><th>Número</th><th>Cliente</th><th>Data</th><th class="text-right">Total</th></tr></thead><tbody id="project-table-body"></tbody></table></div>
             </section>
 
-            <section id="view-clients" class="hidden space-y-6"><h2 class="text-2xl font-bold text-slate-800">Clientes</h2><div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm p-6"><table class="custom-table"><thead><tr><th>Nome</th><th>Documento</th><th>Email</th><th>Projetos</th></tr></thead><tbody id="client-table-body"></tbody></table></div></section>
+            <section id="view-clients" class="hidden space-y-6"><h2 class="text-2xl font-bold text-slate-800 font-heading">Clientes</h2><div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm p-6"><table class="custom-table"><thead><tr><th>Nome</th><th>Documento</th><th>Email</th><th>Projetos</th></tr></thead><tbody id="client-table-body"></tbody></table></div></section>
 
             <section id="view-editor" class="hidden pb-20">
                 <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                    <div class="flex items-center gap-4"><button onclick="switchTab('projects')" class="text-slate-400 hover:text-slate-800"><i class="fas fa-arrow-left"></i></button><div><h2 class="text-xl font-bold text-slate-800 flex items-center gap-2"><span id="ed-title">...</span><span id="ed-ver" class="text-xs bg-slate-100 px-2 py-1 rounded border">V1</span></h2><div id="ed-status-badge"></div></div></div>
+                    <div class="flex items-center gap-4"><button onclick="switchTab('projects')" class="text-slate-400 hover:text-slate-800"><i class="fas fa-arrow-left"></i></button><div><h2 class="text-xl font-bold text-slate-800 flex items-center gap-2 font-heading"><span id="ed-title">...</span><span id="ed-ver" class="text-xs bg-slate-100 px-2 py-1 rounded border">V1</span></h2><div id="ed-status-badge"></div></div></div>
                     <div class="flex gap-2"><button onclick="save()" class="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold"><i class="fas fa-save mr-2"></i> Salvar</button><button onclick="openShareModal()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-blue-200"><i class="fas fa-share-alt mr-2"></i> Enviar</button></div>
                 </div>
 
@@ -159,7 +153,6 @@
                                 <input id="p-addr" onchange="upSettings('providerAddr',this.value)" class="border p-2 rounded text-sm" placeholder="Seu Endereço">
                             </div>
                         </div>
-
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold border-b pb-2 mb-4 text-slate-700">Dados do Cliente</h3>
                             <div class="grid grid-cols-2 gap-4">
@@ -170,12 +163,8 @@
                                 <input id="c-addr" onchange="upVal('c-addr',this.value)" class="col-span-2 border p-2 rounded text-sm" placeholder="Endereço">
                             </div>
                         </div>
-
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="font-bold text-slate-700">Escopo do Serviço</h3>
-                                <button onclick="addItem()" class="text-blue-600 text-sm font-bold">+ Adicionar Item</button>
-                            </div>
+                            <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-slate-700">Escopo do Serviço</h3><button onclick="addItem()" class="text-blue-600 text-sm font-bold">+ Adicionar Item</button></div>
                             <div id="ed-items" class="space-y-3"></div>
                         </div>
                     </div>
@@ -206,15 +195,8 @@
                             </div>
                         </div>
 
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold text-slate-700 mb-4">Versões</h3>
-                            <div id="ed-actions-area"></div>
-                        </div>
-
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold text-slate-700 mb-4">Histórico</h3>
-                            <div id="ed-history" class="space-y-4 max-h-60 overflow-y-auto"></div>
-                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-700 mb-4">Versões</h3><div id="ed-actions-area"></div></div>
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-700 mb-4">Histórico</h3><div id="ed-history" class="space-y-4 max-h-60 overflow-y-auto"></div></div>
                     </div>
                 </div>
             </section>
@@ -230,10 +212,12 @@
                 <div class="text-right"><div id="doc-id" class="text-2xl font-bold text-slate-300">#REF</div><div class="text-sm text-slate-400 mt-1 uppercase tracking-widest">Proposta Técnica</div></div>
             </div>
 
+            <div class="mb-10"><h1 id="doc-title" class="text-4xl font-bold text-slate-800 mb-2 font-heading">Projeto</h1><p class="text-slate-500">Documento de escopo e orçamento.</p></div>
+
             <div class="doc-card mb-12">
                 <div class="flex flex-col md:flex-row gap-8">
                     <div class="flex-1"><h3 class="doc-section-title">Contratante</h3><div id="doc-c-name" class="font-bold text-lg text-slate-800"></div><div id="doc-c-doc" class="text-slate-500 text-sm"></div></div>
-                    <div class="flex-1 border-l pl-8"><h3 class="doc-section-title">Local</h3><div id="doc-c-addr" class="text-slate-600 text-sm"></div></div>
+                    <div class="flex-1 border-l pl-8"><h3 class="doc-section-title">Local do Serviço</h3><div id="doc-c-addr" class="text-slate-600 text-sm"></div></div>
                 </div>
             </div>
 
@@ -247,7 +231,11 @@
                     <div id="doc-payment" class="text-sm font-mono text-slate-700 whitespace-pre-line mb-4"></div>
                     <div class="flex gap-4 text-xs text-slate-500"><div><span class="font-bold">Prazo:</span> <span id="doc-deadline"></span></div><div><span class="font-bold">Validade:</span> <span id="doc-validity"></span></div></div>
                 </div>
-                <div class="text-right"><h4 class="text-xs uppercase font-bold text-slate-400 mb-2">Valor Total</h4><div id="doc-total" class="text-4xl font-extrabold text-slate-900 tracking-tight">R$ 0,00</div></div>
+                <div class="text-right">
+                    <h4 class="text-xs uppercase font-bold text-slate-400 mb-2">Valor Total</h4>
+                    <div id="doc-total" class="text-4xl font-extrabold text-slate-900 tracking-tight">R$ 0,00</div>
+                    <div id="doc-total-opt" class="text-xs text-slate-400 mt-1"></div>
+                </div>
             </div>
 
             <div id="doc-signature-area"></div>
@@ -285,7 +273,7 @@
             if (!dbData) return schema;
             return { 
                 client: { ...schema.client, ...(dbData.client || {}) }, 
-                items: (Array.isArray(dbData.items) ? dbData.items : []).map(i => ({...i, id: i.id || 'i'+Math.random()})), 
+                items: (Array.isArray(dbData.items) ? dbData.items : []).map(i => ({...i, id: i.id || 'i'+Math.random(), optional: i.optional || false})), 
                 terms: { ...schema.terms, ...(dbData.terms || {}) }, 
                 settings: { ...schema.settings, ...(dbData.settings || {}) }, 
                 history: Array.isArray(dbData.history) ? dbData.history : [],
@@ -446,7 +434,7 @@
                         </div>
                     </div>
                     <textarea class="w-full bg-transparent text-xs text-slate-500 resize-none outline-none border-t border-dashed pt-2 mt-2" rows="2" placeholder="Descrição técnica..." oninput="upItem(${x},'description',this.value)" ${isLocked?'disabled':''}>${i.description||''}</textarea>
-                    ${!isLocked ? `<button onclick="toggleOpt(${x})" class="text-[10px] mt-2 px-2 py-1 rounded border ${i.optional ? 'bg-slate-600 text-white' : 'text-slate-400'}">${i.optional ? 'ITEM OPCIONAL' : 'Marcar como Opcional?'}</button>` : ''}
+                    ${!isLocked ? `<button onclick="toggleOpt(${x})" class="text-[10px] mt-2 px-2 py-1 rounded border ${i.optional ? 'bg-slate-600 text-white' : 'text-slate-400'}">${i.optional ? 'REMOVER DE OPCIONAL' : 'MARCAR COMO OPCIONAL'}</button>` : ''}
                 </div>
             `).join('');
         }
@@ -454,7 +442,18 @@
         function addItem() { state.data.items.push({name:'',qty:1,price:0,description:'',optional:false}); renderItems(); }
         function rmItem(x) { state.data.items.splice(x,1); renderItems(); updateTotal(); }
         function toggleOpt(x) { state.data.items[x].optional = !state.data.items[x].optional; renderItems(); updateTotal(); }
-        function updateTotal() { document.getElementById('ed-total').innerText = state.data.items.reduce((a,b)=> !b.optional ? a+(b.qty*b.price) : a,0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+        
+        // --- CORREÇÃO DO TOTAL (ITEM ADICIONAL EM BAIXO) ---
+        function updateTotal() { 
+            const mainTotal = state.data.items.reduce((a,b)=> !b.optional ? a+(b.qty*b.price) : a,0);
+            const optTotal = state.data.items.reduce((a,b)=> b.optional ? a+(b.qty*b.price) : a,0);
+            
+            let html = mainTotal.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+            if(optTotal > 0) {
+                html += `<div class="text-xs text-slate-400 font-normal mt-1">+ ${optTotal.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} em opcionais</div>`;
+            }
+            document.getElementById('ed-total').innerHTML = html; 
+        }
 
         async function handleUpload(e) {
             const file = e.target.files[0]; if(!file) return;
@@ -496,17 +495,26 @@
             renderHistory(); alert("Salvo!");
         }
 
+        // --- HISTÓRICO RESTAURADO ---
         function renderHistory() {
-            document.getElementById('ed-history').innerHTML = state.data.history.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(h => `
-                <div class="timeline-item">
-                    <div class="timeline-date">${new Date(h.date).toLocaleString()}</div>
-                    <div class="font-bold text-sm text-slate-700">${h.action.toUpperCase()}</div>
-                    <div class="timeline-desc">${h.detail || ''}</div>
-                </div>
-            `).join('');
+            document.getElementById('ed-history').innerHTML = state.data.history.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(h => {
+                let icon = 'info-circle text-blue-400';
+                let label = 'Visualizou';
+                if(h.action === 'approved') { icon = 'check text-green-500'; label = 'Aprovou'; }
+                if(h.action === 'negotiating') { icon = 'comment-dots text-amber-500'; label = 'Solicitou Alteração'; }
+                if(h.action === 'canceled') { icon = 'times text-red-500'; label = 'Recusou'; }
+                if(h.action === 'created') { icon = 'plus-circle text-blue-600'; label = 'Criou'; }
+                if(h.action === 'edited') { icon = 'pen text-indigo-500'; label = 'Editou'; }
+
+                return `<div class="timeline-item">
+                    <div class="timeline-date">${new Date(h.date).toLocaleString()} • ${h.user === 'provider' ? 'Você' : 'Cliente'}</div>
+                    <div class="font-bold text-sm text-slate-700 flex items-center gap-2"><i class="fas fa-${icon}"></i> ${label}</div>
+                    <div class="timeline-desc ${h.action.includes('negotiating') ? '' : 'system'}">${h.detail || ''}</div>
+                </div>`;
+            }).join('');
         }
 
-        // --- PUBLIC ---
+        // --- PUBLIC RESTAURADO ---
         async function loadPublicProposal(id) {
             document.getElementById('view-public').classList.remove('hidden');
             const { data: v } = await db.from('versions').select('*, projects(name)').eq('id', id).single();
@@ -514,39 +522,51 @@
             
             if(v.status === 'approved') document.getElementById('stamp-approved').classList.remove('hidden');
             
-            document.getElementById('doc-provider-info').innerHTML = `<h2 class="text-2xl font-bold">${state.data.settings.providerName||''}</h2><p class="text-sm">${state.data.settings.providerDoc||''} • ${state.data.settings.providerPhone||''}</p><p class="text-xs text-slate-500">${state.data.settings.providerAddr||''}</p>`;
+            document.getElementById('doc-provider-info').innerHTML = `<h2 class="text-2xl font-bold font-heading mb-1">${state.data.settings.providerName||''}</h2><p class="text-sm text-slate-500">${state.data.settings.providerDoc||''} • ${state.data.settings.providerPhone||''}</p><p class="text-xs text-slate-400">${state.data.settings.providerAddr||''}</p>`;
             document.getElementById('doc-id').innerText = `#${v.project_id.substr(0,4)}-V${v.version_number}`;
             document.getElementById('doc-c-name').innerText = state.data.client.name;
             document.getElementById('doc-c-doc').innerText = state.data.client.doc;
             document.getElementById('doc-c-addr').innerText = state.data.client.address;
+            
+            // Total Principal
             document.getElementById('doc-total').innerText = (v.total_value||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+            
+            // Total Opcionais (Embaixo)
+            const optTotal = state.data.items.reduce((a,b)=> b.optional ? a+(b.qty*b.price) : a,0);
+            if(optTotal > 0) {
+                document.getElementById('doc-total-opt').innerText = `+ ${optTotal.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} em opcionais`;
+            } else {
+                document.getElementById('doc-total-opt').innerText = '';
+            }
+
             document.getElementById('doc-payment').innerText = state.data.terms.paymentText;
             document.getElementById('doc-deadline').innerText = state.data.terms.deadline;
             document.getElementById('doc-validity').innerText = state.data.terms.validity;
+            document.getElementById('doc-title').innerText = v.projects.name;
 
             document.getElementById('doc-items-body').innerHTML = state.data.items.map(i => `
-                <tr class="border-b ${i.optional ? 'bg-slate-50/50' : ''}">
-                    <td class="py-3 pr-2">
-                        <div class="font-bold text-slate-800 ${i.optional ? 'text-slate-500':''}">${i.name} ${i.optional ? '<span class="text-[10px] bg-slate-200 px-1 rounded">OPCIONAL</span>' : ''}</div>
-                        <div class="text-sm text-slate-500">${i.description||''}</div>
+                <tr class="border-b border-slate-100 ${i.optional ? 'bg-slate-50/50' : ''}">
+                    <td class="py-4 pl-4">
+                        <div class="font-bold text-slate-800 ${i.optional ? 'text-slate-600':''}">${i.name} ${i.optional ? '<span class="text-[10px] bg-slate-200 text-slate-600 px-1 rounded uppercase ml-2">Opcional</span>' : ''}</div>
+                        <div class="text-sm text-slate-500 font-normal">${i.description||''}</div>
                     </td>
-                    <td class="text-center text-slate-600">${i.qty}</td>
-                    <td class="text-right font-bold text-slate-800 ${i.optional ? 'line-through text-slate-400':''}">${(i.qty*i.price).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
+                    <td class="text-center text-slate-600 font-medium">${i.qty}</td>
+                    <td class="text-right pr-4 font-bold text-slate-800 ${i.optional ? 'line-through text-slate-400 decoration-slate-400':''}">${(i.qty*i.price).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
                 </tr>
             `).join('');
 
             if(state.data.attachments.length > 0) {
                 document.getElementById('doc-attachments-section').classList.remove('hidden');
                 document.getElementById('doc-attachments-grid').innerHTML = state.data.attachments.map(a => `
-                    <a href="${a.url}" target="_blank" class="att-card"><div class="flex items-center gap-3"><i class="fas fa-file text-blue-500"></i><span class="text-sm font-bold truncate">${a.name}</span></div></a>
+                    <a href="${a.url}" target="_blank" class="att-card"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100"><i class="fas fa-file text-blue-500"></i></div><span class="text-sm font-bold truncate">${a.name}</span></div></a>
                 `).join('');
             }
 
-            if(state.data.signature) document.getElementById('doc-signature-area').innerHTML = `<div class="mt-8 border-t border-dashed w-64 text-center"><img src="${state.data.signature}" class="h-16 mx-auto"><p class="text-xs font-bold uppercase">Assinado Digitalmente</p></div>`;
+            if(state.data.signature) document.getElementById('doc-signature-area').innerHTML = `<div class="mt-8 border-t border-dashed w-64 text-center"><img src="${state.data.signature}" class="h-16 mx-auto"><p class="text-xs font-bold uppercase text-slate-500">Assinado Digitalmente</p></div>`;
 
             const acts = document.getElementById('doc-actions');
             if (v.status === 'sent' || v.status === 'negotiating') {
-                acts.innerHTML = `<button onclick="openInt('approve')" class="bg-emerald-600 text-white px-6 py-3 rounded font-bold">APROVAR</button><button onclick="openInt('neg')" class="bg-amber-500 text-white px-6 py-3 rounded font-bold">NEGOCIAR / ALTERAR</button><button onclick="openInt('cancel')" class="bg-red-500 text-white px-6 py-3 rounded font-bold">RECUSAR</button>`;
+                acts.innerHTML = `<button onclick="openInt('approve')" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2 hover:bg-slate-800"><i class="fas fa-signature"></i> APROVAR PROPOSTA</button><div class="grid grid-cols-2 gap-3"><button onclick="openInt('neg')" class="bg-white border border-amber-200 text-amber-700 font-bold px-4 rounded-xl hover:bg-amber-50">Alterar</button><button onclick="openInt('cancel')" class="bg-white border border-red-200 text-red-600 font-bold px-4 rounded-xl hover:bg-red-50">Recusar</button></div>`;
             }
         }
 
@@ -555,11 +575,11 @@
             const t = document.getElementById('modal-title'); const b = document.getElementById('modal-btn'); const i = document.getElementById('modal-input'); const s = document.getElementById('modal-sig-area');
             
             if(type === 'approve') {
-                t.innerText = "Assinar e Aprovar"; i.classList.add('hidden'); s.classList.remove('hidden'); b.innerText = "Confirmar"; b.onclick = () => submitInt('approved'); setTimeout(initSig, 100);
+                t.innerText = "Assinar e Aprovar"; i.classList.add('hidden'); s.classList.remove('hidden'); b.innerText = "Confirmar Aprovação"; b.classList.add('bg-green-600'); b.onclick = () => submitInt('approved'); setTimeout(initSig, 100);
             } else if (type === 'neg') {
-                t.innerText = "O que precisa alterar?"; i.classList.remove('hidden'); s.classList.add('hidden'); b.innerText = "Enviar Solicitação"; b.onclick = () => submitInt('negotiating');
+                t.innerText = "O que precisa alterar?"; i.classList.remove('hidden'); s.classList.add('hidden'); b.innerText = "Enviar Solicitação"; b.classList.remove('bg-green-600'); b.onclick = () => submitInt('negotiating');
             } else {
-                t.innerText = "Motivo da Recusa"; i.classList.remove('hidden'); s.classList.add('hidden'); b.innerText = "Confirmar Recusa"; b.onclick = () => submitInt('canceled');
+                t.innerText = "Motivo da Recusa"; i.classList.remove('hidden'); s.classList.add('hidden'); b.innerText = "Confirmar Recusa"; b.classList.remove('bg-green-600'); b.onclick = () => submitInt('canceled');
             }
         }
 
