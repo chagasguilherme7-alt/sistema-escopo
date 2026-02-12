@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        /* ----- ESTILOS NOVOS (SIDEBAR, TABELAS) ----- */
+        /* (mantido igual à última versão – não houve mudanças nos estilos) */
         body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; color: #334155; }
         .sidebar { width: 260px; background: white; height: 100vh; position: fixed; left: 0; top: 0; border-right: 1px solid #E2E8F0; display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s; }
         .main-content { margin-left: 260px; padding: 2rem; min-height: 100vh; transition: margin 0.3s; }
@@ -35,7 +35,6 @@
             .mobile-header { display: flex !important; }
         }
 
-        /* ----- ESTILOS ORIGINAIS (PRESERVADOS) ----- */
         .item-box { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s; }
         .item-box:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .item-optional { border: 2px dashed #94a3b8 !important; background-color: #f8fafc; opacity: 0.9; }
@@ -58,10 +57,8 @@
         .st-approved { background: #dcfce7; color: #166534; } 
         .st-canceled { background: #fee2e2; color: #991b1b; }
         
-        /* Assinatura */
         #signature-pad { border: 2px dashed #cbd5e1; border-radius: 12px; background: #f8fafc; cursor: crosshair; touch-action: none; width: 100%; height: 200px; }
         
-        /* Animações */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .anim-entry { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
         
@@ -69,7 +66,6 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .hidden { display: none !important; }
 
-        /* Página pública */
         #view-public { background: #f1f5f9; }
         #public-content { max-width: 1200px; margin: 0 auto; background: white; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
         #stamp-approved { position: absolute; top: 30px; right: 30px; border: 4px solid #16a34a; color: #16a34a; font-size: 2rem; font-weight: 800; padding: 0.5rem 2rem; text-transform: uppercase; opacity: 0.3; transform: rotate(-12deg); z-index: 20; }
@@ -77,7 +73,6 @@
         .att-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; transition: all 0.2s; display: flex; flex-direction: column; gap: 0.5rem; }
         .att-card:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
 
-        /* ----- LOGIN ORIGINAL ----- */
         .split-screen { display: flex; min-height: 100vh; width: 100%; position: absolute; top: 0; left: 0; z-index: 50; background: white; }
         .left-area { width: 60%; background: radial-gradient(circle at top left, #1e1b4b, #0f172a), linear-gradient(135deg, #172554 0%, #1e3a8a 100%); color: white; display: flex; flex-direction: column; justify-content: center; padding: 5rem 6rem; position: relative; overflow: hidden; }
         .glow-orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.35; }
@@ -111,7 +106,6 @@
             .glow-orb { display: none; } 
         }
 
-        /* ----- MELHORIAS PARA O PDF (QUEBRA DE PÁGINA INTELIGENTE) ----- */
         @media print {
             body { background: white; }
             .no-print { display: none !important; }
@@ -126,13 +120,11 @@
 </head>
 <body>
 
-    <!-- LOADER GLOBAL -->
     <div id="system-loader" style="position:fixed; inset:0; background:white; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <div class="loader-spin mb-4"></div>
         <p class="text-sm text-slate-500 font-medium">Carregando Sistema...</p>
     </div>
 
-    <!-- FATAL ERROR -->
     <div id="fatal-error" class="hidden fixed inset-0 bg-rose-50 z-[10000] flex flex-col items-center justify-center p-8 text-center">
         <i class="fas fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i>
         <h2 class="text-2xl font-bold text-slate-800">Ops! Algo deu errado.</h2>
@@ -140,7 +132,6 @@
         <button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button>
     </div>
 
-    <!-- LOGIN ORIGINAL -->
     <section id="view-login" class="hidden split-screen">
         <div class="left-area">
             <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
@@ -170,7 +161,6 @@
         </div>
     </section>
 
-    <!-- LAYOUT PRINCIPAL (SIDEBAR) -->
     <div id="app-layout" class="hidden">
         <div class="mobile-header">
             <span class="font-bold text-lg text-slate-800">Aprova Ai</span>
@@ -203,7 +193,6 @@
         </aside>
 
         <main class="main-content">
-            <!-- DASHBOARD -->
             <section id="view-dashboard" class="space-y-6">
                 <h2 class="text-2xl font-bold text-slate-800">Visão geral</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -247,7 +236,6 @@
                 <div id="project-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
 
-            <!-- VIEW PROJECTS -->
             <section id="view-projects" class="hidden space-y-6">
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-slate-800">Orçamentos</h2>
@@ -279,7 +267,6 @@
                 </div>
             </section>
 
-            <!-- VIEW CLIENTES -->
             <section id="view-clients" class="hidden space-y-6">
                 <h2 class="text-2xl font-bold text-slate-800">Clientes</h2>
                 <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm p-6">
@@ -297,7 +284,6 @@
                 </div>
             </section>
 
-            <!-- EDITOR COM MELHORIAS (ANEXOS NO ESCOPO, PRAZO, PARCELAS SEM ENTRADA) -->
             <section id="view-editor" class="hidden pb-20">
                 <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex items-center gap-4">
@@ -319,9 +305,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                    <!-- Coluna esquerda (2/3) -->
                     <div class="xl:col-span-2 space-y-6">
-                        <!-- DADOS DO PRESTADOR -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold border-b pb-2 mb-4 text-slate-700 flex items-center gap-2"><i class="fas fa-id-card text-blue-600"></i> Seus Dados</h3>
                             <div class="grid grid-cols-2 gap-4">
@@ -332,7 +316,6 @@
                             </div>
                         </div>
 
-                        <!-- DADOS DO CLIENTE -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold border-b pb-2 mb-4 text-slate-700 flex items-center gap-2"><i class="fas fa-user-tie text-blue-600"></i> Dados do Cliente</h3>
                             <div class="grid grid-cols-2 gap-4">
@@ -343,7 +326,6 @@
                                 <input id="c-addr" onchange="upVal('c-addr',this.value)" class="col-span-2 border p-2 rounded text-sm" placeholder="Endereço">
                             </div>
                             
-                            <!-- ENDEREÇO DO SERVIÇO -->
                             <div class="mt-4 pt-4 border-t border-dashed">
                                 <label class="flex items-center gap-2 text-sm text-slate-600 mb-2 cursor-pointer">
                                     <input type="checkbox" id="loc-check" onchange="toggleLoc(this.checked)" class="accent-blue-600">
@@ -355,7 +337,6 @@
                                 </div>
                             </div>
 
-                            <!-- WHATSAPP PARA NOTIFICAÇÕES -->
                             <div class="mt-4 pt-4 border-t">
                                 <label class="text-xs font-bold text-slate-500 mb-1 block flex items-center gap-1">
                                     <i class="fab fa-whatsapp text-emerald-600"></i> Seu WhatsApp (para notificações)
@@ -364,17 +345,14 @@
                             </div>
                         </div>
 
-                        <!-- ESCOPO DO SERVIÇO (com PRAZO DE ENTREGA e ANEXOS) -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-list-ol text-blue-600"></i> Escopo do Serviço</h3>
                                 <button id="btn-add-item" onclick="addItem()" class="text-blue-600 text-sm font-bold border border-blue-200 px-3 py-1 rounded hover:bg-blue-50">+ Adicionar Item</button>
                             </div>
                             
-                            <!-- Itens do escopo -->
                             <div id="ed-items" class="space-y-3"></div>
 
-                            <!-- Campo PRAZO DE ENTREGA (movido para o escopo) -->
                             <div class="mt-6 pt-4 border-t border-dashed">
                                 <label class="text-xs font-bold text-slate-500 mb-1 block flex items-center gap-1">
                                     <i class="fas fa-truck text-blue-600"></i> Prazo de entrega
@@ -382,7 +360,6 @@
                                 <input id="t-deadline" onchange="upVal('t-deadline',this.value)" class="w-full border p-2 rounded text-sm" placeholder="Ex: 30 dias úteis após aprovação">
                             </div>
 
-                            <!-- SEÇÃO DE ANEXOS (movida para cá) -->
                             <div class="mt-6 pt-4 border-t border-dashed">
                                 <h4 class="font-bold text-slate-700 mb-3 flex items-center gap-2"><i class="fas fa-paperclip text-blue-600"></i> Anexos e Documentos</h4>
                                 <div id="ed-attachments-list" class="mb-3 space-y-3"></div>
@@ -396,16 +373,13 @@
                         </div>
                     </div>
 
-                    <!-- Coluna direita (1/3) -->
                     <div class="space-y-6">
-                        <!-- TOTAL GLOBAL -->
                         <div class="bg-slate-900 text-white p-6 rounded-xl shadow-lg text-center">
                             <p class="text-xs font-bold uppercase text-slate-400">Total Global</p>
                             <div id="ed-total" class="text-3xl font-bold">R$ 0,00</div>
                             <div id="ed-total-optional" class="text-xs text-slate-400 mt-1"></div>
                         </div>
 
-                        <!-- FINANCEIRO / PAGAMENTO (AGORA COM PARCELAS SEM ENTRADA) -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-coins text-blue-600"></i> Pagamento</h3>
                             <select id="pay-mode" class="w-full border p-2 rounded mb-2 text-sm">
@@ -422,13 +396,11 @@
                             </div>
                         </div>
 
-                        <!-- VERSÕES / AÇÕES -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-code-branch text-blue-600"></i> Versões</h3>
                             <div id="ed-actions-area" class="space-y-3"></div>
                         </div>
 
-                        <!-- HISTÓRICO -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-history text-blue-600"></i> Histórico</h3>
                             <div id="ed-history" class="space-y-4 max-h-80 overflow-y-auto pr-1"></div>
@@ -439,7 +411,6 @@
         </main>
     </div>
 
-    <!-- VIEW PÚBLICA (com anexos, descrição, prazo e total) -->
     <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10 overflow-y-auto print:p-0">
         <div id="public-loading" class="flex justify-center mt-20"><div class="loader-spin"></div></div>
         <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col print:shadow-none print:min-h-0">
@@ -484,13 +455,11 @@
                         <tbody id="doc-items-body"></tbody>
                     </table>
                     
-                    <!-- PRAZO DE ENTREGA exibido aqui -->
                     <div id="doc-deadline-container" class="mt-4 text-sm text-slate-700 font-medium">
                         <span class="font-bold">Prazo de entrega:</span> <span id="doc-deadline"></span>
                     </div>
                 </div>
 
-                <!-- SEÇÃO DE ANEXOS COM DESCRIÇÃO -->
                 <div id="doc-attachments-area" class="mb-12 print-break-inside"></div>
 
                 <div class="bg-slate-50 border border-slate-100 rounded-lg p-8 mb-12 flex flex-col md:flex-row gap-12 mt-8 print:bg-white print:border print-break-inside">
@@ -519,7 +488,6 @@
         </div>
     </section>
 
-    <!-- TELA DE SUCESSO -->
     <section id="view-success" class="hidden min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
         <div class="max-w-md w-full">
             <i id="success-icon" class="fas fa-check-circle text-6xl text-green-500 mb-6 anim-entry"></i>
@@ -530,7 +498,6 @@
         </div>
     </section>
 
-    <!-- MODAL DE INTERAÇÃO -->
     <div id="interaction-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl animate-[fadeInUp_0.3s]">
             <h3 id="modal-title" class="text-xl font-bold mb-2 text-slate-800"></h3>
@@ -547,7 +514,6 @@
         </div>
     </div>
 
-    <!-- MODAL DE COMPARTILHAR -->
     <div id="share-modal" class="hidden fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4">
         <div class="bg-white p-6 rounded-xl w-full max-w-sm text-center">
             <h3 class="text-xl font-bold mb-6 text-slate-800"><i class="fas fa-share-alt mr-2 text-blue-600"></i>Enviar Proposta</h3>
@@ -564,13 +530,13 @@
     </div>
 
     <script>
-        // ----- CONFIGURAÇÃO SUPABASE -----
+        // ----- SUPABASE -----
         const SUPABASE_URL = 'https://outasfgohiiyndsjciau.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91dGFzZmdvaGlpeW5kc2pjaWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4MTk4ODIsImV4cCI6MjA4NTM5NTg4Mn0.4yvGfYbQYf806FJcs34yPGkuU_kVTYHW8mBtbU3JD80';
         const { createClient } = supabase;
         let db = null;
 
-        // ----- ESTADO GLOBAL -----
+        // ----- ESTADO -----
         let state = { 
             user: null, 
             project: null, 
@@ -582,7 +548,7 @@
         };
         let signaturePad = null;
 
-        // ----- FUNÇÕES AUXILIARES -----
+        // ----- AUXILIARES -----
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
         function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
@@ -590,13 +556,13 @@
         function safeShow(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
         function safeHide(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
 
-        // ----- NORMALIZAÇÃO DE DADOS (PRESERVA TODOS OS CAMPOS) -----
+        // ----- NORMALIZAÇÃO (com validade VAZIA, SEM "10 dias") -----
         function normalizeData(dbData) {
             const schema = { 
                 client: { name: '', doc: '', email: '', phone: '', address: '' }, 
                 location: { address: '', sameAsClient: true }, 
                 items: [], 
-                terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '10 dias', obs: '' }, 
+                terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '', obs: '' }, // ← validade vazia
                 settings: { myPhone: '', serviceType: 'Outros', providerName: '', providerDoc: '', providerAddr: '', providerPhone: '' }, 
                 history: [],
                 attachments: [],
@@ -604,7 +570,6 @@
             };
             if (!dbData) return JSON.parse(JSON.stringify(schema));
             
-            // Itens
             let rawItems = Array.isArray(dbData.items) ? dbData.items : (dbData.scope || []);
             const cleanItems = rawItems.map(i => ({ 
                 id: i.id || 'item_' + Math.random().toString(36).substr(2, 9), 
@@ -617,7 +582,6 @@
                 publicSelected: i.publicSelected || false 
             }));
             
-            // Anexos com descrição
             let attachments = Array.isArray(dbData.attachments) ? dbData.attachments : [];
             attachments = attachments.map(a => ({
                 name: a.name || '',
@@ -649,7 +613,6 @@
             });
         }
 
-        // ----- DETECTAR MUDANÇAS -----
         function getChanges(oldArr, newArr) {
             let logs = [];
             const oldMap = new Map(oldArr.map(i => [i.id, i]));
@@ -977,7 +940,6 @@
                                  state.version.status.toUpperCase();
             }
 
-            // Preencher campos
             setVal('p-name', d.settings.providerName);
             setVal('p-doc', d.settings.providerDoc);
             setVal('p-addr', d.settings.providerAddr);
@@ -993,14 +955,12 @@
             setVal('t-val', d.terms.validity); 
             setVal('t-obs', d.terms.paymentText || d.terms.obs);
 
-            // Endereço do serviço
             const locCheck = document.getElementById('loc-check');
             if(locCheck) locCheck.checked = d.location.sameAsClient;
             const locDiv = document.getElementById('loc-custom-div');
             if(locDiv) locDiv.style.display = d.location.sameAsClient ? 'none' : 'block';
             setVal('loc-addr', d.location.address);
 
-            // Desabilitar campos se bloqueado
             const staticInputs = [
                 'p-name','p-doc','p-addr','p-phone',
                 'c-name','c-doc','c-phone','c-email','c-addr',
@@ -1012,7 +972,6 @@
                 if(el) el.disabled = isLocked; 
             });
 
-            // Botões de adicionar item e calcular
             const btnAdd = document.getElementById('btn-add-item');
             if(btnAdd) btnAdd.style.display = isLocked ? 'none' : 'inline-block';
             
@@ -1022,7 +981,6 @@
             const uploadArea = document.getElementById('upload-area');
             if(uploadArea) uploadArea.style.display = isLocked ? 'none' : 'block';
 
-            // Área de ações (header e sidebar)
             const headerActions = document.getElementById('ed-actions-header');
             if (headerActions) {
                 if (isLocked) {
@@ -1158,12 +1116,22 @@
             document.getElementById('ed-total').innerText = total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
         }
 
-        // ----- FUNÇÕES DE VALORES -----
+        // ----- FUNÇÕES DE VALORES CORRIGIDAS -----
         function upVal(k,v) { 
-            if(k.startsWith('c-')) state.data.client[k.substring(2)] = v; 
-            else if(k.startsWith('t-')) {
-                if (k === 't-obs') state.data.terms.paymentText = v;
-                else state.data.terms[k.substring(2)] = v;
+            if (k.startsWith('c-')) {
+                if (k === 'c-addr') {
+                    state.data.client.address = v;       // ← CORRIGIDO: address, não addr
+                } else {
+                    state.data.client[k.substring(2)] = v; // name, doc, phone, email
+                }
+            } else if (k.startsWith('t-')) {
+                if (k === 't-obs') {
+                    state.data.terms.paymentText = v;
+                } else if (k === 't-val') {
+                    state.data.terms.validity = v;       // ← CORRIGIDO: validity, não val
+                } else {
+                    state.data.terms[k.substring(2)] = v; // deadline
+                }
             }
         }
         
@@ -1182,7 +1150,7 @@
         }
         function upLoc(v) { state.data.location.address = v; }
 
-        // ----- GERAÇÃO DE TEXTO DE PAGAMENTO -----
+        // ----- PAGAMENTO -----
         function generatePayment() {
             const total = state.data.items.reduce((acc, i) => (!i.optional ? acc + (i.qty * i.price) : acc), 0);
             if(total === 0) return alert("Adicione valores (não opcionais) primeiro.");
@@ -1212,7 +1180,7 @@
             setVal('t-obs', text);
         }
 
-        // ----- ANEXOS COM DESCRIÇÃO -----
+        // ----- ANEXOS -----
         async function handleUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1254,8 +1222,6 @@
 
         function updateAttachmentDescription(idx, desc) {
             state.data.attachments[idx].description = desc;
-            // Não chamamos save() aqui por performance; a descrição é salva quando o input perde foco.
-            // Mas para garantir, podemos salvar após um pequeno timeout.
             clearTimeout(window.descTimeout);
             window.descTimeout = setTimeout(() => save(), 800);
         }
@@ -1319,10 +1285,9 @@
             renderHistory();
         }
 
-        // ----- CRIAR NOVA VERSÃO (AGORA SALVA ANTES) -----
+        // ----- CRIAR NOVA VERSÃO -----
         async function createAddon() {
-            // Salva qualquer alteração pendente para garantir que o endereço e outros dados sejam copiados
-            await save();
+            await save(); // salva dados atuais (incluindo endereço e validade)
             if(!confirm("Criar nova versão (Aditivo)?")) return;
             const t = state.data.items.reduce((a,b)=> (!b.optional ? a+(b.qty*b.price) : a),0);
             logHistory('created', 'provider', `Criou nova versão V${state.version.version_number+1}.`);
@@ -1440,7 +1405,6 @@
                 safeText('doc-validity', d.terms.validity); 
                 safeText('doc-obs', d.terms.obs);
 
-                // Anexos com descrição
                 if(d.attachments && d.attachments.length > 0) {
                     let attHtml = '<h3 class="font-bold text-xs uppercase text-slate-400 mb-2 mt-8 tracking-wider">Documentos Anexos</h3><div class="grid grid-cols-1 gap-3">';
                     d.attachments.forEach(att => {
@@ -1495,11 +1459,7 @@
             const isFrozen = state.version.status !== 'sent' && state.version.status !== 'negotiating' && state.version.status !== 'draft';
 
             items.forEach((i, idx) => {
-                let isActive = !i.optional; 
-                if (i.optional && i.publicSelected) isActive = true; 
-                
                 if(i.optional && typeof i.publicSelected === 'undefined') i.publicSelected = false;
-
                 if (!i.optional || i.publicSelected) {
                     total += (i.qty * i.price);
                 }
@@ -1533,7 +1493,7 @@
             renderPublicItems();
         }
 
-        // ----- PDF (MELHORADO COM QUEBRA DE PÁGINA) -----
+        // ----- PDF (MELHORADO) -----
         function downloadPDF() {
             const element = document.getElementById('public-content');
             const btn = document.getElementById('btn-download-pdf');
@@ -1543,14 +1503,13 @@
             stamp.style.display = 'block';
             document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
             
-            // Configurações otimizadas para evitar corte de texto e quebrar páginas automaticamente
             const opt = { 
-                margin: [0.6, 0.6, 0.6, 0.6], // margens em mm (superior, direito, inferior, esquerdo)
+                margin: [0.6, 0.6, 0.6, 0.6],
                 filename: `Comprovante_${state.version?.projects?.name || 'proposta'}.pdf`, 
                 image: { type: 'jpeg', quality: 0.98 }, 
                 html2canvas: { scale: 2, letterRendering: true, useCORS: true, logging: false }, 
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: ['css', 'legacy'] } // quebra de página inteligente baseada em CSS
+                pagebreak: { mode: ['css', 'legacy'] }
             };
             
             html2pdf().set(opt).from(element).save().then(() => {
@@ -1560,7 +1519,7 @@
             });
         }
 
-        // ----- MODAL DE INTERAÇÃO PÚBLICA -----
+        // ----- MODAIS DE APROVAÇÃO -----
         function openModal(type) {
             const modal = document.getElementById('interaction-modal');
             const title = document.getElementById('modal-title');
