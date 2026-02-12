@@ -146,23 +146,13 @@
         .autocomplete-suggestion:hover {
             background-color: #f8fafc;
         }
-
-        .selected-client-badge {
-            display: inline-flex;
-            align-items: center;
-            background-color: #e0f2fe;
-            color: #0369a1;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
     </style>
 </head>
 <body>
 
     <div id="system-loader" style="position:fixed; inset:0; background:white; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <div class="loader-spin mb-4"></div>
+        <img src="logo.png" alt="Aprova Ai" class="h-12 mb-2">
         <p class="text-sm text-slate-500 font-medium">Carregando Sistema...</p>
     </div>
 
@@ -204,14 +194,13 @@
 
     <div id="app-layout" class="hidden">
         <div class="mobile-header">
-            <span class="font-bold text-lg text-slate-800">Aprova Ai</span>
+            <img src="logo.png" alt="Aprova Ai" class="h-8">
             <button onclick="document.querySelector('.sidebar').classList.toggle('open')" class="text-slate-600"><i class="fas fa-bars text-xl"></i></button>
         </div>
 
         <aside class="sidebar">
             <div class="p-6 flex items-center gap-2 border-b border-slate-100">
-                <i class="fas fa-layer-group text-2xl text-blue-600"></i>
-                <span class="font-bold text-xl tracking-tight text-slate-800">Aprova Ai</span>
+                <img src="logo.png" alt="Aprova Ai" class="h-8">
             </div>
             <div onclick="createProject()" class="btn-new">
                 <i class="fas fa-plus mr-2"></i> Novo Orçamento
@@ -346,7 +335,7 @@
                 </div>
             </section>
 
-            <!-- EDITOR COM BUSCA DE CLIENTES (CAMPOS OCULTOS) -->
+            <!-- EDITOR COM BUSCA DE CLIENTES E CAMPOS QUE APARECEM APENAS QUANDO SELECIONADO -->
             <section id="view-editor" class="hidden pb-20">
                 <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex items-center gap-4">
@@ -380,7 +369,7 @@
                             </div>
                         </div>
 
-                        <!-- DADOS DO CLIENTE (SIMPLIFICADO - APENAS BUSCA E BOTÃO) -->
+                        <!-- DADOS DO CLIENTE - BUSCA E CAMPOS OCULTOS INICIALMENTE -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-user-tie text-blue-600"></i> Dados do Cliente</h3>
@@ -393,25 +382,21 @@
                                     <button onclick="openClientModal(true)" class="text-blue-600 text-sm font-bold border border-blue-200 px-3 py-1 rounded hover:bg-blue-50">
                                         <i class="fas fa-plus mr-1"></i> Novo Cliente
                                     </button>
-                                </div>
-                            </div>
-                            <!-- Badge do cliente selecionado (invisível se nenhum selecionado) -->
-                            <div id="selected-client-badge-container" class="mb-3 hidden">
-                                <span class="selected-client-badge">
-                                    <i class="fas fa-check-circle mr-1"></i>
-                                    <span id="selected-client-name"></span>
-                                    <button onclick="clearSelectedClient()" class="ml-2 text-blue-800 hover:text-blue-900">
+                                    <button onclick="clearSelectedClient()" class="text-red-600 text-sm font-bold border border-red-200 px-3 py-1 rounded hover:bg-red-50" title="Remover cliente">
                                         <i class="fas fa-times"></i>
                                     </button>
-                                </span>
+                                </div>
                             </div>
-                            <!-- Campos ocultos para armazenar os dados do cliente -->
-                            <div class="hidden">
-                                <input id="c-name" onchange="upVal('c-name',this.value)">
-                                <input id="c-doc" onchange="upVal('c-doc',this.value)">
-                                <input id="c-phone" onchange="upVal('c-phone',this.value)">
-                                <input id="c-email" onchange="upVal('c-email',this.value)">
-                                <input id="c-addr" onchange="upVal('c-addr',this.value)">
+
+                            <!-- Campos do cliente (ocultos até que um cliente seja selecionado) -->
+                            <div id="client-fields-container" class="hidden">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <input id="c-name" onchange="upVal('c-name',this.value)" class="border p-2 rounded text-sm" placeholder="Nome / Razão Social">
+                                    <input id="c-doc" onchange="upVal('c-doc',this.value)" class="border p-2 rounded text-sm" placeholder="CPF/CNPJ">
+                                    <input id="c-phone" onchange="upVal('c-phone',this.value)" class="border p-2 rounded text-sm" placeholder="Telefone">
+                                    <input id="c-email" onchange="upVal('c-email',this.value)" class="border p-2 rounded text-sm" placeholder="E-mail">
+                                    <input id="c-addr" onchange="upVal('c-addr',this.value)" class="col-span-2 border p-2 rounded text-sm" placeholder="Endereço">
+                                </div>
                             </div>
 
                             <div class="mt-4 pt-4 border-t border-dashed">
@@ -878,7 +863,7 @@
         function selectClient(id) {
             const client = state.clientsCache.find(c => c.id === id);
             if (!client) return;
-            // Preenche os campos ocultos
+            // Preenche os campos
             setVal('c-name', client.name);
             setVal('c-doc', client.doc || '');
             setVal('c-phone', client.phone || '');
@@ -890,9 +875,8 @@
             state.data.client.phone = client.phone || '';
             state.data.client.email = client.email || '';
             state.data.client.address = client.address || '';
-            // Atualiza badge
-            document.getElementById('selected-client-name').innerText = client.name;
-            document.getElementById('selected-client-badge-container').classList.remove('hidden');
+            // Exibe os campos do cliente
+            document.getElementById('client-fields-container').classList.remove('hidden');
             // Limpa sugestões
             document.getElementById('client-search-input').value = '';
             document.getElementById('client-suggestions').classList.add('hidden');
@@ -909,7 +893,7 @@
             state.data.client.phone = '';
             state.data.client.email = '';
             state.data.client.address = '';
-            document.getElementById('selected-client-badge-container').classList.add('hidden');
+            document.getElementById('client-fields-container').classList.add('hidden');
         }
 
         // ----- FEED DE ATIVIDADES (apenas cliente) -----
@@ -1401,12 +1385,11 @@
                 state.previousData = normalizeData(vers[vers.length - 2].items);
             }
             renderEditor();
-            // Se já houver um cliente selecionado, atualiza o badge
+            // Se já houver um cliente selecionado, exibe os campos
             if (state.data.client.name) {
-                document.getElementById('selected-client-name').innerText = state.data.client.name;
-                document.getElementById('selected-client-badge-container').classList.remove('hidden');
+                document.getElementById('client-fields-container').classList.remove('hidden');
             } else {
-                document.getElementById('selected-client-badge-container').classList.add('hidden');
+                document.getElementById('client-fields-container').classList.add('hidden');
             }
         }
 
@@ -1433,7 +1416,7 @@
             setVal('p-doc', d.settings.providerDoc);
             setVal('p-addr', d.settings.providerAddr);
             setVal('p-phone', d.settings.providerPhone);
-            // Campos de cliente são ocultos, já preenchidos via selectClient
+            // Preenche campos de cliente (ocultos ou não)
             setVal('c-name', d.client.name);
             setVal('c-doc', d.client.doc);
             setVal('c-phone', d.client.phone);
@@ -1838,7 +1821,6 @@
                 const d = state.data;
                 if(v.status === 'approved') {
                     document.getElementById('stamp-approved').style.display = 'block';
-                    // Exibe a data de aprovação
                     if (v.approved_at) {
                         const date = new Date(v.approved_at).toLocaleString('pt-BR');
                         safeText('doc-date', date);
@@ -2115,7 +2097,6 @@
             renderDashboardCharts();
             renderProjectCards();
             renderActivityFeed();
-            // Redireciona para tela de sucesso e substitui a URL
             window.history.replaceState(null, '', '?view=success');
             showSuccessScreen('approved');
         }
