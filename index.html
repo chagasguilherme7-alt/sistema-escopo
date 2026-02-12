@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Aprova Ai | Gestão Inteligente</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,36 +13,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; color: #334155; }
+        body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; color: #334155; overflow-x: hidden; }
         .font-heading { font-family: 'Plus Jakarta Sans', sans-serif; }
         
-        /* --- SIDEBAR (Visual MeOrçamentos) --- */
+        /* --- SIDEBAR NOVA (Visual MeOrçamentos) --- */
         .sidebar { width: 260px; background: white; height: 100vh; position: fixed; left: 0; top: 0; border-right: 1px solid #E2E8F0; display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s; }
         .main-content { margin-left: 260px; padding: 2rem; min-height: 100vh; transition: margin 0.3s; }
-        
         .nav-item { display: flex; align-items: center; padding: 12px 24px; color: #64748B; font-weight: 500; transition: all 0.2s; cursor: pointer; border-left: 3px solid transparent; }
         .nav-item:hover, .nav-item.active { background: #F8FAFC; color: #3B82F6; border-left-color: #3B82F6; }
         .nav-item i { width: 24px; margin-right: 10px; }
-        
         .btn-new { background: #3B82F6; color: white; border-radius: 8px; padding: 12px; margin: 20px; text-align: center; font-weight: 600; cursor: pointer; transition: background 0.2s; display: block; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5); }
         .btn-new:hover { background: #2563EB; }
 
-        /* --- VISUAL ORIGINAL RESTAURADO (Editor & Public) --- */
-        
-        /* Itens do Editor */
+        /* --- ESTILOS ORIGINAIS (EDITOR & UTILITÁRIOS) --- */
         .item-box { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s; }
         .item-box:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .item-optional { border: 2px dashed #94a3b8 !important; background-color: #f8fafc; opacity: 0.9; }
         .optional-badge { background: #64748b; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; font-weight: bold; text-transform: uppercase; margin-left: 8px; }
-
-        /* Histórico (Original) */
         .timeline-item { position: relative; padding-left: 2rem; border-left: 2px solid #e2e8f0; padding-bottom: 1.5rem; }
         .timeline-item::before { content: ''; position: absolute; left: -5px; top: 0; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
         .timeline-item:last-child { border-left: transparent; }
         .timeline-desc { font-size: 0.85rem; color: #334155; margin-top: 6px; background: #fff7ed; padding: 12px; border-radius: 8px; border: 1px solid #fed7aa; font-style: italic; }
         .timeline-desc.system { background: #f8fafc; border-color: #f1f5f9; font-style: normal; }
 
-        /* Documento Público (Identidade Original) */
+        /* --- ESTILOS DO DOCUMENTO PÚBLICO (COPIADO DO ORIGINAL) --- */
         .doc-container { font-family: 'Inter', sans-serif; color: #1e293b; line-height: 1.6; }
         .doc-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 2rem; border-bottom: 2px solid #e2e8f0; margin-bottom: 2rem; }
         .doc-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; letter-spacing: -0.02em; }
@@ -50,28 +44,30 @@
         .doc-card { background: #f8fafc; border-radius: 8px; padding: 1.5rem; border: 1px solid #e2e8f0; }
         .att-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; transition: all 0.2s; display: flex; flex-direction: column; gap: 0.5rem; }
         .att-card:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-
+        
         /* Assinatura */
         #signature-pad { border: 2px dashed #cbd5e1; border-radius: 12px; background: #f8fafc; cursor: crosshair; touch-action: none; width: 100%; height: 200px; }
 
-        /* Tabela Clean (Dashboard) */
+        /* Dashboard Tables */
         .custom-table { width: 100%; text-align: left; border-collapse: separate; border-spacing: 0; }
         .custom-table th { padding: 16px; background: #F8FAFC; color: #64748B; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #E2E8F0; }
         .custom-table td { padding: 16px; border-bottom: 1px solid #E2E8F0; background: white; font-size: 0.9rem; }
         .custom-table tr:hover td { background: #F1F5F9; cursor: pointer; }
         .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-
+        
         /* Responsividade */
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) { 
             .sidebar { transform: translateX(-100%); width: 100%; }
             .sidebar.open { transform: translateX(0); }
             .main-content { margin-left: 0; padding: 1rem; }
             .mobile-header { display: flex !important; }
+            .doc-container { padding: 1.5rem; }
         }
         .mobile-header { display: none; justify-content: space-between; align-items: center; padding: 1rem; background: white; border-bottom: 1px solid #E2E8F0; margin-bottom: 1rem; }
         .hidden { display: none !important; }
         .loader-spin { width: 30px; height: 30px; border: 3px solid #E2E8F0; border-top-color: #3B82F6; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        @media print { .no-print { display: none !important; } .sidebar { display: none; } .main-content { margin: 0; padding: 0; } }
     </style>
 </head>
 <body>
@@ -170,31 +166,9 @@
                     </div>
 
                     <div class="space-y-6">
-                        <div class="bg-slate-900 text-white p-6 rounded-xl shadow-lg text-center">
-                            <p class="text-xs font-bold uppercase text-slate-400">Total Global</p>
-                            <div id="ed-total" class="text-3xl font-bold">R$ 0,00</div>
-                        </div>
-
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold text-slate-700 mb-4">Anexos</h3>
-                            <div id="ed-attachments-list" class="mb-3"></div>
-                            <label class="block w-full text-center border-2 border-dashed border-slate-300 p-4 rounded cursor-pointer hover:bg-slate-50 text-xs text-slate-500 font-bold uppercase">
-                                <i class="fas fa-cloud-upload-alt mr-2"></i> Adicionar PDF/IMG
-                                <input type="file" class="hidden" onchange="handleUpload(event)">
-                            </label>
-                        </div>
-
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold text-slate-700 mb-4">Pagamento</h3>
-                            <select id="pay-mode" class="w-full border p-2 rounded mb-2 text-sm"><option value="single">À vista</option><option value="entry_installments">Entrada + Parcelas</option></select>
-                            <button onclick="generatePayment()" class="w-full bg-slate-100 text-slate-600 text-xs font-bold py-2 rounded mb-3">Gerar Texto</button>
-                            <textarea id="t-obs" onchange="upVal('t-obs',this.value)" class="w-full border p-2 rounded text-sm h-20" placeholder="Obs de pagamento..."></textarea>
-                            <div class="grid grid-cols-2 gap-2 mt-2">
-                                <input id="t-deadline" onchange="upVal('t-deadline',this.value)" class="border p-2 rounded text-xs" placeholder="Prazo">
-                                <input id="t-val" onchange="upVal('t-val',this.value)" class="border p-2 rounded text-xs" placeholder="Validade">
-                            </div>
-                        </div>
-
+                        <div class="bg-slate-900 text-white p-6 rounded-xl shadow-lg text-center"><p class="text-xs font-bold uppercase text-slate-400">Total Global</p><div id="ed-total" class="text-3xl font-bold">R$ 0,00</div></div>
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-700 mb-4">Anexos</h3><div id="ed-attachments-list" class="mb-3"></div><label class="block w-full text-center border-2 border-dashed border-slate-300 p-4 rounded cursor-pointer hover:bg-slate-50 text-xs text-slate-500 font-bold uppercase"><i class="fas fa-cloud-upload-alt mr-2"></i> Adicionar PDF/IMG<input type="file" class="hidden" onchange="handleUpload(event)"></label></div>
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-700 mb-4">Pagamento</h3><select id="pay-mode" class="w-full border p-2 rounded mb-2 text-sm"><option value="single">À vista</option><option value="entry_installments">Entrada + Parcelas</option></select><button onclick="generatePayment()" class="w-full bg-slate-100 text-slate-600 text-xs font-bold py-2 rounded mb-3">Gerar Texto</button><textarea id="t-obs" onchange="upVal('t-obs',this.value)" class="w-full border p-2 rounded text-sm h-20" placeholder="Obs de pagamento..."></textarea><div class="grid grid-cols-2 gap-2 mt-2"><input id="t-deadline" onchange="upVal('t-deadline',this.value)" class="border p-2 rounded text-xs" placeholder="Prazo"><input id="t-val" onchange="upVal('t-val',this.value)" class="border p-2 rounded text-xs" placeholder="Validade"></div></div>
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-700 mb-4">Versões</h3><div id="ed-actions-area"></div></div>
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"><h3 class="font-bold text-slate-700 mb-4">Histórico</h3><div id="ed-history" class="space-y-4 max-h-60 overflow-y-auto"></div></div>
                     </div>
@@ -204,7 +178,10 @@
     </div>
 
     <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10">
-        <div id="public-content" class="max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col doc-container p-12">
+        <div id="public-loading" class="flex justify-center mt-20"><div class="loader-spin border-slate-900"></div></div>
+        
+        <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col doc-container p-12">
+            
             <div id="stamp-approved" class="hidden absolute top-10 right-10 border-4 border-emerald-600 text-emerald-600 font-bold text-3xl px-6 py-2 uppercase opacity-30 transform -rotate-12 z-20">APROVADO</div>
 
             <div class="doc-header">
@@ -212,7 +189,7 @@
                 <div class="text-right"><div id="doc-id" class="text-2xl font-bold text-slate-300">#REF</div><div class="text-sm text-slate-400 mt-1 uppercase tracking-widest">Proposta Técnica</div></div>
             </div>
 
-            <div class="mb-10"><h1 id="doc-title" class="text-4xl font-bold text-slate-800 mb-2 font-heading">Projeto</h1><p class="text-slate-500">Documento de escopo e orçamento.</p></div>
+            <div class="mb-10"><h1 id="doc-title" class="text-4xl font-bold text-slate-800 mb-2 doc-title">Projeto</h1><p class="text-slate-500">Documento de escopo e orçamento.</p></div>
 
             <div class="doc-card mb-12">
                 <div class="flex flex-col md:flex-row gap-8">
@@ -221,9 +198,14 @@
                 </div>
             </div>
 
-            <div class="mb-12"><h3 class="doc-section-title">Escopo do Serviço</h3><table class="w-full"><thead><tr class="text-left text-xs uppercase text-slate-400 border-b-2 border-slate-100"><th class="pb-3 pl-4 font-bold">Descrição</th><th class="pb-3 text-center font-bold">Qtd</th><th class="pb-3 text-right pr-4 font-bold">Total</th></tr></thead><tbody id="doc-items-body"></tbody></table></div>
+            <div class="mb-12"><h3 class="doc-section-title">Escopo do Serviço</h3>
+                <table class="w-full">
+                    <thead><tr class="text-left text-xs uppercase text-slate-400 border-b-2 border-slate-100"><th class="pb-3 pl-4 font-bold">Descrição</th><th class="pb-3 text-center font-bold">Qtd</th><th class="pb-3 text-right pr-4 font-bold">Total</th></tr></thead>
+                    <tbody id="doc-items-body"></tbody>
+                </table>
+            </div>
 
-            <div id="doc-attachments-section" class="mb-12 hidden"><h3 class="doc-section-title">Documentação & Arquivos</h3><div id="doc-attachments-grid" class="grid grid-cols-2 gap-4"></div></div>
+            <div id="doc-attachments-section" class="mb-12 hidden"><h3 class="doc-section-title">Documentação & Arquivos</h3><div id="doc-attachments-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
 
             <div class="bg-slate-50 border border-slate-200 rounded-lg p-8 mb-12 flex flex-col md:flex-row gap-12 mt-auto">
                 <div class="flex-1">
@@ -443,7 +425,6 @@
         function rmItem(x) { state.data.items.splice(x,1); renderItems(); updateTotal(); }
         function toggleOpt(x) { state.data.items[x].optional = !state.data.items[x].optional; renderItems(); updateTotal(); }
         
-        // --- CORREÇÃO DO TOTAL (ITEM ADICIONAL EM BAIXO) ---
         function updateTotal() { 
             const mainTotal = state.data.items.reduce((a,b)=> !b.optional ? a+(b.qty*b.price) : a,0);
             const optTotal = state.data.items.reduce((a,b)=> b.optional ? a+(b.qty*b.price) : a,0);
@@ -495,7 +476,6 @@
             renderHistory(); alert("Salvo!");
         }
 
-        // --- HISTÓRICO RESTAURADO ---
         function renderHistory() {
             document.getElementById('ed-history').innerHTML = state.data.history.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(h => {
                 let icon = 'info-circle text-blue-400';
@@ -514,60 +494,78 @@
             }).join('');
         }
 
-        // --- PUBLIC RESTAURADO ---
+        // --- PUBLIC ORIGINAL (RESTAURADO) ---
         async function loadPublicProposal(id) {
-            document.getElementById('view-public').classList.remove('hidden');
+            document.getElementById('public-loading').style.display = 'flex';
             const { data: v } = await db.from('versions').select('*, projects(name)').eq('id', id).single();
             state.version = v; state.data = normalizeData(v.items);
             
+            document.getElementById('public-loading').style.display = 'none';
+            document.getElementById('public-content').classList.remove('hidden');
+            document.getElementById('view-public').classList.remove('hidden');
+
             if(v.status === 'approved') document.getElementById('stamp-approved').classList.remove('hidden');
             
-            document.getElementById('doc-provider-info').innerHTML = `<h2 class="text-2xl font-bold font-heading mb-1">${state.data.settings.providerName||''}</h2><p class="text-sm text-slate-500">${state.data.settings.providerDoc||''} • ${state.data.settings.providerPhone||''}</p><p class="text-xs text-slate-400">${state.data.settings.providerAddr||''}</p>`;
+            document.getElementById('doc-provider-info').innerHTML = `<h2 class="text-3xl font-bold font-heading mb-1">${state.data.settings.providerName||''}</h2><p class="text-sm font-medium text-slate-500">${state.data.settings.providerDoc||''} • ${state.data.settings.providerPhone||''}</p><p class="text-xs text-slate-400">${state.data.settings.providerAddr||''}</p>`;
             document.getElementById('doc-id').innerText = `#${v.project_id.substr(0,4)}-V${v.version_number}`;
             document.getElementById('doc-c-name').innerText = state.data.client.name;
             document.getElementById('doc-c-doc').innerText = state.data.client.doc;
             document.getElementById('doc-c-addr').innerText = state.data.client.address;
-            
-            // Total Principal
             document.getElementById('doc-total').innerText = (v.total_value||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-            
-            // Total Opcionais (Embaixo)
-            const optTotal = state.data.items.reduce((a,b)=> b.optional ? a+(b.qty*b.price) : a,0);
-            if(optTotal > 0) {
-                document.getElementById('doc-total-opt').innerText = `+ ${optTotal.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} em opcionais`;
-            } else {
-                document.getElementById('doc-total-opt').innerText = '';
-            }
-
+            document.getElementById('doc-title').innerText = v.projects.name;
             document.getElementById('doc-payment').innerText = state.data.terms.paymentText;
             document.getElementById('doc-deadline').innerText = state.data.terms.deadline;
             document.getElementById('doc-validity').innerText = state.data.terms.validity;
-            document.getElementById('doc-title').innerText = v.projects.name;
+            
+            // Total Opcionais
+            const optTotal = state.data.items.reduce((a,b)=> b.optional ? a+(b.qty*b.price) : a,0);
+            if(optTotal > 0) document.getElementById('doc-total-opt').innerText = `+ ${optTotal.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} em opcionais`;
 
-            document.getElementById('doc-items-body').innerHTML = state.data.items.map(i => `
+            // Itens com Checkbox Original
+            const isFrozen = v.status !== 'sent' && v.status !== 'negotiating' && v.status !== 'draft';
+            document.getElementById('doc-items-body').innerHTML = state.data.items.map((i, idx) => `
                 <tr class="border-b border-slate-100 ${i.optional ? 'bg-slate-50/50' : ''}">
                     <td class="py-4 pl-4">
-                        <div class="font-bold text-slate-800 ${i.optional ? 'text-slate-600':''}">${i.name} ${i.optional ? '<span class="text-[10px] bg-slate-200 text-slate-600 px-1 rounded uppercase ml-2">Opcional</span>' : ''}</div>
-                        <div class="text-sm text-slate-500 font-normal">${i.description||''}</div>
+                        <div class="flex items-start gap-3">
+                            ${i.optional && !isFrozen ? `<input type="checkbox" onchange="togglePublicOpt(${idx})" ${i.publicSelected ? 'checked' : ''} class="mt-1 w-5 h-5 cursor-pointer accent-slate-900">` : ''}
+                            ${i.optional && isFrozen ? (i.publicSelected ? '<i class="fas fa-check-square text-green-600 mt-1"></i>' : '<i class="far fa-square text-slate-400 mt-1"></i>') : ''}
+                            <div>
+                                <div class="font-bold text-slate-800 ${i.optional ? 'text-slate-600':''}">${i.name} ${i.optional ? '<span class="text-[10px] bg-slate-200 text-slate-600 px-1 rounded uppercase ml-2 tracking-wide font-bold">Opcional</span>' : ''}</div>
+                                <div class="text-sm text-slate-500 font-normal">${i.description||''}</div>
+                            </div>
+                        </div>
                     </td>
                     <td class="text-center text-slate-600 font-medium">${i.qty}</td>
-                    <td class="text-right pr-4 font-bold text-slate-800 ${i.optional ? 'line-through text-slate-400 decoration-slate-400':''}">${(i.qty*i.price).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
+                    <td class="text-right pr-4 font-bold text-slate-800 ${i.optional && !i.publicSelected ? 'line-through text-slate-400 decoration-slate-400':''}">${(i.qty*i.price).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
                 </tr>
             `).join('');
 
+            // Anexos
             if(state.data.attachments.length > 0) {
                 document.getElementById('doc-attachments-section').classList.remove('hidden');
                 document.getElementById('doc-attachments-grid').innerHTML = state.data.attachments.map(a => `
-                    <a href="${a.url}" target="_blank" class="att-card"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100"><i class="fas fa-file text-blue-500"></i></div><span class="text-sm font-bold truncate">${a.name}</span></div></a>
-                `).join('');
+                    <a href="${a.url}" target="_blank" class="att-card group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors"><i class="fas fa-file text-blue-500"></i></div>
+                            <span class="text-sm font-bold truncate">${a.name}</span>
+                        </div>
+                    </a>`).join('');
             }
 
-            if(state.data.signature) document.getElementById('doc-signature-area').innerHTML = `<div class="mt-8 border-t border-dashed w-64 text-center"><img src="${state.data.signature}" class="h-16 mx-auto"><p class="text-xs font-bold uppercase text-slate-500">Assinado Digitalmente</p></div>`;
+            if(state.data.signature) document.getElementById('doc-signature-area').innerHTML = `<div class="mt-8 border-t border-dashed w-64 text-center"><img src="${state.data.signature}" class="h-16 mx-auto mb-2"><p class="text-xs font-bold uppercase text-slate-500">Assinado Digitalmente</p></div>`;
 
             const acts = document.getElementById('doc-actions');
             if (v.status === 'sent' || v.status === 'negotiating') {
-                acts.innerHTML = `<button onclick="openInt('approve')" class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2 hover:bg-slate-800"><i class="fas fa-signature"></i> APROVAR PROPOSTA</button><div class="grid grid-cols-2 gap-3"><button onclick="openInt('neg')" class="bg-white border border-amber-200 text-amber-700 font-bold px-4 rounded-xl hover:bg-amber-50">Alterar</button><button onclick="openInt('cancel')" class="bg-white border border-red-200 text-red-600 font-bold px-4 rounded-xl hover:bg-red-50">Recusar</button></div>`;
+                acts.innerHTML = `<button onclick="openInt('approve')" class="bg-slate-900 text-white px-6 py-4 rounded-xl font-bold shadow-lg flex items-center gap-2 hover:bg-slate-800 hover:scale-[1.01] transition-transform w-full md:w-auto justify-center"><i class="fas fa-signature"></i> APROVAR PROPOSTA</button><div class="grid grid-cols-2 gap-3 w-full md:w-auto"><button onclick="openInt('neg')" class="bg-white border border-amber-200 text-amber-700 font-bold px-4 py-3 rounded-xl hover:bg-amber-50">Solicitar Alteração</button><button onclick="openInt('cancel')" class="bg-white border border-red-200 text-red-600 font-bold px-4 py-3 rounded-xl hover:bg-red-50">Recusar</button></div>`;
             }
+        }
+
+        function togglePublicOpt(idx) {
+            state.data.items[idx].publicSelected = !state.data.items[idx].publicSelected;
+            // Recalcula total visualmente (só para o cliente ver na hora)
+            let total = state.data.items.reduce((acc, i) => (!i.optional || i.publicSelected ? acc + (i.qty * i.price) : acc), 0);
+            document.getElementById('doc-total').innerText = total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+            loadPublicProposal(state.version.id); // Re-renderiza para atualizar strikethrough
         }
 
         function openInt(type) {
@@ -597,8 +595,14 @@
             const det = st === 'approved' ? 'Assinou digitalmente' : document.getElementById('modal-input').value;
             if(st === 'approved') state.data.signature = document.getElementById('signature-pad').toDataURL();
             
+            // Se aprovou, salva os opcionais selecionados
+            let finalTotal = state.version.total_value;
+            if(st === 'approved') {
+                 finalTotal = state.data.items.reduce((acc, i) => (!i.optional || i.publicSelected ? acc + (i.qty * i.price) : acc), 0);
+            }
+
             state.data.history.push({ date: new Date(), action: st, user: 'client', detail: det });
-            await db.from('versions').update({ status: st, items: state.data }).eq('id', state.version.id);
+            await db.from('versions').update({ status: st, items: state.data, total_value: finalTotal }).eq('id', state.version.id);
             alert("Registrado!"); location.reload();
         }
 
