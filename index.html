@@ -628,13 +628,7 @@
             return logs.length ? logs.join('; ') : null;
         }
 
-        // ----- INICIALIZAÇÃO -----
-        window.onerror = function(msg) {
-            console.error("Erro:", msg);
-            document.getElementById('system-loader').style.display = 'none';
-            return false;
-        };
-
+        // ----- INICIALIZAÇÃO CORRIGIDA (NUNCA TENTA ACESSAR state.user.id SEM USUÁRIO) -----
         async function init() {
             try {
                 db = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -647,25 +641,28 @@
                 const { data: { session } } = await db.auth.getSession();
                 state.user = session?.user;
 
-                if (view === 'public') {
-                    if(!id) throw new Error("Link inválido.");
+                // Roteamento seguro
+                if (view === 'public' && id) {
                     await loadPublicProposal(id);
                     safeShow('view-public');
-                } else if (!state.user && view !== 'login') {
+                } else if (!state.user) {
+                    // Sem usuário -> força tela de login
                     window.history.replaceState(null, '', '?view=login');
                     safeShow('view-login');
                     initRotator();
-                } else if (state.user && view === 'login') {
-                    goTo('dashboard');
                 } else {
+                    // Usuário logado -> exibe app e navega
                     document.getElementById('app-layout').classList.remove('hidden');
                     await loadProjects();
-                    if (view === 'editor' && id) await loadEditor(id);
-                    if (view === 'dashboard') switchTab('dashboard', false);
-                    else if (view === 'projects') switchTab('projects', false);
-                    else if (view === 'clients') switchTab('clients', false);
-                    else if (view === 'editor') switchTab('editor', false);
-                    else switchTab('dashboard', false);
+                    
+                    if (view === 'editor' && id) {
+                        await loadEditor(id);
+                        switchTab('editor', false);
+                    } else if (view === 'dashboard' || view === 'projects' || view === 'clients') {
+                        switchTab(view, false);
+                    } else {
+                        switchTab('dashboard', false);
+                    }
                 }
                 setTimeout(() => { 
                     document.getElementById('system-loader').style.display = 'none'; 
