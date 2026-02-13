@@ -72,37 +72,220 @@
         .att-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; transition: all 0.2s; display: flex; flex-direction: column; gap: 0.5rem; }
         .att-card:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
 
+        /* ----- LOGIN COM PALETA VERDE (NOVO VISUAL) ----- */
         .split-screen { display: flex; min-height: 100vh; width: 100%; position: absolute; top: 0; left: 0; z-index: 50; background: white; }
-        .left-area { width: 60%; background: radial-gradient(circle at top left, #1e1b4b, #0f172a), linear-gradient(135deg, #172554 0%, #1e3a8a 100%); color: white; display: flex; flex-direction: column; justify-content: center; padding: 5rem 6rem; position: relative; overflow: hidden; }
-        .glow-orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.35; }
-        .orb-1 { width: 600px; height: 600px; background: #3b82f6; top: -15%; left: -15%; animation: float 10s ease-in-out infinite; }
-        .orb-2 { width: 500px; height: 500px; background: #8b5cf6; bottom: -15%; right: -15%; animation: float 12s ease-in-out infinite reverse; }
-        @keyframes float { 0% { transform: translate(0, 0); } 50% { transform: translate(-20px, 20px); } 100% { transform: translate(0, 0); } }
-        .benefit-item { display: flex; align-items: start; gap: 1.25rem; padding: 1.25rem; margin-bottom: 1.25rem; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 16px; backdrop-filter: blur(12px); transition: all 0.3s ease; }
-        .benefit-item:hover { background: rgba(255, 255, 255, 0.08); transform: translateX(8px); border-color: rgba(255, 255, 255, 0.2); }
-        .icon-circle { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .right-area { width: 40%; background: #F8FAFC; display: flex; align-items: center; justify-content: center; position: relative; padding: 2rem; }
-        .login-card { background: white; width: 100%; max-width: 420px; padding: 3rem 2rem; border-radius: 24px; box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.08); border: 1px solid #f1f5f9; text-align: center; }
-        .input-pro { width: 100%; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 1rem; color: #1e293b; text-align: center; transition: all 0.2s; margin-bottom: 1.5rem; outline: none; }
-        .input-pro:focus { background: white; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
-        .btn-pro { width: 100%; padding: 16px; border-radius: 12px; font-weight: 700; color: white; background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%); border: none; cursor: pointer; transition: all 0.3s; font-size: 1rem; box-shadow: 0 10px 25px -5px rgba(30, 58, 138, 0.25); }
-        .btn-pro:hover { transform: translateY(-2px); box-shadow: 0 15px 30px -5px rgba(30, 58, 138, 0.35); }
-        .btn-pro:disabled { opacity: 0.7; cursor: not-allowed; }
-        .ideal-para-container { display: flex; align-items: center; justify-content: center; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.25rem; color: #94a3b8; margin-bottom: 3rem; margin-top: 1rem; }
-        @media (min-width: 1024px) { .ideal-para-container { justify-content: flex-start; } }
-        .rotating-wrapper { position: relative; height: 1.5em; width: 350px; overflow: hidden; margin-left: 0.5rem; display: inline-block; vertical-align: middle; text-align: left; }
-        .rotate-word { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; font-weight: 700; color: #ffffff; opacity: 0; transform: translateY(100%); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-        .rotate-word.active { opacity: 1; transform: translateY(0); } 
-        .rotate-word.exit { opacity: 0; transform: translateY(-100%); }
+        .left-area { 
+            width: 60%; 
+            background: linear-gradient(135deg, #e6f7e6 0%, #2e7d32 100%); 
+            color: white; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            padding: 5rem 6rem; 
+            position: relative; 
+            overflow: hidden; 
+        }
+        .glow-orb { 
+            position: absolute; 
+            border-radius: 50%; 
+            filter: blur(90px); 
+            opacity: 0.25; 
+        }
+        .orb-1 { 
+            width: 600px; 
+            height: 600px; 
+            background: #a5d6a7; 
+            top: -15%; 
+            left: -15%; 
+            animation: float 10s ease-in-out infinite; 
+        }
+        .orb-2 { 
+            width: 500px; 
+            height: 500px; 
+            background: #1b5e20; 
+            bottom: -15%; 
+            right: -15%; 
+            animation: float 12s ease-in-out infinite reverse; 
+        }
+        @keyframes float { 
+            0% { transform: translate(0, 0); } 
+            50% { transform: translate(-20px, 20px); } 
+            100% { transform: translate(0, 0); } 
+        }
+        .benefit-item { 
+            display: flex; 
+            align-items: start; 
+            gap: 1.25rem; 
+            padding: 1.25rem; 
+            margin-bottom: 1.25rem; 
+            background: rgba(255, 255, 255, 0.1); 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            border-radius: 16px; 
+            backdrop-filter: blur(12px); 
+            transition: all 0.3s ease; 
+        }
+        .benefit-item:hover { 
+            background: rgba(255, 255, 255, 0.2); 
+            transform: translateX(8px); 
+            border-color: rgba(255, 255, 255, 0.3); 
+        }
+        .icon-circle { 
+            width: 44px; 
+            height: 44px; 
+            border-radius: 12px; 
+            background-color: #2e7d32; 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 1.1rem; 
+            flex-shrink: 0; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+        }
+        .right-area { 
+            width: 40%; 
+            background: #ffffff; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            position: relative; 
+            padding: 2rem; 
+        }
+        .login-card { 
+            background: white; 
+            width: 100%; 
+            max-width: 420px; 
+            padding: 3rem 2rem; 
+            border-radius: 24px; 
+            box-shadow: 0 25px 60px -15px rgba(0, 60, 0, 0.15); 
+            border: 1px solid #e8f5e9; 
+            text-align: center; 
+        }
+        .input-pro { 
+            width: 100%; 
+            padding: 16px; 
+            background: #f1f8e9; 
+            border: 1px solid #c8e6c9; 
+            border-radius: 12px; 
+            font-size: 1rem; 
+            color: #1b5e20; 
+            text-align: center; 
+            transition: all 0.2s; 
+            margin-bottom: 1.5rem; 
+            outline: none; 
+        }
+        .input-pro:focus { 
+            background: white; 
+            border-color: #2e7d32; 
+            box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.1); 
+        }
+        .btn-pro { 
+            width: 100%; 
+            padding: 16px; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            color: white; 
+            background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%); 
+            border: none; 
+            cursor: pointer; 
+            transition: all 0.3s; 
+            font-size: 1rem; 
+            box-shadow: 0 10px 25px -5px rgba(46, 125, 50, 0.25); 
+        }
+        .btn-pro:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 15px 30px -5px rgba(46, 125, 50, 0.35); 
+        }
+        .btn-pro:disabled { 
+            opacity: 0.7; 
+            cursor: not-allowed; 
+        }
+        .ideal-para-container { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            font-size: 1.25rem; 
+            color: #f1f8e9; 
+            margin-bottom: 3rem; 
+            margin-top: 1rem; 
+        }
+        @media (min-width: 1024px) { 
+            .ideal-para-container { 
+                justify-content: flex-start; 
+            } 
+        }
+        .rotating-wrapper { 
+            position: relative; 
+            height: 1.5em; 
+            width: 350px; 
+            overflow: hidden; 
+            margin-left: 0.5rem; 
+            display: inline-block; 
+            vertical-align: middle; 
+            text-align: left; 
+        }
+        .rotate-word { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            display: flex; 
+            align-items: center; 
+            font-weight: 700; 
+            color: #ffffff; 
+            opacity: 0; 
+            transform: translateY(100%); 
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .rotate-word.active { 
+            opacity: 1; 
+            transform: translateY(0); 
+        } 
+        .rotate-word.exit { 
+            opacity: 0; 
+            transform: translateY(-100%); 
+        }
         @media (max-width: 1024px) { 
-            .split-screen { flex-direction: column; position: relative; height: auto; min-height: 100vh; } 
-            .left-area { width: 100%; padding: 3rem 1.5rem; min-height: auto; text-align: center; } 
-            .ideal-para-container { justify-content: center; font-size: 1rem; } 
-            .rotating-wrapper { width: 200px; }
-            .right-area { width: 100%; padding: 2rem 1rem; background: white; } 
-            .login-card { box-shadow: none; border: none; padding: 0; max-width: 100%; } 
-            .benefit-item { flex-direction: column; align-items: center; text-align: center; } 
-            .glow-orb { display: none; } 
+            .split-screen { 
+                flex-direction: column; 
+                position: relative; 
+                height: auto; 
+                min-height: 100vh; 
+            } 
+            .left-area { 
+                width: 100%; 
+                padding: 3rem 1.5rem; 
+                min-height: auto; 
+                text-align: center; 
+            } 
+            .ideal-para-container { 
+                justify-content: center; 
+                font-size: 1rem; 
+            } 
+            .rotating-wrapper { 
+                width: 200px; 
+            }
+            .right-area { 
+                width: 100%; 
+                padding: 2rem 1rem; 
+                background: white; 
+            } 
+            .login-card { 
+                box-shadow: none; 
+                border: none; 
+                padding: 0; 
+                max-width: 100%; 
+            } 
+            .benefit-item { 
+                flex-direction: column; 
+                align-items: center; 
+                text-align: center; 
+            } 
+            .glow-orb { 
+                display: none; 
+            } 
         }
 
         @media print {
@@ -163,6 +346,7 @@
         <button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button>
     </div>
 
+    <!-- LOGIN COM NOVA PALETA VERDE -->
     <section id="view-login" class="hidden split-screen">
         <div class="left-area">
             <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
@@ -170,12 +354,12 @@
                 <div class="mb-4">
                     <img src="logo.png" alt="Aprova Ai" class="h-16">
                 </div>
-                <h1 class="text-5xl font-extrabold leading-tight mb-2 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">Garantem sua segurança</span></h1>
+                <h1 class="text-5xl font-extrabold leading-tight mb-2 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-green-200 to-white">Garantem sua segurança</span></h1>
                 <div class="ideal-para-container"><span>Ideal para:</span><span id="rotator" class="rotating-wrapper"></span></div>
                 <div class="space-y-4">
-                    <div class="benefit-item delay-100"><div class="icon-circle bg-blue-600 text-white"><i class="fas fa-shield-alt"></i></div><div><h3 class="font-bold text-lg">Evite prejuízos</h3><p class="text-sm text-indigo-100 opacity-80">Registre mudanças de escopo.</p></div></div>
-                    <div class="benefit-item delay-200"><div class="icon-circle bg-emerald-500 text-white"><i class="fas fa-check"></i></div><div><h3 class="font-bold text-lg">Aprovação</h3><p class="text-sm text-indigo-100 opacity-80">Link direto e histórico.</p></div></div>
-                    <div class="benefit-item delay-300"><div class="icon-circle bg-purple-500 text-white"><i class="fas fa-file-contract"></i></div><div><h3 class="font-bold text-lg">Sem discussão</h3><p class="text-sm text-indigo-100 opacity-80">Tudo documentado.</p></div></div>
+                    <div class="benefit-item delay-100"><div class="icon-circle"><i class="fas fa-shield-alt"></i></div><div><h3 class="font-bold text-lg">Evite prejuízos</h3><p class="text-sm text-green-50 opacity-90">Registre mudanças de escopo.</p></div></div>
+                    <div class="benefit-item delay-200"><div class="icon-circle"><i class="fas fa-check"></i></div><div><h3 class="font-bold text-lg">Aprovação</h3><p class="text-sm text-green-50 opacity-90">Link direto e histórico.</p></div></div>
+                    <div class="benefit-item delay-300"><div class="icon-circle"><i class="fas fa-file-contract"></i></div><div><h3 class="font-bold text-lg">Sem discussão</h3><p class="text-sm text-green-50 opacity-90">Tudo documentado.</p></div></div>
                 </div>
             </div>
         </div>
@@ -184,8 +368,8 @@
                 <div class="avatar-circle flex justify-center mb-4">
                     <img src="logo.png" alt="Logo" class="h-12">
                 </div>
-                <h2 class="text-2xl font-bold text-slate-900 mb-2 font-heading">Acesse sua conta</h2>
-                <p class="text-slate-500 mb-8 text-sm">Digite seu e-mail para entrar.</p>
+                <h2 class="text-2xl font-bold text-green-800 mb-2 font-heading">Acesse sua conta</h2>
+                <p class="text-green-600 mb-8 text-sm">Digite seu e-mail para entrar.</p>
                 <input type="email" id="email" placeholder="E-mail" class="input-pro">
                 <button onclick="handleLogin()" id="btn-login" class="btn-pro">Enviar link de acesso</button>
             </div>
