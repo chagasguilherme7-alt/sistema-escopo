@@ -352,34 +352,70 @@
     </div>
 
     <!-- LOGIN COM VISUAL MODERNO -->
-    <section id="view-login" class="hidden split-screen">
-        <div class="left-area">
-            <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
-            <div class="relative z-10 anim-entry">
-                <div class="mb-4">
-                    <img src="logo.png" alt="Aprova Ai" class="h-16">
-                </div>
-                <h1 class="text-5xl font-extrabold leading-tight mb-2 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-green-900">Garantem sua segurança</span></h1>
-                <div class="ideal-para-container"><span>Ideal para:</span><span id="rotator" class="rotating-wrapper"></span></div>
-                <div class="space-y-4">
-                    <div class="benefit-item delay-100"><div class="icon-circle"><i class="fas fa-shield-alt"></i></div><div><h3 class="font-bold text-lg">Evite prejuízos</h3><p class="text-sm text-slate-600">Registre mudanças de escopo.</p></div></div>
-                    <div class="benefit-item delay-200"><div class="icon-circle"><i class="fas fa-check"></i></div><div><h3 class="font-bold text-lg">Aprovação</h3><p class="text-sm text-slate-600">Link direto e histórico.</p></div></div>
-                    <div class="benefit-item delay-300"><div class="icon-circle"><i class="fas fa-file-contract"></i></div><div><h3 class="font-bold text-lg">Sem discussão</h3><p class="text-sm text-slate-600">Tudo documentado.</p></div></div>
+<section id="view-login" class="hidden split-screen">
+    <div class="left-area">
+        <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
+        <div class="relative z-10 anim-entry">
+            <div class="mb-4">
+                <img src="logo.png" alt="Aprova Ai" class="h-16">
+            </div>
+            <h1 class="text-5xl font-extrabold leading-tight mb-2 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-green-900">Garantem sua segurança</span></h1>
+            <p class="text-xl text-slate-700 mb-6">Crie, envie e acompanhe orçamentos com aprovação digital e histórico completo.</p>
+            
+            <div class="space-y-4">
+                <div class="benefit-item delay-100"><div class="icon-circle"><i class="fas fa-shield-alt"></i></div><div><h3 class="font-bold text-lg">Evite prejuízos</h3><p class="text-sm text-slate-600">Registre mudanças de escopo e evite retrabalho.</p></div></div>
+                <div class="benefit-item delay-200"><div class="icon-circle"><i class="fas fa-check"></i></div><div><h3 class="font-bold text-lg">Aprovação</h3><p class="text-sm text-slate-600">Link direto para o cliente aprovar com assinatura digital.</p></div></div>
+                <div class="benefit-item delay-300"><div class="icon-circle"><i class="fas fa-file-contract"></i></div><div><h3 class="font-bold text-lg">Sem discussão</h3><p class="text-sm text-slate-600">Tudo documentado, histórico completo e PDF comprovante.</p></div></div>
+            </div>
+
+            <!-- Como funciona em 3 passos -->
+            <div class="mt-8">
+                <h3 class="text-2xl font-bold text-slate-800 mb-4">Como funciona?</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white/70 backdrop-blur-sm p-4 rounded-xl border border-green-200 shadow-sm">
+                        <div class="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold mb-2">1</div>
+                        <h4 class="font-bold text-slate-800">Crie</h4>
+                        <p class="text-sm text-slate-600">Adicione itens, opcionais e anexos. Seus dados são salvos automaticamente.</p>
+                    </div>
+                    <div class="bg-white/70 backdrop-blur-sm p-4 rounded-xl border border-green-200 shadow-sm">
+                        <div class="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold mb-2">2</div>
+                        <h4 class="font-bold text-slate-800">Envie</h4>
+                        <p class="text-sm text-slate-600">Compartilhe o link por WhatsApp ou e-mail. O cliente vê tudo.</p>
+                    </div>
+                    <div class="bg-white/70 backdrop-blur-sm p-4 rounded-xl border border-green-200 shadow-sm">
+                        <div class="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold mb-2">3</div>
+                        <h4 class="font-bold text-slate-800">Aprovação</h4>
+                        <p class="text-sm text-slate-600">Cliente aprova com assinatura digital. Você recebe notificação e PDF.</p>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="right-area">
-            <div class="login-card anim-entry delay-300">
-                <div class="avatar-circle flex justify-center mb-4">
-                    <img src="logo.png" alt="Logo" class="h-12">
-                </div>
-                <h2 class="text-2xl font-bold text-slate-800 mb-2 font-heading">Acesse sua conta</h2>
-                <p class="text-slate-500 mb-8 text-sm">Digite seu e-mail para entrar.</p>
-                <input type="email" id="email" placeholder="E-mail" class="input-pro">
-                <button onclick="handleLogin()" id="btn-login" class="btn-pro">Enviar link de acesso</button>
+
+            <!-- Selo de confiança -->
+            <div class="mt-8 flex items-center gap-2 text-slate-600">
+                <i class="fas fa-users text-green-600"></i>
+                <span>Mais de <strong>500 usuários</strong> já aprovaram mais de <strong>2.000 orçamentos</strong>.</span>
+            </div>
+
+            <!-- Rodapé -->
+            <div class="mt-8 text-xs text-slate-500 flex gap-4">
+                <a href="#" class="hover:text-green-600">Termos de uso</a>
+                <a href="#" class="hover:text-green-600">Política de privacidade</a>
+                <span>© 2025 Aprova Ai</span>
             </div>
         </div>
-    </section>
+    </div>
+    <div class="right-area">
+        <div class="login-card anim-entry delay-300">
+            <div class="avatar-circle flex justify-center mb-4">
+                <img src="logo.png" alt="Logo" class="h-12">
+            </div>
+            <h2 class="text-2xl font-bold text-slate-800 mb-2 font-heading">Acesse sua conta</h2>
+            <p class="text-slate-500 mb-8 text-sm">Digite seu e-mail para entrar.</p>
+            <input type="email" id="email" placeholder="E-mail" class="input-pro">
+            <button onclick="handleLogin()" id="btn-login" class="btn-pro">Enviar link de acesso</button>
+        </div>
+    </div>
+</section>
 
     <div id="app-layout" class="hidden">
         <div class="mobile-header">
@@ -2320,3 +2356,4 @@
     </script>
 </body>
 </html>
+
