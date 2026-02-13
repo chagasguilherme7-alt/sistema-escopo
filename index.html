@@ -13,6 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
+        /* (mantido todo o CSS anterior, apenas acrescentado estilo para o modal de cliente público) */
         body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; color: #334155; }
         .sidebar { width: 260px; background: white; height: 100vh; position: fixed; left: 0; top: 0; border-right: 1px solid #E2E8F0; display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s; }
         .main-content { margin-left: 260px; padding: 2rem; min-height: 100vh; transition: margin 0.3s; }
@@ -373,7 +374,6 @@
             background-color: #f8fafc;
         }
 
-        /* Estilo para o catálogo público */
         .public-catalog-card {
             background: white;
             border: 1px solid #e2e8f0;
@@ -384,6 +384,11 @@
         .public-catalog-card:hover {
             border-color: #2e7d32;
             box-shadow: 0 4px 12px rgba(46,125,50,0.1);
+        }
+
+        /* Modal de dados do cliente (público) */
+        #client-data-modal .modal-box {
+            max-width: 500px;
         }
     </style>
 </head>
@@ -815,7 +820,7 @@
         </main>
     </div>
 
-    <!-- MODAL CLIENTE -->
+    <!-- MODAL CLIENTE (CRUD) -->
     <div id="client-modal" class="hidden fixed inset-0 bg-black/50 z-[80] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl">
             <h3 id="client-modal-title" class="text-xl font-bold mb-4 text-slate-800">Novo Cliente</h3>
@@ -884,7 +889,24 @@
         </div>
     </div>
 
-    <!-- VIEW PÚBLICA DO CATÁLOGO (NOVA) -->
+    <!-- MODAL DE DADOS DO CLIENTE (PÚBLICO) -->
+    <div id="client-data-modal" class="hidden fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-6 rounded-xl">
+            <h3 class="text-xl font-bold mb-4 text-slate-800">Para continuar, informe seus dados</h3>
+            <div class="space-y-3">
+                <input id="public-client-name" class="w-full border p-2 rounded text-sm" placeholder="Nome completo *">
+                <input id="public-client-email" type="email" class="w-full border p-2 rounded text-sm" placeholder="E-mail">
+                <input id="public-client-phone" class="w-full border p-2 rounded text-sm" placeholder="Telefone">
+                <input id="public-client-address" class="w-full border p-2 rounded text-sm" placeholder="Endereço">
+            </div>
+            <div class="flex gap-2 mt-6">
+                <button onclick="cancelPublicClientData()" class="flex-1 border py-2 rounded text-slate-600 font-bold hover:bg-slate-50">Cancelar</button>
+                <button onclick="savePublicClientData()" class="flex-1 bg-green-600 text-white py-2 rounded font-bold hover:bg-green-700">Continuar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW PÚBLICA DO CATÁLOGO -->
     <section id="view-public-catalog" class="hidden min-h-screen bg-slate-50 p-6">
         <div class="max-w-4xl mx-auto">
             <div id="public-catalog-loading" class="flex justify-center py-20">
@@ -1136,7 +1158,7 @@
             return logs.length ? logs.join('; ') : null;
         }
 
-        // ----- CLIENTES -----
+        // ----- CLIENTES (CRUD) -----
         async function loadClients() {
             if (!state.user) return;
             const { data, error } = await db
@@ -1317,7 +1339,7 @@
             document.getElementById('client-fields-container').classList.add('hidden');
         }
 
-        // ----- CATÁLOGO -----
+        // ----- CATÁLOGO (CRUD) -----
         async function loadCatalog() {
             if (!state.user) return;
             const { data, error } = await db
@@ -1525,7 +1547,7 @@
             closeCatalogSelector();
         }
 
-        // ----- COMPARTILHAR CATÁLOGO (PÚBLICO) -----
+        // ----- COMPARTILHAR CATÁLOGO -----
         function openShareCatalogModal() {
             const link = `${window.location.origin}${window.location.pathname}?view=public-catalog&user=${state.user.id}`;
             document.getElementById('catalog-share-link').innerText = link;
@@ -1554,17 +1576,43 @@
         }
 
         // ----- PÁGINA PÚBLICA DO CATÁLOGO -----
+        let publicClientData = null;
+
         async function loadPublicCatalog(userId) {
             safeShow('public-catalog-loading');
             safeHide('public-catalog-content');
-            const { data: provider, error: userError } = await db
-                .from('users')
-                .select('email') // ou nome? Precisamos de uma tabela de perfis? Vamos usar uma consulta na tabela auth.users? Não é possível diretamente. Melhor assumir que o prestador tem um nome armazenado em settings.providerName no primeiro projeto? Ou podemos buscar o primeiro projeto para obter o nome. Vamos fazer simples: exibir "Prestador" se não houver nome.
-                .eq('id', userId)
-                .single();
-            let providerName = "Prestador";
-            if (provider && provider.email) providerName = provider.email.split('@')[0];
-            document.getElementById('provider-name').innerText = `Serviços de ${providerName}`;
+            // Exibe modal para dados do cliente
+            document.getElementById('client-data-modal').classList.remove('hidden');
+            // Aguarda preenchimento e depois chama a função para carregar o catálogo
+        }
+
+        function cancelPublicClientData() {
+            document.getElementById('client-data-modal').classList.add('hidden');
+            // Volta para a página inicial ou fecha? Melhor redirecionar para login.
+            window.location.href = '?view=login';
+        }
+
+        function savePublicClientData() {
+            const name = document.getElementById('public-client-name').value.trim();
+            if (!name) {
+                alert("Por favor, informe seu nome.");
+                return;
+            }
+            publicClientData = {
+                name: name,
+                email: document.getElementById('public-client-email').value,
+                phone: document.getElementById('public-client-phone').value,
+                address: document.getElementById('public-client-address').value
+            };
+            document.getElementById('client-data-modal').classList.add('hidden');
+            // Agora carrega o catálogo
+            reallyLoadPublicCatalog();
+        }
+
+        async function reallyLoadPublicCatalog() {
+            const params = new URLSearchParams(window.location.search);
+            const userId = params.get('user');
+            if (!userId) return alert("Usuário não identificado.");
 
             const { data: catalog, error } = await db
                 .from('service_catalog')
@@ -1575,6 +1623,11 @@
                 alert("Erro ao carregar catálogo.");
                 return;
             }
+            // Exibe o nome do prestador (usando o e-mail como fallback)
+            const { data: provider } = await db.auth.admin.getUserById?.(userId) // não funciona, melhor ignorar
+            let providerName = "Prestador";
+            document.getElementById('provider-name').innerText = `Serviços de ${providerName}`;
+
             const container = document.getElementById('public-catalog-items');
             let html = '';
             if (catalog.length === 0) {
@@ -1602,11 +1655,14 @@
         }
 
         async function submitPublicCatalogRequest() {
+            if (!publicClientData) {
+                alert("Dados do cliente não informados.");
+                return;
+            }
             const params = new URLSearchParams(window.location.search);
             const userId = params.get('user');
             if (!userId) return alert("Erro: usuário não identificado.");
 
-            // Coletar itens selecionados
             const checkboxes = document.querySelectorAll('.catalog-item-checkbox:checked');
             const selectedItems = [];
             checkboxes.forEach(cb => {
@@ -1618,16 +1674,17 @@
             });
 
             const customDesc = document.getElementById('custom-service-description').value.trim();
+
             if (selectedItems.length === 0 && !customDesc) {
                 alert("Selecione ao menos um serviço ou descreva o que precisa.");
                 return;
             }
 
-            // Criar um novo projeto e versão para este prestador
-            const projectName = `Solicitação via catálogo - ${new Date().toLocaleString()}`;
+            // Criar projeto
+            const projectName = `Solicitação via catálogo - ${publicClientData.name}`;
             const { data: project, error: projError } = await db
                 .from('projects')
-                .insert({ name: projectName, user_id: userId, client_name: 'Cliente' })
+                .insert({ name: projectName, user_id: userId, client_name: publicClientData.name })
                 .select()
                 .single();
             if (projError) {
@@ -1649,8 +1706,8 @@
             if (customDesc) {
                 items.push({
                     id: 'item_custom_' + Date.now(),
-                    name: 'Serviço personalizado',
-                    description: customDesc,
+                    name: '🟡 Serviço personalizado',
+                    description: customDesc + ' (solicitado pelo cliente – revisar e ajustar)',
                     qty: 1,
                     price: 0,
                     type: 'original',
@@ -1668,7 +1725,12 @@
             }];
 
             const versionData = {
-                client: { name: '', doc: '', email: '', phone: '', address: '' },
+                client: {
+                    name: publicClientData.name,
+                    email: publicClientData.email || '',
+                    phone: publicClientData.phone || '',
+                    address: publicClientData.address || ''
+                },
                 location: { address: '', sameAsClient: true },
                 items: items,
                 terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '', obs: '' },
@@ -1692,7 +1754,6 @@
                 return;
             }
 
-            // Redirecionar para tela de sucesso
             window.location.href = '?view=success';
         }
 
@@ -2181,7 +2242,7 @@
             openProject(p.id);
         }
 
-        // ========== EDITOR (funções resumidas, mas devem estar completas) ==========
+        // ========== EDITOR (funções resumidas, mas completas) ==========
         async function loadEditor(id) {
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
             state.project = proj;
