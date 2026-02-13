@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        /* (mantido todo o CSS anterior, apenas acrescentado estilo para o modal de cliente público) */
+        /* Mantido todo o CSS anterior */
         body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; color: #334155; }
         .sidebar { width: 260px; background: white; height: 100vh; position: fixed; left: 0; top: 0; border-right: 1px solid #E2E8F0; display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s; }
         .main-content { margin-left: 260px; padding: 2rem; min-height: 100vh; transition: margin 0.3s; }
@@ -386,7 +386,6 @@
             box-shadow: 0 4px 12px rgba(46,125,50,0.1);
         }
 
-        /* Modal de dados do cliente (público) */
         #client-data-modal .modal-box {
             max-width: 500px;
         }
@@ -743,12 +742,7 @@
                                 </div>
                             </div>
 
-                            <div class="mt-4 pt-4 border-t">
-                                <label class="text-xs font-bold text-slate-500 mb-1 block flex items-center gap-1">
-                                    <i class="fab fa-whatsapp text-emerald-600"></i> Seu WhatsApp (para notificações)
-                                </label>
-                                <input id="in-s-myphone" onchange="upSettings('myPhone', this.value)" class="w-full border p-2 rounded text-sm bg-blue-50 border-blue-200" placeholder="(00) 00000-0000">
-                            </div>
+                            <!-- CAMPO WHATSAPP REMOVIDO -->
                         </div>
 
                         <!-- ESCOPO DO SERVIÇO -->
@@ -1093,7 +1087,7 @@
                 location: { address: '', sameAsClient: true }, 
                 items: [], 
                 terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '', obs: '' },
-                settings: { myPhone: '', serviceType: 'Outros', providerName: '', providerDoc: '', providerAddr: '', providerPhone: '' }, 
+                settings: { providerName: '', providerDoc: '', providerAddr: '', providerPhone: '' }, // myPhone removido
                 history: [],
                 attachments: [],
                 signature: null 
@@ -1127,6 +1121,19 @@
                 attachments: attachments,
                 signature: dbData.signature || null
             };
+        }
+
+        // ----- FORMATAÇÃO DE MOEDA -----
+        function formatPrice(value) {
+            if (value === null || value === undefined || value === '') return '';
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        }
+
+        function parsePrice(str) {
+            if (!str) return 0;
+            // Remove "R$", espaços, e substitui vírgula por ponto
+            let cleaned = str.replace(/[R$\s]/g, '').replace(/\./g, '').replace(',', '.');
+            return parseFloat(cleaned) || 0;
         }
 
         // ----- HISTÓRICO -----
@@ -1581,14 +1588,11 @@
         async function loadPublicCatalog(userId) {
             safeShow('public-catalog-loading');
             safeHide('public-catalog-content');
-            // Exibe modal para dados do cliente
             document.getElementById('client-data-modal').classList.remove('hidden');
-            // Aguarda preenchimento e depois chama a função para carregar o catálogo
         }
 
         function cancelPublicClientData() {
             document.getElementById('client-data-modal').classList.add('hidden');
-            // Volta para a página inicial ou fecha? Melhor redirecionar para login.
             window.location.href = '?view=login';
         }
 
@@ -1605,7 +1609,6 @@
                 address: document.getElementById('public-client-address').value
             };
             document.getElementById('client-data-modal').classList.add('hidden');
-            // Agora carrega o catálogo
             reallyLoadPublicCatalog();
         }
 
@@ -1623,8 +1626,7 @@
                 alert("Erro ao carregar catálogo.");
                 return;
             }
-            // Exibe o nome do prestador (usando o e-mail como fallback)
-            const { data: provider } = await db.auth.admin.getUserById?.(userId) // não funciona, melhor ignorar
+
             let providerName = "Prestador";
             document.getElementById('provider-name').innerText = `Serviços de ${providerName}`;
 
@@ -1680,7 +1682,6 @@
                 return;
             }
 
-            // Criar projeto
             const projectName = `Solicitação via catálogo - ${publicClientData.name}`;
             const { data: project, error: projError } = await db
                 .from('projects')
@@ -1692,7 +1693,6 @@
                 return;
             }
 
-            // Montar itens
             const items = selectedItems.map((item, idx) => ({
                 id: 'item_' + Date.now() + idx + Math.random(),
                 name: item.name,
@@ -1734,7 +1734,7 @@
                 location: { address: '', sameAsClient: true },
                 items: items,
                 terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '', obs: '' },
-                settings: { myPhone: '', serviceType: 'Outros', providerName: '', providerDoc: '', providerAddr: '', providerPhone: '' },
+                settings: { providerName: '', providerDoc: '', providerAddr: '', providerPhone: '' },
                 history: history,
                 attachments: [],
                 signature: null
@@ -1757,7 +1757,7 @@
             window.location.href = '?view=success';
         }
 
-        // ----- DASHBOARD E PROJETOS (resumido, mas mantido) -----
+        // ----- DASHBOARD E PROJETOS -----
         function getRecentActivities(limit = 10) {
             let activities = [];
             state.projectsCache.forEach(project => {
@@ -2226,7 +2226,7 @@
                 client_name: 'Novo Cliente' 
             }).select().single();
             const d = normalizeData(null); 
-            d.settings.myPhone = localStorage.getItem('escopo_phone') || '';
+            // myPhone removido
             d.settings.providerName = localStorage.getItem('prov_name') || '';
             d.settings.providerDoc = localStorage.getItem('prov_doc') || '';
             d.settings.providerAddr = localStorage.getItem('prov_addr') || '';
@@ -2242,7 +2242,7 @@
             openProject(p.id);
         }
 
-        // ========== EDITOR (funções resumidas, mas completas) ==========
+        // ========== EDITOR ==========
         async function loadEditor(id) {
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
             state.project = proj;
@@ -2290,7 +2290,6 @@
             setVal('c-phone', d.client.phone);
             setVal('c-email', d.client.email);
             setVal('c-addr', d.client.address);
-            setVal('in-s-myphone', d.settings.myPhone);
             setVal('t-deadline', d.terms.deadline); 
             setVal('t-val', d.terms.validity); 
             setVal('t-obs', d.terms.paymentText || d.terms.obs);
@@ -2301,7 +2300,7 @@
             setVal('loc-addr', d.location.address);
             const staticInputs = [
                 'p-name','p-doc','p-addr','p-phone',
-                'in-s-myphone','loc-check','loc-addr',
+                'loc-check','loc-addr',
                 't-deadline','t-val','t-obs','pay-mode'
             ];
             staticInputs.forEach(id => { 
@@ -2354,7 +2353,7 @@
                         diffHtml = `<div class="diff-box"><span class="diff-tag">NOVO</span> Este item foi adicionado.</div>`;
                     } else {
                         let changes = [];
-                        if (oldItem.price !== i.price) changes.push(`Preço: <span class="old-val">R$${oldItem.price}</span> <i class="fas fa-arrow-right text-xs"></i> <span class="new-val">R$${i.price}</span>`);
+                        if (oldItem.price !== i.price) changes.push(`Preço: <span class="old-val">R$${oldItem.price.toFixed(2)}</span> <i class="fas fa-arrow-right text-xs"></i> <span class="new-val">R$${i.price.toFixed(2)}</span>`);
                         if (oldItem.qty !== i.qty) changes.push(`Qtd: <span class="old-val">${oldItem.qty}</span> <i class="fas fa-arrow-right text-xs"></i> <span class="new-val">${i.qty}</span>`);
                         if (changes.length > 0) {
                             cardClass += ' item-modified';
@@ -2379,7 +2378,7 @@
                         </div>
                         <div class="col-span-2">
                             <label class="text-[10px] font-bold text-gray-400 uppercase text-right block">R$</label>
-                            <input type="number" step="0.01" class="w-full bg-slate-50 border rounded text-right text-xs p-1" value="${i.price}" onchange="upItem(${x},'price',this.value)" ${isLocked?'disabled':''}>
+                            <input type="text" class="w-full bg-slate-50 border rounded text-right text-xs p-1 price-input" value="${formatPrice(i.price)}" onfocus="this.value = i.price" onblur="updatePriceFromInput(this, ${x})" ${isLocked?'disabled':''} data-index="${x}">
                         </div>
                     </div>
                     <textarea class="w-full bg-transparent text-xs text-slate-500 resize-none outline-none border-t border-dashed pt-2 mt-2" rows="2" placeholder="Descrição técnica..." oninput="upItem(${x},'description',this.value)" ${isLocked?'disabled':''}>${i.description||''}</textarea>
@@ -2392,16 +2391,27 @@
                 </div>`;
             });
             setHTML('ed-items', html);
-            document.getElementById('ed-total').innerText = total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-            const optDiv = document.getElementById('ed-total-optional');
-            if (optDiv) optDiv.innerText = totalOpt > 0 ? `+ ${totalOpt.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} em opcionais` : '';
+            updateTotal();
+        }
+
+        function updatePriceFromInput(input, index) {
+            let rawValue = input.value;
+            let numValue = parsePrice(rawValue);
+            // Atualiza o state
+            state.data.items[index].price = numValue;
+            // Formata o campo
+            input.value = formatPrice(numValue);
+            updateTotal();
         }
 
         function upItem(i,f,v) { 
             const it = state.data.items[i]; 
-            if(f === 'qty' || f === 'price') { 
+            if(f === 'qty') { 
                 it[f] = parseFloat(v) || 0; 
                 updateTotal(); 
+            } else if (f === 'price') {
+                it[f] = parseFloat(v) || 0;
+                updateTotal();
             } else { 
                 it[f] = v; 
             }
@@ -2433,7 +2443,12 @@
         }
         function updateTotal() { 
             const total = state.data.items.reduce((a,b)=> !b.optional ? a + (b.qty*b.price) : a, 0);
-            document.getElementById('ed-total').innerText = total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+            document.getElementById('ed-total').innerText = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const totalOpt = state.data.items.reduce((a,b)=> b.optional ? a + (b.qty*b.price) : a, 0);
+            const optDiv = document.getElementById('ed-total-optional');
+            if (optDiv) {
+                optDiv.innerText = totalOpt > 0 ? `+ ${totalOpt.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} em opcionais` : '';
+            }
         }
 
         function upVal(k,v) { 
@@ -2458,7 +2473,6 @@
             if(['providerName','providerDoc','providerAddr','providerPhone'].includes(k)) {
                 localStorage.setItem(k.replace('provider','prov_').toLowerCase(), v);
             }
-            if(k === 'myPhone') localStorage.setItem('escopo_phone', v);
         }
         function toggleLoc(checked) { 
             state.data.location.sameAsClient = checked; 
@@ -2779,14 +2793,14 @@
                         </div>
                     </td>
                     <td class="text-center text-sm">${i.qty}</td>
-                    <td class="text-right text-sm text-slate-500">R$ ${i.price.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+                    <td class="text-right text-sm text-slate-500">${formatPrice(i.price)}</td>
                     <td class="text-right pr-4 font-bold text-sm ${i.optional && !i.publicSelected ? 'text-slate-400 decoration-slate-400 line-through' : 'text-slate-800'}">
-                        R$ ${(i.qty*i.price).toLocaleString('pt-BR',{minimumFractionDigits:2})}
+                        ${formatPrice(i.qty * i.price)}
                     </td>
                 </tr>`; 
             });
             setHTML('doc-items-body', html);
-            safeText('doc-total', total.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}));
+            safeText('doc-total', formatPrice(total));
         }
 
         function togglePublicOpt(idx) {
@@ -2954,11 +2968,6 @@
                 items: state.data, 
                 total_value: finalTotal 
             }).eq('id', state.version.id);
-            const phone = state.data.settings?.myPhone;
-            if(phone) {
-                const msg = `✅ O cliente APROVOU o orçamento ${state.version.projects?.name || ''}!`;
-                window.open(`https://wa.me/${phone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
-            }
             document.getElementById('interaction-modal').classList.add('hidden');
             await loadProjects();
             renderDashboardKPIs();
