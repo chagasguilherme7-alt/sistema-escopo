@@ -363,7 +363,6 @@
             background-color: #f8fafc;
         }
 
-        /* Estilos para o modal de catálogo */
         .catalog-item {
             display: flex;
             align-items: center;
@@ -372,6 +371,19 @@
         }
         .catalog-item:hover {
             background-color: #f8fafc;
+        }
+
+        /* Estilo para o catálogo público */
+        .public-catalog-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1rem;
+            transition: all 0.2s;
+        }
+        .public-catalog-card:hover {
+            border-color: #2e7d32;
+            box-shadow: 0 4px 12px rgba(46,125,50,0.1);
         }
     </style>
 </head>
@@ -390,7 +402,7 @@
         <button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button>
     </div>
 
-    <!-- LOGIN COM FUNDO CINZA-VERDE ELEMENTOS COLORIDOS -->
+    <!-- LOGIN -->
     <section id="view-login" class="hidden split-screen">
         <div class="left-area">
             <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
@@ -468,6 +480,7 @@
         </div>
     </section>
 
+    <!-- LAYOUT PRINCIPAL (APÓS LOGIN) -->
     <div id="app-layout" class="hidden">
         <div class="mobile-header">
             <img src="logo.png" alt="Aprova Ai" class="h-8">
@@ -475,7 +488,6 @@
         </div>
 
         <aside class="sidebar">
-            <!-- LOGO AUMENTADA E CENTRALIZADA -->
             <div class="py-4 flex justify-center border-b border-slate-100">
                 <img src="logo.png" alt="Aprova Ai" class="h-12">
             </div>
@@ -494,7 +506,6 @@
                     <div onclick="filterProjects('canceled')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600"><span class="status-dot" style="background:#ef4444"></span> Cancelados</div>
                 </div>
                 <div onclick="switchTab('clients')" class="nav-item" id="nav-clients"><i class="fas fa-users"></i> Clientes</div>
-                <!-- NOVO ITEM: CATÁLOGO -->
                 <div onclick="switchTab('catalog')" class="nav-item" id="nav-catalog"><i class="fas fa-box"></i> Catálogo</div>
             </nav>
             <div class="p-4 border-t border-slate-100">
@@ -558,7 +569,7 @@
                 </div>
             </section>
 
-            <!-- VIEW PROJETOS -->
+            <!-- PROJETOS -->
             <section id="view-projects" class="hidden space-y-6">
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-slate-800">Orçamentos</h2>
@@ -581,7 +592,7 @@
                 <div id="project-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
 
-            <!-- VIEW CLIENTES (CRUD COMPLETO) -->
+            <!-- CLIENTES -->
             <section id="view-clients" class="hidden space-y-6">
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-slate-800">Clientes</h2>
@@ -614,13 +625,18 @@
                 </div>
             </section>
 
-            <!-- NOVA VIEW: CATÁLOGO DE SERVIÇOS -->
+            <!-- CATÁLOGO (PRESTADOR) -->
             <section id="view-catalog" class="hidden space-y-6">
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-slate-800">Catálogo de Serviços</h2>
-                    <button onclick="openCatalogModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">
-                        <i class="fas fa-plus mr-2"></i> Novo Serviço
-                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="openShareCatalogModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold">
+                            <i class="fas fa-share-alt mr-2"></i> Compartilhar Catálogo
+                        </button>
+                        <button onclick="openCatalogModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">
+                            <i class="fas fa-plus mr-2"></i> Novo Serviço
+                        </button>
+                    </div>
                 </div>
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex gap-4 items-center">
@@ -649,7 +665,7 @@
                 </div>
             </section>
 
-            <!-- EDITOR COM BUSCA DE CLIENTES E CAMPOS OCULTOS + BOTÃO IMPORTAR CATÁLOGO -->
+            <!-- EDITOR -->
             <section id="view-editor" class="hidden pb-20">
                 <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex items-center gap-4">
@@ -683,7 +699,7 @@
                             </div>
                         </div>
 
-                        <!-- DADOS DO CLIENTE - BUSCA E CAMPOS OCULTOS INICIALMENTE -->
+                        <!-- DADOS DO CLIENTE -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-user-tie text-blue-600"></i> Dados do Cliente</h3>
@@ -736,7 +752,6 @@
                                 <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-list-ol text-blue-600"></i> Escopo do Serviço</h3>
                                 <div class="flex gap-2">
                                     <button id="btn-add-item" onclick="addItem()" class="text-blue-600 text-sm font-bold border border-blue-200 px-3 py-1 rounded hover:bg-blue-50">+ Adicionar Item</button>
-                                    <!-- NOVO BOTÃO: IMPORTAR DO CATÁLOGO -->
                                     <button onclick="openCatalogSelector()" class="text-green-600 text-sm font-bold border border-green-200 px-3 py-1 rounded hover:bg-green-50">
                                         <i class="fas fa-import mr-1"></i> Importar do catálogo
                                     </button>
@@ -800,7 +815,7 @@
         </main>
     </div>
 
-    <!-- MODAL DE CLIENTE -->
+    <!-- MODAL CLIENTE -->
     <div id="client-modal" class="hidden fixed inset-0 bg-black/50 z-[80] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl">
             <h3 id="client-modal-title" class="text-xl font-bold mb-4 text-slate-800">Novo Cliente</h3>
@@ -819,7 +834,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE CATÁLOGO (CRUD) -->
+    <!-- MODAL CATÁLOGO (CRUD) -->
     <div id="catalog-modal" class="hidden fixed inset-0 bg-black/50 z-[80] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl">
             <h3 id="catalog-modal-title" class="text-xl font-bold mb-4 text-slate-800">Novo Serviço</h3>
@@ -837,7 +852,7 @@
         </div>
     </div>
 
-    <!-- MODAL SELETOR DE CATÁLOGO (no editor) -->
+    <!-- MODAL SELETOR CATÁLOGO (no editor) -->
     <div id="catalog-selector-modal" class="hidden fixed inset-0 bg-black/50 z-[90] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl p-6 rounded-xl max-h-[80vh] overflow-y-auto">
             <h3 class="text-xl font-bold mb-4 text-slate-800">Selecionar serviços do catálogo</h3>
@@ -847,9 +862,7 @@
                     <option value="">Todas categorias</option>
                 </select>
             </div>
-            <div id="catalog-selector-list" class="space-y-2 max-h-96 overflow-y-auto border rounded p-2">
-                <!-- preenchido via js -->
-            </div>
+            <div id="catalog-selector-list" class="space-y-2 max-h-96 overflow-y-auto border rounded p-2"></div>
             <div class="flex gap-2 mt-6">
                 <button onclick="closeCatalogSelector()" class="flex-1 border py-2 rounded text-slate-600 font-bold hover:bg-slate-50">Cancelar</button>
                 <button onclick="importSelectedCatalogItems()" class="flex-1 bg-green-600 text-white py-2 rounded font-bold hover:bg-green-700">Adicionar selecionados</button>
@@ -857,7 +870,54 @@
         </div>
     </div>
 
-    <!-- VIEW PÚBLICA (COMPLETA) -->
+    <!-- MODAL COMPARTILHAR CATÁLOGO -->
+    <div id="share-catalog-modal" class="hidden fixed inset-0 bg-black/50 z-[90] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-6 rounded-xl">
+            <h3 class="text-xl font-bold mb-4 text-slate-800">Compartilhar Catálogo</h3>
+            <p class="text-sm text-slate-600 mb-4">Compartilhe este link com seus clientes para que eles possam selecionar os serviços desejados.</p>
+            <div class="bg-slate-100 p-3 rounded-lg text-sm break-all mb-4" id="catalog-share-link">Carregando...</div>
+            <div class="flex gap-2">
+                <button onclick="copyCatalogLink()" class="flex-1 bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700">Copiar Link</button>
+                <button onclick="shareCatalogViaWhatsApp()" class="flex-1 bg-green-600 text-white py-2 rounded font-bold hover:bg-green-700">WhatsApp</button>
+            </div>
+            <button onclick="document.getElementById('share-catalog-modal').classList.add('hidden')" class="mt-4 text-sm text-slate-500 underline w-full">Fechar</button>
+        </div>
+    </div>
+
+    <!-- VIEW PÚBLICA DO CATÁLOGO (NOVA) -->
+    <section id="view-public-catalog" class="hidden min-h-screen bg-slate-50 p-6">
+        <div class="max-w-4xl mx-auto">
+            <div id="public-catalog-loading" class="flex justify-center py-20">
+                <div class="loader-spin"></div>
+            </div>
+            <div id="public-catalog-content" class="hidden">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 mb-6">
+                    <div class="flex items-center gap-4 mb-6">
+                        <img src="logo.png" alt="Logo" class="h-12">
+                        <div>
+                            <h1 class="text-2xl font-bold text-slate-800">Catálogo de Serviços</h1>
+                            <p id="provider-name" class="text-slate-500">Carregando...</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="public-catalog-items"></div>
+
+                    <div class="mt-8 pt-6 border-t border-dashed">
+                        <h3 class="font-bold text-slate-700 mb-2">Descreva um serviço personalizado</h3>
+                        <textarea id="custom-service-description" rows="3" class="w-full border p-3 rounded-lg text-sm" placeholder="Ex: Gostaria de um serviço que não está listado..."></textarea>
+                    </div>
+
+                    <div class="mt-8 flex justify-end">
+                        <button onclick="submitPublicCatalogRequest()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-green-700">
+                            Solicitar Orçamento
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VIEW PÚBLICA (PROPOSTA) -->
     <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10 overflow-y-auto print:p-0">
         <div id="public-loading" class="flex justify-center mt-20"><div class="loader-spin"></div></div>
         <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col print:shadow-none print:min-h-0">
@@ -988,7 +1048,7 @@
             version: null, 
             projectsCache: [], 
             clientsCache: [],
-            catalogCache: [],   // cache do catálogo
+            catalogCache: [],
             data: null, 
             previousData: null, 
             snapshot: [] 
@@ -1049,6 +1109,7 @@
 
         // ----- HISTÓRICO -----
         function logHistory(action, user, detail) {
+            if (!state.data) state.data = { history: [] };
             if (!state.data.history) state.data.history = [];
             state.data.history.push({ 
                 date: new Date().toISOString(), 
@@ -1075,7 +1136,7 @@
             return logs.length ? logs.join('; ') : null;
         }
 
-        // ----- CLIENTES (CRUD) -----
+        // ----- CLIENTES -----
         async function loadClients() {
             if (!state.user) return;
             const { data, error } = await db
@@ -1197,7 +1258,6 @@
             renderClients();
         }
 
-        // ----- BUSCA DE CLIENTES (AUTOCOMPLETE) -----
         function searchClients(event) {
             const input = document.getElementById('client-search-input');
             const query = input.value.toLowerCase();
@@ -1229,11 +1289,13 @@
             setVal('c-phone', client.phone || '');
             setVal('c-email', client.email || '');
             setVal('c-addr', client.address || '');
-            state.data.client.name = client.name;
-            state.data.client.doc = client.doc || '';
-            state.data.client.phone = client.phone || '';
-            state.data.client.email = client.email || '';
-            state.data.client.address = client.address || '';
+            if (state.data) {
+                state.data.client.name = client.name;
+                state.data.client.doc = client.doc || '';
+                state.data.client.phone = client.phone || '';
+                state.data.client.email = client.email || '';
+                state.data.client.address = client.address || '';
+            }
             document.getElementById('client-fields-container').classList.remove('hidden');
             document.getElementById('client-search-input').value = '';
             document.getElementById('client-suggestions').classList.add('hidden');
@@ -1245,15 +1307,17 @@
             setVal('c-phone', '');
             setVal('c-email', '');
             setVal('c-addr', '');
-            state.data.client.name = '';
-            state.data.client.doc = '';
-            state.data.client.phone = '';
-            state.data.client.email = '';
-            state.data.client.address = '';
+            if (state.data) {
+                state.data.client.name = '';
+                state.data.client.doc = '';
+                state.data.client.phone = '';
+                state.data.client.email = '';
+                state.data.client.address = '';
+            }
             document.getElementById('client-fields-container').classList.add('hidden');
         }
 
-        // ----- NOVAS FUNÇÕES PARA CATÁLOGO -----
+        // ----- CATÁLOGO -----
         async function loadCatalog() {
             if (!state.user) return;
             const { data, error } = await db
@@ -1383,11 +1447,11 @@
             renderCatalog();
         }
 
-        // ----- SELETOR DE CATÁLOGO NO EDITOR -----
+        // ----- SELETOR CATÁLOGO (no editor) -----
         let selectedCatalogIds = new Set();
 
         function openCatalogSelector() {
-            if (state.version.status !== 'draft') {
+            if (!state.version || state.version.status !== 'draft') {
                 alert("Orçamento bloqueado. Não é possível adicionar itens.");
                 return;
             }
@@ -1461,7 +1525,178 @@
             closeCatalogSelector();
         }
 
-        // ----- DASHBOARD E PROJETOS (já existentes, mantidos) -----
+        // ----- COMPARTILHAR CATÁLOGO (PÚBLICO) -----
+        function openShareCatalogModal() {
+            const link = `${window.location.origin}${window.location.pathname}?view=public-catalog&user=${state.user.id}`;
+            document.getElementById('catalog-share-link').innerText = link;
+            document.getElementById('share-catalog-modal').classList.remove('hidden');
+        }
+
+        function copyCatalogLink() {
+            const link = document.getElementById('catalog-share-link').innerText;
+            navigator.clipboard.writeText(link).then(() => {
+                alert("Link copiado!");
+            }).catch(() => {
+                const textArea = document.createElement("textarea");
+                textArea.value = link;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand("copy");
+                document.body.removeChild(textArea);
+                alert("Link copiado!");
+            });
+        }
+
+        function shareCatalogViaWhatsApp() {
+            const link = document.getElementById('catalog-share-link').innerText;
+            const msg = `Confira meu catálogo de serviços: ${link}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        // ----- PÁGINA PÚBLICA DO CATÁLOGO -----
+        async function loadPublicCatalog(userId) {
+            safeShow('public-catalog-loading');
+            safeHide('public-catalog-content');
+            const { data: provider, error: userError } = await db
+                .from('users')
+                .select('email') // ou nome? Precisamos de uma tabela de perfis? Vamos usar uma consulta na tabela auth.users? Não é possível diretamente. Melhor assumir que o prestador tem um nome armazenado em settings.providerName no primeiro projeto? Ou podemos buscar o primeiro projeto para obter o nome. Vamos fazer simples: exibir "Prestador" se não houver nome.
+                .eq('id', userId)
+                .single();
+            let providerName = "Prestador";
+            if (provider && provider.email) providerName = provider.email.split('@')[0];
+            document.getElementById('provider-name').innerText = `Serviços de ${providerName}`;
+
+            const { data: catalog, error } = await db
+                .from('service_catalog')
+                .select('*')
+                .eq('user_id', userId)
+                .order('name', { ascending: true });
+            if (error) {
+                alert("Erro ao carregar catálogo.");
+                return;
+            }
+            const container = document.getElementById('public-catalog-items');
+            let html = '';
+            if (catalog.length === 0) {
+                html = '<p class="col-span-2 text-center text-slate-500">Nenhum serviço disponível no momento.</p>';
+            } else {
+                catalog.forEach(item => {
+                    html += `
+                        <div class="public-catalog-card">
+                            <label class="flex items-start gap-3 cursor-pointer">
+                                <input type="checkbox" class="catalog-item-checkbox mt-1" data-id="${item.id}" data-name="${item.name}" data-description="${item.description || ''}" data-price="${item.price || 0}">
+                                <div class="flex-1">
+                                    <div class="font-bold text-slate-800">${item.name}</div>
+                                    ${item.description ? `<p class="text-sm text-slate-500">${item.description}</p>` : ''}
+                                    ${item.price ? `<p class="text-sm font-mono text-green-700 mt-1">R$ ${parseFloat(item.price).toFixed(2)}</p>` : ''}
+                                    ${item.category ? `<span class="text-xs bg-slate-100 px-2 py-0.5 rounded">${item.category}</span>` : ''}
+                                </div>
+                            </label>
+                        </div>
+                    `;
+                });
+            }
+            container.innerHTML = html;
+            safeHide('public-catalog-loading');
+            safeShow('public-catalog-content');
+        }
+
+        async function submitPublicCatalogRequest() {
+            const params = new URLSearchParams(window.location.search);
+            const userId = params.get('user');
+            if (!userId) return alert("Erro: usuário não identificado.");
+
+            // Coletar itens selecionados
+            const checkboxes = document.querySelectorAll('.catalog-item-checkbox:checked');
+            const selectedItems = [];
+            checkboxes.forEach(cb => {
+                selectedItems.push({
+                    name: cb.dataset.name,
+                    description: cb.dataset.description,
+                    price: parseFloat(cb.dataset.price) || 0
+                });
+            });
+
+            const customDesc = document.getElementById('custom-service-description').value.trim();
+            if (selectedItems.length === 0 && !customDesc) {
+                alert("Selecione ao menos um serviço ou descreva o que precisa.");
+                return;
+            }
+
+            // Criar um novo projeto e versão para este prestador
+            const projectName = `Solicitação via catálogo - ${new Date().toLocaleString()}`;
+            const { data: project, error: projError } = await db
+                .from('projects')
+                .insert({ name: projectName, user_id: userId, client_name: 'Cliente' })
+                .select()
+                .single();
+            if (projError) {
+                alert("Erro ao criar solicitação.");
+                return;
+            }
+
+            // Montar itens
+            const items = selectedItems.map((item, idx) => ({
+                id: 'item_' + Date.now() + idx + Math.random(),
+                name: item.name,
+                description: item.description,
+                qty: 1,
+                price: item.price,
+                type: 'original',
+                optional: false,
+                publicSelected: false
+            }));
+            if (customDesc) {
+                items.push({
+                    id: 'item_custom_' + Date.now(),
+                    name: 'Serviço personalizado',
+                    description: customDesc,
+                    qty: 1,
+                    price: 0,
+                    type: 'original',
+                    optional: false,
+                    publicSelected: false
+                });
+            }
+
+            const total = items.reduce((acc, i) => acc + i.price, 0);
+            const history = [{
+                date: new Date().toISOString(),
+                action: 'created',
+                user: 'client',
+                detail: 'Orçamento criado via catálogo público'
+            }];
+
+            const versionData = {
+                client: { name: '', doc: '', email: '', phone: '', address: '' },
+                location: { address: '', sameAsClient: true },
+                items: items,
+                terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '', obs: '' },
+                settings: { myPhone: '', serviceType: 'Outros', providerName: '', providerDoc: '', providerAddr: '', providerPhone: '' },
+                history: history,
+                attachments: [],
+                signature: null
+            };
+
+            const { error: verError } = await db
+                .from('versions')
+                .insert({
+                    project_id: project.id,
+                    version_number: 1,
+                    items: versionData,
+                    total_value: total,
+                    status: 'draft'
+                });
+            if (verError) {
+                alert("Erro ao criar versão.");
+                return;
+            }
+
+            // Redirecionar para tela de sucesso
+            window.location.href = '?view=success';
+        }
+
+        // ----- DASHBOARD E PROJETOS (resumido, mas mantido) -----
         function getRecentActivities(limit = 10) {
             let activities = [];
             state.projectsCache.forEach(project => {
@@ -1563,20 +1798,24 @@
             return 'agora mesmo';
         }
 
-        // ----- INICIALIZAÇÃO (com carregamento do catálogo) -----
+        // ----- INICIALIZAÇÃO -----
         async function init() {
             try {
                 db = createClient(SUPABASE_URL, SUPABASE_KEY);
                 const params = new URLSearchParams(window.location.search);
                 const view = params.get('view') || 'login';
                 const id = params.get('id');
+                const userId = params.get('user');
                 document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
                 document.getElementById('app-layout').classList.add('hidden');
                 
                 const { data: { session } } = await db.auth.getSession();
                 state.user = session?.user;
 
-                if (view === 'public' && id) {
+                if (view === 'public-catalog' && userId) {
+                    await loadPublicCatalog(userId);
+                    safeShow('view-public-catalog');
+                } else if (view === 'public' && id) {
                     await loadPublicProposal(id);
                     safeShow('view-public');
                 } else if (view === 'success') {
@@ -1589,7 +1828,7 @@
                     document.getElementById('app-layout').classList.remove('hidden');
                     await loadProjects();
                     await loadClients();
-                    await loadCatalog(); // carrega catálogo
+                    await loadCatalog();
                     if (view === 'editor' && id) {
                         await loadEditor(id);
                         switchTab('editor', false);
@@ -1942,7 +2181,7 @@
             openProject(p.id);
         }
 
-        // ========== EDITOR (funções já existentes, mantidas) ==========
+        // ========== EDITOR (funções resumidas, mas devem estar completas) ==========
         async function loadEditor(id) {
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
             state.project = proj;
@@ -2378,7 +2617,7 @@
             setHTML('ed-history', histHtml);
         }
 
-        // ========== PÁGINA PÚBLICA ==========
+        // ========== PÁGINA PÚBLICA (PROPOSTA) ==========
         async function loadPublicProposal(id) {
             try {
                 safeShow('public-loading');
