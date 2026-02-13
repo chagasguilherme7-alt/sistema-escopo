@@ -362,13 +362,24 @@
         .autocomplete-suggestion:hover {
             background-color: #f8fafc;
         }
+
+        /* Estilos para o modal de catálogo */
+        .catalog-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .catalog-item:hover {
+            background-color: #f8fafc;
+        }
     </style>
 </head>
 <body>
 
     <div id="system-loader" style="position:fixed; inset:0; background:white; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <div class="loader-spin mb-4"></div>
-        <img src="logo.png" alt="Aprova Ai" class="h-16 mb-2">
+        <img src="logo.png" alt="Aprova Ai" class="h-12 mb-2">
         <p class="text-sm text-slate-500 font-medium">Carregando Sistema...</p>
     </div>
 
@@ -384,14 +395,11 @@
         <div class="left-area">
             <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
             <div class="relative z-10">
-                <!-- Logo e título com animação -->
                 <div class="mb-6 anim-entry">
                     <img src="logo.png" alt="Aprova Ai" class="h-16">
                 </div>
                 <h1 class="text-5xl font-extrabold leading-tight mb-4 font-heading anim-entry delay-1">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-green-900">protegem seu negócio</span></h1>
                 <p class="text-xl text-slate-700 mb-8 anim-entry delay-2">Crie, envie e acompanhe orçamentos com aprovação digital e histórico completo.</p>
-                
-                <!-- Benefícios em cards coloridos -->
                 <div class="space-y-4">
                     <div class="benefit-item anim-entry delay-2">
                         <div class="icon-circle text-orange-500"><i class="fas fa-shield-alt"></i></div>
@@ -406,8 +414,6 @@
                         <div><h3 class="font-bold text-xl text-slate-800">Sem discussão</h3><p class="text-sm text-slate-600">Tudo documentado, histórico completo e PDF comprovante.</p></div>
                     </div>
                 </div>
-
-                <!-- Como funciona em 3 passos (cards com borda verde) -->
                 <div class="mt-12">
                     <h3 class="text-2xl font-bold text-slate-800 mb-6 anim-entry delay-3">Como funciona?</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -428,8 +434,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Selo de confiança com estatísticas -->
                 <div class="mt-12 flex flex-wrap items-center gap-4 anim-entry delay-5">
                     <div class="stat-item">
                         <i class="fas fa-users text-green-600"></i>
@@ -444,8 +448,6 @@
                         <span class="text-slate-700 font-medium">98% satisfação</span>
                     </div>
                 </div>
-
-                <!-- Rodapé com links -->
                 <div class="mt-12 text-sm text-slate-500 flex gap-6 anim-entry delay-5">
                     <a href="#" class="hover:text-green-700 transition">Termos</a>
                     <a href="#" class="hover:text-green-700 transition">Privacidade</a>
@@ -456,7 +458,7 @@
         <div class="right-area">
             <div class="login-card anim-entry delay-2">
                 <div class="avatar-circle flex justify-center mb-4">
-                    <img src="logo.png" alt="Logo" class="h-16">
+                    <img src="logo.png" alt="Logo" class="h-12">
                 </div>
                 <h2 class="text-2xl font-bold text-slate-800 mb-2 font-heading">Acesse sua conta</h2>
                 <p class="text-slate-500 mb-8 text-sm">Digite seu e-mail para entrar.</p>
@@ -475,7 +477,7 @@
         <aside class="sidebar">
             <!-- LOGO AUMENTADA E CENTRALIZADA -->
             <div class="py-4 flex justify-center border-b border-slate-100">
-                <img src="logo.png" alt="Aprova Ai" class="h-16">
+                <img src="logo.png" alt="Aprova Ai" class="h-12">
             </div>
             <div onclick="createProject()" class="btn-new">
                 <i class="fas fa-plus mr-2"></i> Novo Orçamento
@@ -492,6 +494,8 @@
                     <div onclick="filterProjects('canceled')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600"><span class="status-dot" style="background:#ef4444"></span> Cancelados</div>
                 </div>
                 <div onclick="switchTab('clients')" class="nav-item" id="nav-clients"><i class="fas fa-users"></i> Clientes</div>
+                <!-- NOVO ITEM: CATÁLOGO -->
+                <div onclick="switchTab('catalog')" class="nav-item" id="nav-catalog"><i class="fas fa-box"></i> Catálogo</div>
             </nav>
             <div class="p-4 border-t border-slate-100">
                 <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="flex items-center text-sm text-red-500 font-medium w-full px-4 py-2"><i class="fas fa-sign-out-alt mr-3"></i> Sair</button>
@@ -610,7 +614,42 @@
                 </div>
             </section>
 
-            <!-- EDITOR COM BUSCA DE CLIENTES E CAMPOS QUE APARECEM APENAS QUANDO SELECIONADO -->
+            <!-- NOVA VIEW: CATÁLOGO DE SERVIÇOS -->
+            <section id="view-catalog" class="hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-slate-800">Catálogo de Serviços</h2>
+                    <button onclick="openCatalogModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">
+                        <i class="fas fa-plus mr-2"></i> Novo Serviço
+                    </button>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex gap-4 items-center">
+                        <div class="flex-1 relative">
+                            <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
+                            <input id="catalog-search" onkeyup="renderCatalog()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Buscar serviço...">
+                        </div>
+                        <select id="catalog-category-filter" onchange="renderCatalog()" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
+                            <option value="">Todas categorias</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Descrição</th>
+                                <th>Preço</th>
+                                <th>Categoria</th>
+                                <th class="text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="catalog-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- EDITOR COM BUSCA DE CLIENTES E CAMPOS OCULTOS + BOTÃO IMPORTAR CATÁLOGO -->
             <section id="view-editor" class="hidden pb-20">
                 <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex items-center gap-4">
@@ -662,8 +701,6 @@
                                     </button>
                                 </div>
                             </div>
-
-                            <!-- Campos do cliente (ocultos até que um cliente seja selecionado) -->
                             <div id="client-fields-container" class="hidden">
                                 <div class="grid grid-cols-2 gap-4">
                                     <input id="c-name" onchange="upVal('c-name',this.value)" class="border p-2 rounded text-sm" placeholder="Nome / Razão Social">
@@ -697,7 +734,13 @@
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-list-ol text-blue-600"></i> Escopo do Serviço</h3>
-                                <button id="btn-add-item" onclick="addItem()" class="text-blue-600 text-sm font-bold border border-blue-200 px-3 py-1 rounded hover:bg-blue-50">+ Adicionar Item</button>
+                                <div class="flex gap-2">
+                                    <button id="btn-add-item" onclick="addItem()" class="text-blue-600 text-sm font-bold border border-blue-200 px-3 py-1 rounded hover:bg-blue-50">+ Adicionar Item</button>
+                                    <!-- NOVO BOTÃO: IMPORTAR DO CATÁLOGO -->
+                                    <button onclick="openCatalogSelector()" class="text-green-600 text-sm font-bold border border-green-200 px-3 py-1 rounded hover:bg-green-50">
+                                        <i class="fas fa-import mr-1"></i> Importar do catálogo
+                                    </button>
+                                </div>
                             </div>
                             <div id="ed-items" class="space-y-3"></div>
                             <div class="mt-6 pt-4 border-t border-dashed">
@@ -757,7 +800,7 @@
         </main>
     </div>
 
-    <!-- MODAL DE CLIENTE (CRUD) -->
+    <!-- MODAL DE CLIENTE -->
     <div id="client-modal" class="hidden fixed inset-0 bg-black/50 z-[80] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl">
             <h3 id="client-modal-title" class="text-xl font-bold mb-4 text-slate-800">Novo Cliente</h3>
@@ -776,7 +819,45 @@
         </div>
     </div>
 
-    <!-- VIEW PÚBLICA -->
+    <!-- MODAL DE CATÁLOGO (CRUD) -->
+    <div id="catalog-modal" class="hidden fixed inset-0 bg-black/50 z-[80] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-6 rounded-xl">
+            <h3 id="catalog-modal-title" class="text-xl font-bold mb-4 text-slate-800">Novo Serviço</h3>
+            <input type="hidden" id="catalog-id">
+            <div class="space-y-3">
+                <input id="catalog-name" class="w-full border p-2 rounded text-sm" placeholder="Nome do Serviço *">
+                <textarea id="catalog-description" class="w-full border p-2 rounded text-sm" placeholder="Descrição" rows="2"></textarea>
+                <input id="catalog-price" type="number" step="0.01" class="w-full border p-2 rounded text-sm" placeholder="Preço (opcional)">
+                <input id="catalog-category" class="w-full border p-2 rounded text-sm" placeholder="Categoria (opcional)">
+            </div>
+            <div class="flex gap-2 mt-6">
+                <button onclick="closeCatalogModal()" class="flex-1 border py-2 rounded text-slate-600 font-bold hover:bg-slate-50">Cancelar</button>
+                <button onclick="saveCatalogItem()" class="flex-1 bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SELETOR DE CATÁLOGO (no editor) -->
+    <div id="catalog-selector-modal" class="hidden fixed inset-0 bg-black/50 z-[90] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl p-6 rounded-xl max-h-[80vh] overflow-y-auto">
+            <h3 class="text-xl font-bold mb-4 text-slate-800">Selecionar serviços do catálogo</h3>
+            <div class="mb-4 flex gap-2">
+                <input type="text" id="catalog-selector-search" placeholder="Buscar..." class="flex-1 border p-2 rounded text-sm" onkeyup="renderCatalogSelector()">
+                <select id="catalog-selector-category" onchange="renderCatalogSelector()" class="p-2 border rounded text-sm">
+                    <option value="">Todas categorias</option>
+                </select>
+            </div>
+            <div id="catalog-selector-list" class="space-y-2 max-h-96 overflow-y-auto border rounded p-2">
+                <!-- preenchido via js -->
+            </div>
+            <div class="flex gap-2 mt-6">
+                <button onclick="closeCatalogSelector()" class="flex-1 border py-2 rounded text-slate-600 font-bold hover:bg-slate-50">Cancelar</button>
+                <button onclick="importSelectedCatalogItems()" class="flex-1 bg-green-600 text-white py-2 rounded font-bold hover:bg-green-700">Adicionar selecionados</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW PÚBLICA (COMPLETA) -->
     <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10 overflow-y-auto print:p-0">
         <div id="public-loading" class="flex justify-center mt-20"><div class="loader-spin"></div></div>
         <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col print:shadow-none print:min-h-0">
@@ -907,6 +988,7 @@
             version: null, 
             projectsCache: [], 
             clientsCache: [],
+            catalogCache: [],   // cache do catálogo
             data: null, 
             previousData: null, 
             snapshot: [] 
@@ -914,6 +996,7 @@
         let chartInstance = null;
         let chartPeriod = 30;
 
+        // ----- FUNÇÕES AUXILIARES -----
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
         function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
@@ -921,6 +1004,7 @@
         function safeShow(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
         function safeHide(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
 
+        // ----- NORMALIZAÇÃO -----
         function normalizeData(dbData) {
             const schema = { 
                 client: { name: '', doc: '', email: '', phone: '', address: '' }, 
@@ -963,6 +1047,7 @@
             };
         }
 
+        // ----- HISTÓRICO -----
         function logHistory(action, user, detail) {
             if (!state.data.history) state.data.history = [];
             state.data.history.push({ 
@@ -973,6 +1058,7 @@
             });
         }
 
+        // ----- DETECTAR MUDANÇAS -----
         function getChanges(oldArr, newArr) {
             let logs = [];
             const oldMap = new Map(oldArr.map(i => [i.id, i]));
@@ -1138,21 +1224,17 @@
         function selectClient(id) {
             const client = state.clientsCache.find(c => c.id === id);
             if (!client) return;
-            // Preenche os campos
             setVal('c-name', client.name);
             setVal('c-doc', client.doc || '');
             setVal('c-phone', client.phone || '');
             setVal('c-email', client.email || '');
             setVal('c-addr', client.address || '');
-            // Atualiza state.data
             state.data.client.name = client.name;
             state.data.client.doc = client.doc || '';
             state.data.client.phone = client.phone || '';
             state.data.client.email = client.email || '';
             state.data.client.address = client.address || '';
-            // Exibe os campos do cliente
             document.getElementById('client-fields-container').classList.remove('hidden');
-            // Limpa sugestões
             document.getElementById('client-search-input').value = '';
             document.getElementById('client-suggestions').classList.add('hidden');
         }
@@ -1171,7 +1253,215 @@
             document.getElementById('client-fields-container').classList.add('hidden');
         }
 
-        // ----- FEED DE ATIVIDADES (apenas cliente) -----
+        // ----- NOVAS FUNÇÕES PARA CATÁLOGO -----
+        async function loadCatalog() {
+            if (!state.user) return;
+            const { data, error } = await db
+                .from('service_catalog')
+                .select('*')
+                .eq('user_id', state.user.id)
+                .order('name', { ascending: true });
+            if (error) {
+                console.error("Erro ao carregar catálogo:", error);
+                return;
+            }
+            state.catalogCache = data || [];
+            updateCategoryFilters();
+        }
+
+        function updateCategoryFilters() {
+            const categories = [...new Set(state.catalogCache.map(item => item.category).filter(c => c))];
+            const filterSelect = document.getElementById('catalog-category-filter');
+            const selectorFilter = document.getElementById('catalog-selector-category');
+            if (filterSelect) {
+                filterSelect.innerHTML = '<option value="">Todas categorias</option>' + 
+                    categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            }
+            if (selectorFilter) {
+                selectorFilter.innerHTML = '<option value="">Todas categorias</option>' + 
+                    categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            }
+        }
+
+        function renderCatalog() {
+            const tbody = document.getElementById('catalog-table-body');
+            if (!tbody) return;
+            const search = safeVal('catalog-search').toLowerCase();
+            const category = safeVal('catalog-category-filter');
+            const filtered = state.catalogCache.filter(item => 
+                item.name.toLowerCase().includes(search) &&
+                (!category || item.category === category)
+            );
+            let html = '';
+            if (filtered.length === 0) {
+                html = '<tr><td colspan="5" class="text-center py-4 text-slate-400">Nenhum serviço encontrado.</td></tr>';
+            } else {
+                filtered.forEach(item => {
+                    html += `<tr>
+                        <td class="font-bold">${item.name}</td>
+                        <td>${item.description || '-'}</td>
+                        <td>${item.price ? 'R$ ' + parseFloat(item.price).toFixed(2) : '-'}</td>
+                        <td>${item.category || '-'}</td>
+                        <td class="text-right">
+                            <button onclick="editCatalogItem('${item.id}')" class="text-blue-600 hover:text-blue-800 mr-2"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteCatalogItem('${item.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+                });
+            }
+            tbody.innerHTML = html;
+        }
+
+        function openCatalogModal(editId = null) {
+            const modal = document.getElementById('catalog-modal');
+            modal.classList.remove('hidden');
+            if (editId) {
+                const item = state.catalogCache.find(i => i.id === editId);
+                if (item) {
+                    document.getElementById('catalog-modal-title').innerText = 'Editar Serviço';
+                    document.getElementById('catalog-id').value = item.id;
+                    document.getElementById('catalog-name').value = item.name;
+                    document.getElementById('catalog-description').value = item.description || '';
+                    document.getElementById('catalog-price').value = item.price || '';
+                    document.getElementById('catalog-category').value = item.category || '';
+                }
+            } else {
+                document.getElementById('catalog-modal-title').innerText = 'Novo Serviço';
+                document.getElementById('catalog-id').value = '';
+                document.getElementById('catalog-name').value = '';
+                document.getElementById('catalog-description').value = '';
+                document.getElementById('catalog-price').value = '';
+                document.getElementById('catalog-category').value = '';
+            }
+        }
+
+        function closeCatalogModal() {
+            document.getElementById('catalog-modal').classList.add('hidden');
+        }
+
+        async function saveCatalogItem() {
+            const id = document.getElementById('catalog-id').value;
+            const name = document.getElementById('catalog-name').value.trim();
+            if (!name) {
+                alert("Nome é obrigatório.");
+                return;
+            }
+            const itemData = {
+                name,
+                description: document.getElementById('catalog-description').value,
+                price: document.getElementById('catalog-price').value ? parseFloat(document.getElementById('catalog-price').value) : null,
+                category: document.getElementById('catalog-category').value || null,
+                user_id: state.user.id
+            };
+            let savedItem;
+            if (id) {
+                const { data, error } = await db.from('service_catalog').update(itemData).eq('id', id).select().single();
+                if (error) { alert("Erro ao atualizar: " + error.message); return; }
+                savedItem = data;
+            } else {
+                const { data, error } = await db.from('service_catalog').insert(itemData).select().single();
+                if (error) { alert("Erro ao criar: " + error.message); return; }
+                savedItem = data;
+            }
+            await loadCatalog();
+            renderCatalog();
+            closeCatalogModal();
+        }
+
+        async function editCatalogItem(id) {
+            openCatalogModal(id);
+        }
+
+        async function deleteCatalogItem(id) {
+            if (!confirm("Tem certeza que deseja excluir este serviço?")) return;
+            const { error } = await db.from('service_catalog').delete().eq('id', id);
+            if (error) {
+                alert("Erro ao excluir: " + error.message);
+                return;
+            }
+            await loadCatalog();
+            renderCatalog();
+        }
+
+        // ----- SELETOR DE CATÁLOGO NO EDITOR -----
+        let selectedCatalogIds = new Set();
+
+        function openCatalogSelector() {
+            if (state.version.status !== 'draft') {
+                alert("Orçamento bloqueado. Não é possível adicionar itens.");
+                return;
+            }
+            selectedCatalogIds.clear();
+            renderCatalogSelector();
+            document.getElementById('catalog-selector-modal').classList.remove('hidden');
+        }
+
+        function closeCatalogSelector() {
+            document.getElementById('catalog-selector-modal').classList.add('hidden');
+        }
+
+        function renderCatalogSelector() {
+            const listDiv = document.getElementById('catalog-selector-list');
+            const search = document.getElementById('catalog-selector-search')?.value.toLowerCase() || '';
+            const category = document.getElementById('catalog-selector-category')?.value || '';
+            const filtered = state.catalogCache.filter(item => 
+                item.name.toLowerCase().includes(search) &&
+                (!category || item.category === category)
+            );
+            let html = '';
+            if (filtered.length === 0) {
+                html = '<div class="text-center py-4 text-slate-400">Nenhum serviço encontrado.</div>';
+            } else {
+                filtered.forEach(item => {
+                    const checked = selectedCatalogIds.has(item.id) ? 'checked' : '';
+                    html += `
+                        <div class="catalog-item">
+                            <input type="checkbox" id="cat_${item.id}" value="${item.id}" ${checked} onchange="toggleCatalogSelect('${item.id}')" class="mr-3">
+                            <label for="cat_${item.id}" class="flex-1 cursor-pointer">
+                                <span class="font-bold">${item.name}</span>
+                                ${item.description ? `<span class="text-sm text-slate-500 ml-2">${item.description}</span>` : ''}
+                                ${item.price ? `<span class="text-sm font-mono ml-2">R$ ${parseFloat(item.price).toFixed(2)}</span>` : ''}
+                                ${item.category ? `<span class="text-xs bg-slate-100 px-2 py-0.5 rounded ml-2">${item.category}</span>` : ''}
+                            </label>
+                        </div>
+                    `;
+                });
+            }
+            listDiv.innerHTML = html;
+        }
+
+        function toggleCatalogSelect(id) {
+            if (selectedCatalogIds.has(id)) {
+                selectedCatalogIds.delete(id);
+            } else {
+                selectedCatalogIds.add(id);
+            }
+        }
+
+        function importSelectedCatalogItems() {
+            if (selectedCatalogIds.size === 0) {
+                alert("Nenhum item selecionado.");
+                return;
+            }
+            const selectedItems = state.catalogCache.filter(item => selectedCatalogIds.has(item.id));
+            selectedItems.forEach(item => {
+                state.data.items.push({
+                    id: 'item_' + Date.now() + Math.random(),
+                    name: item.name,
+                    description: item.description || '',
+                    qty: 1,
+                    price: item.price || 0,
+                    type: 'original',
+                    optional: false,
+                    publicSelected: false
+                });
+            });
+            renderItems();
+            updateTotal();
+            closeCatalogSelector();
+        }
+
+        // ----- DASHBOARD E PROJETOS (já existentes, mantidos) -----
         function getRecentActivities(limit = 10) {
             let activities = [];
             state.projectsCache.forEach(project => {
@@ -1273,6 +1563,7 @@
             return 'agora mesmo';
         }
 
+        // ----- INICIALIZAÇÃO (com carregamento do catálogo) -----
         async function init() {
             try {
                 db = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1298,10 +1589,11 @@
                     document.getElementById('app-layout').classList.remove('hidden');
                     await loadProjects();
                     await loadClients();
+                    await loadCatalog(); // carrega catálogo
                     if (view === 'editor' && id) {
                         await loadEditor(id);
                         switchTab('editor', false);
-                    } else if (view === 'dashboard' || view === 'projects' || view === 'clients') {
+                    } else if (view === 'dashboard' || view === 'projects' || view === 'clients' || view === 'catalog') {
                         switchTab(view, false);
                     } else {
                         switchTab('dashboard', false);
@@ -1375,6 +1667,9 @@
             }
             if (tab === 'clients') {
                 renderClients();
+            }
+            if (tab === 'catalog') {
+                renderCatalog();
             }
         }
 
@@ -1647,7 +1942,7 @@
             openProject(p.id);
         }
 
-        // ========== EDITOR ==========
+        // ========== EDITOR (funções já existentes, mantidas) ==========
         async function loadEditor(id) {
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
             state.project = proj;
@@ -1660,7 +1955,6 @@
                 state.previousData = normalizeData(vers[vers.length - 2].items);
             }
             renderEditor();
-            // Se já houver um cliente selecionado, exibe os campos
             if (state.data.client.name) {
                 document.getElementById('client-fields-container').classList.remove('hidden');
             } else {
@@ -1691,7 +1985,6 @@
             setVal('p-doc', d.settings.providerDoc);
             setVal('p-addr', d.settings.providerAddr);
             setVal('p-phone', d.settings.providerPhone);
-            // Preenche campos de cliente (ocultos ou não)
             setVal('c-name', d.client.name);
             setVal('c-doc', d.client.doc);
             setVal('c-phone', d.client.phone);
@@ -2406,5 +2699,3 @@
     </script>
 </body>
 </html>
-
-
