@@ -60,6 +60,11 @@
         
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .anim-entry { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
         
         .loader-spin { width: 30px; height: 30px; border: 3px solid #E2E8F0; border-top-color: #3B82F6; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -72,46 +77,44 @@
         .att-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; transition: all 0.2s; display: flex; flex-direction: column; gap: 0.5rem; }
         .att-card:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
 
-        /* ----- LOGIN MODERNO COM DESTAQUE VERDE ----- */
+        /* ----- LOGIN DINÂMICO E COLORIDO ----- */
         .split-screen { display: flex; min-height: 100vh; width: 100%; position: absolute; top: 0; left: 0; z-index: 50; background: white; }
         .left-area { 
             width: 60%; 
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); 
-            color: #1e293b; 
+            background: linear-gradient(145deg, #7b2ff7 0%, #3b82f6 40%, #10b981 80%, #fbbf24 100%); 
+            color: white; 
             display: flex; 
             flex-direction: column; 
             justify-content: center; 
-            padding: 5rem 6rem; 
+            padding: 4rem 5rem; 
             position: relative; 
             overflow: hidden; 
         }
         .glow-orb { 
             position: absolute; 
             border-radius: 50%; 
-            filter: blur(90px); 
+            filter: blur(100px); 
             opacity: 0.4; 
         }
         .orb-1 { 
-            width: 600px; 
-            height: 600px; 
-            background: #2e7d32; 
-            top: -15%; 
-            left: -15%; 
-            opacity: 0.15;
-            animation: float 10s ease-in-out infinite; 
+            width: 700px; 
+            height: 700px; 
+            background: #a855f7; 
+            top: -20%; 
+            left: -20%; 
+            animation: float 18s ease-in-out infinite; 
         }
         .orb-2 { 
-            width: 500px; 
-            height: 500px; 
-            background: #ffffff; 
-            bottom: -15%; 
+            width: 600px; 
+            height: 600px; 
+            background: #facc15; 
+            bottom: -20%; 
             right: -15%; 
-            opacity: 0.3;
-            animation: float 12s ease-in-out infinite reverse; 
+            animation: float 22s ease-in-out infinite reverse; 
         }
         @keyframes float { 
             0% { transform: translate(0, 0); } 
-            50% { transform: translate(-20px, 20px); } 
+            50% { transform: translate(-30px, 30px); } 
             100% { transform: translate(0, 0); } 
         }
         .benefit-item { 
@@ -120,31 +123,33 @@
             gap: 1.25rem; 
             padding: 1.25rem; 
             margin-bottom: 1.25rem; 
-            background: rgba(255, 255, 255, 0.7); 
+            background: rgba(255, 255, 255, 0.15); 
             backdrop-filter: blur(8px);
-            border: 1px solid rgba(46, 125, 50, 0.2); 
             border-radius: 16px; 
             transition: all 0.3s ease; 
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid transparent;
         }
+        .benefit-item:nth-child(1) { border-left-color: #f97316; }
+        .benefit-item:nth-child(2) { border-left-color: #3b82f6; }
+        .benefit-item:nth-child(3) { border-left-color: #ec4899; }
         .benefit-item:hover { 
-            background: rgba(255, 255, 255, 0.9); 
+            background: rgba(255, 255, 255, 0.25); 
             transform: translateX(8px); 
-            border-color: rgba(46, 125, 50, 0.5); 
-            box-shadow: 0 10px 15px -3px rgba(46, 125, 50, 0.1);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
         }
         .icon-circle { 
-            width: 44px; 
-            height: 44px; 
-            border-radius: 12px; 
+            width: 48px; 
+            height: 48px; 
+            border-radius: 16px; 
             background: white; 
-            color: #2e7d32; 
+            color: #1e293b; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-size: 1.1rem; 
+            font-size: 1.2rem; 
             flex-shrink: 0; 
-            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.15); 
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); 
         }
         .right-area { 
             width: 40%; 
@@ -160,8 +165,8 @@
             width: 100%; 
             max-width: 420px; 
             padding: 3rem 2rem; 
-            border-radius: 24px; 
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); 
+            border-radius: 32px; 
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.2); 
             border: 1px solid #f1f5f9; 
             text-align: center; 
         }
@@ -170,7 +175,7 @@
             padding: 16px; 
             background: #f8fafc; 
             border: 1px solid #e2e8f0; 
-            border-radius: 12px; 
+            border-radius: 16px; 
             font-size: 1rem; 
             color: #1e293b; 
             text-align: center; 
@@ -180,26 +185,25 @@
         }
         .input-pro:focus { 
             background: white; 
-            border-color: #2e7d32; 
-            box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.1); 
+            border-color: #3b82f6; 
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); 
         }
         .btn-pro { 
             width: 100%; 
             padding: 16px; 
-            border-radius: 12px; 
+            border-radius: 16px; 
             font-weight: 700; 
             color: white; 
-            background: #2e7d32; 
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); 
             border: none; 
             cursor: pointer; 
             transition: all 0.3s; 
             font-size: 1rem; 
-            box-shadow: 0 10px 25px -5px rgba(46, 125, 50, 0.3); 
+            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4); 
         }
         .btn-pro:hover { 
-            background: #1b5e20; 
             transform: translateY(-2px); 
-            box-shadow: 0 15px 30px -5px rgba(46, 125, 50, 0.4); 
+            box-shadow: 0 20px 30px -5px rgba(37, 99, 235, 0.5); 
         }
         .btn-pro:disabled { 
             opacity: 0.7; 
@@ -211,8 +215,8 @@
             justify-content: center; 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             font-size: 1.25rem; 
-            color: #475569; 
-            margin-bottom: 3rem; 
+            color: #f1f5f9; 
+            margin-bottom: 2rem; 
             margin-top: 1rem; 
         }
         @media (min-width: 1024px) { 
@@ -223,7 +227,7 @@
         .rotating-wrapper { 
             position: relative; 
             height: 1.5em; 
-            width: 350px; 
+            width: 300px; 
             overflow: hidden; 
             margin-left: 0.5rem; 
             display: inline-block; 
@@ -239,7 +243,7 @@
             display: flex; 
             align-items: center; 
             font-weight: 700; 
-            color: #2e7d32; 
+            color: #fde047; 
             opacity: 0; 
             transform: translateY(100%); 
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
@@ -251,6 +255,25 @@
         .rotate-word.exit { 
             opacity: 0; 
             transform: translateY(-100%); 
+        }
+        .step-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            padding: 1.5rem;
+            transition: transform 0.3s;
+        }
+        .step-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-item {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(4px);
+            border-radius: 40px;
+            padding: 0.5rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         @media (max-width: 1024px) { 
             .split-screen { 
@@ -351,71 +374,92 @@
         <button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button>
     </div>
 
-    <!-- LOGIN COM VISUAL MODERNO -->
-<section id="view-login" class="hidden split-screen">
-    <div class="left-area">
-        <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
-        <div class="relative z-10 anim-entry">
-            <div class="mb-4">
-                <img src="logo.png" alt="Aprova Ai" class="h-16">
-            </div>
-            <h1 class="text-5xl font-extrabold leading-tight mb-2 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-green-900">Garantem sua segurança</span></h1>
-            <p class="text-xl text-slate-700 mb-6">Crie, envie e acompanhe orçamentos com aprovação digital e histórico completo.</p>
-            
-            <div class="space-y-4">
-                <div class="benefit-item delay-100"><div class="icon-circle"><i class="fas fa-shield-alt"></i></div><div><h3 class="font-bold text-lg">Evite prejuízos</h3><p class="text-sm text-slate-600">Registre mudanças de escopo e evite retrabalho.</p></div></div>
-                <div class="benefit-item delay-200"><div class="icon-circle"><i class="fas fa-check"></i></div><div><h3 class="font-bold text-lg">Aprovação</h3><p class="text-sm text-slate-600">Link direto para o cliente aprovar com assinatura digital.</p></div></div>
-                <div class="benefit-item delay-300"><div class="icon-circle"><i class="fas fa-file-contract"></i></div><div><h3 class="font-bold text-lg">Sem discussão</h3><p class="text-sm text-slate-600">Tudo documentado, histórico completo e PDF comprovante.</p></div></div>
-            </div>
-
-            <!-- Como funciona em 3 passos -->
-            <div class="mt-8">
-                <h3 class="text-2xl font-bold text-slate-800 mb-4">Como funciona?</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-white/70 backdrop-blur-sm p-4 rounded-xl border border-green-200 shadow-sm">
-                        <div class="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold mb-2">1</div>
-                        <h4 class="font-bold text-slate-800">Crie</h4>
-                        <p class="text-sm text-slate-600">Adicione itens, opcionais e anexos. Seus dados são salvos automaticamente.</p>
+    <!-- LOGIN DINÂMICO E COLORIDO -->
+    <section id="view-login" class="hidden split-screen">
+        <div class="left-area">
+            <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
+            <div class="relative z-10">
+                <!-- Logo e título com animação -->
+                <div class="mb-6 anim-entry">
+                    <img src="logo.png" alt="Aprova Ai" class="h-16">
+                </div>
+                <h1 class="text-5xl font-extrabold leading-tight mb-4 font-heading anim-entry delay-1">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300">protegem seu negócio</span></h1>
+                <p class="text-xl text-white/90 mb-8 anim-entry delay-2">Crie, envie e acompanhe orçamentos com aprovação digital e histórico completo.</p>
+                
+                <!-- Benefícios em cards coloridos -->
+                <div class="space-y-4">
+                    <div class="benefit-item anim-entry delay-2">
+                        <div class="icon-circle text-orange-500"><i class="fas fa-shield-alt"></i></div>
+                        <div><h3 class="font-bold text-xl text-white">Evite prejuízos</h3><p class="text-sm text-white/80">Registre mudanças de escopo e evite retrabalho.</p></div>
                     </div>
-                    <div class="bg-white/70 backdrop-blur-sm p-4 rounded-xl border border-green-200 shadow-sm">
-                        <div class="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold mb-2">2</div>
-                        <h4 class="font-bold text-slate-800">Envie</h4>
-                        <p class="text-sm text-slate-600">Compartilhe o link por WhatsApp ou e-mail. O cliente vê tudo.</p>
+                    <div class="benefit-item anim-entry delay-3">
+                        <div class="icon-circle text-blue-500"><i class="fas fa-check"></i></div>
+                        <div><h3 class="font-bold text-xl text-white">Aprovação rápida</h3><p class="text-sm text-white/80">Link direto para o cliente aprovar com assinatura digital.</p></div>
                     </div>
-                    <div class="bg-white/70 backdrop-blur-sm p-4 rounded-xl border border-green-200 shadow-sm">
-                        <div class="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold mb-2">3</div>
-                        <h4 class="font-bold text-slate-800">Aprovação</h4>
-                        <p class="text-sm text-slate-600">Cliente aprova com assinatura digital. Você recebe notificação e PDF.</p>
+                    <div class="benefit-item anim-entry delay-4">
+                        <div class="icon-circle text-pink-500"><i class="fas fa-file-contract"></i></div>
+                        <div><h3 class="font-bold text-xl text-white">Sem discussão</h3><p class="text-sm text-white/80">Tudo documentado, histórico completo e PDF comprovante.</p></div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Selo de confiança -->
-            <div class="mt-8 flex items-center gap-2 text-slate-600">
-                <i class="fas fa-users text-green-600"></i>
-                <span>Mais de <strong>500 usuários</strong> já aprovaram mais de <strong>2.000 orçamentos</strong>.</span>
-            </div>
+                <!-- Como funciona em 3 passos (cards coloridos) -->
+                <div class="mt-12">
+                    <h3 class="text-2xl font-bold text-white mb-6 anim-entry delay-3">Como funciona?</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <div class="step-card bg-gradient-to-br from-purple-500/30 to-pink-500/30 anim-entry delay-3">
+                            <div class="w-12 h-12 bg-white text-purple-600 rounded-2xl flex items-center justify-center font-bold text-xl mb-3">1</div>
+                            <h4 class="font-bold text-white text-lg">Crie</h4>
+                            <p class="text-sm text-white/80">Adicione itens, opcionais e anexos. Seus dados são salvos automaticamente.</p>
+                        </div>
+                        <div class="step-card bg-gradient-to-br from-blue-500/30 to-cyan-500/30 anim-entry delay-4">
+                            <div class="w-12 h-12 bg-white text-blue-600 rounded-2xl flex items-center justify-center font-bold text-xl mb-3">2</div>
+                            <h4 class="font-bold text-white text-lg">Envie</h4>
+                            <p class="text-sm text-white/80">Compartilhe o link por WhatsApp ou e-mail. O cliente vê tudo.</p>
+                        </div>
+                        <div class="step-card bg-gradient-to-br from-green-500/30 to-emerald-500/30 anim-entry delay-5">
+                            <div class="w-12 h-12 bg-white text-green-600 rounded-2xl flex items-center justify-center font-bold text-xl mb-3">3</div>
+                            <h4 class="font-bold text-white text-lg">Aprovação</h4>
+                            <p class="text-sm text-white/80">Cliente aprova com assinatura digital. Você recebe notificação e PDF.</p>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- Rodapé -->
-            <div class="mt-8 text-xs text-slate-500 flex gap-4">
-                <a href="#" class="hover:text-green-600">Termos de uso</a>
-                <a href="#" class="hover:text-green-600">Política de privacidade</a>
-                <span>© 2025 Aprova Ai</span>
+                <!-- Selo de confiança com estatísticas -->
+                <div class="mt-12 flex flex-wrap items-center gap-4 anim-entry delay-5">
+                    <div class="stat-item">
+                        <i class="fas fa-users text-yellow-300"></i>
+                        <span class="text-white font-medium">+500 usuários</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-file-invoice text-green-300"></i>
+                        <span class="text-white font-medium">+2.000 orçamentos</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-star text-pink-300"></i>
+                        <span class="text-white font-medium">98% satisfação</span>
+                    </div>
+                </div>
+
+                <!-- Rodapé com links -->
+                <div class="mt-12 text-sm text-white/60 flex gap-6 anim-entry delay-5">
+                    <a href="#" class="hover:text-white transition">Termos</a>
+                    <a href="#" class="hover:text-white transition">Privacidade</a>
+                    <span>© 2025 Aprova Ai</span>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="right-area">
-        <div class="login-card anim-entry delay-300">
-            <div class="avatar-circle flex justify-center mb-4">
-                <img src="logo.png" alt="Logo" class="h-12">
+        <div class="right-area">
+            <div class="login-card anim-entry delay-2">
+                <div class="avatar-circle flex justify-center mb-4">
+                    <img src="logo.png" alt="Logo" class="h-12">
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-2 font-heading">Acesse sua conta</h2>
+                <p class="text-slate-500 mb-8 text-sm">Digite seu e-mail para entrar.</p>
+                <input type="email" id="email" placeholder="E-mail" class="input-pro">
+                <button onclick="handleLogin()" id="btn-login" class="btn-pro">Enviar link de acesso</button>
             </div>
-            <h2 class="text-2xl font-bold text-slate-800 mb-2 font-heading">Acesse sua conta</h2>
-            <p class="text-slate-500 mb-8 text-sm">Digite seu e-mail para entrar.</p>
-            <input type="email" id="email" placeholder="E-mail" class="input-pro">
-            <button onclick="handleLogin()" id="btn-login" class="btn-pro">Enviar link de acesso</button>
         </div>
-    </div>
-</section>
+    </section>
 
     <div id="app-layout" class="hidden">
         <div class="mobile-header">
@@ -2356,5 +2400,3 @@
     </script>
 </body>
 </html>
-
-
