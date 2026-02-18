@@ -388,6 +388,109 @@
         #client-data-modal .modal-box {
             max-width: 500px;
         }
+
+        /* ========== MELHORIAS MOBILE ========== */
+        @media (max-width: 767px) {
+            /* Aumenta área de toque */
+            .nav-item {
+                padding: 16px 24px;
+                min-height: 56px;
+            }
+            .btn-new {
+                margin: 16px;
+                padding: 16px;
+                font-size: 1rem;
+            }
+            .sidebar {
+                width: 100%;
+                max-width: 320px;
+                box-shadow: 2px 0 20px rgba(0,0,0,0.15);
+                z-index: 60;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            /* Backdrop para o sidebar */
+            .sidebar-backdrop {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 55;
+            }
+            .sidebar.open ~ .sidebar-backdrop {
+                display: block;
+            }
+            /* KPIs: 2 por linha */
+            .grid-cols-1.md\:grid-cols-2.lg\:grid-cols-5 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            /* Cards de projeto em coluna única */
+            #project-cards-container {
+                grid-template-columns: 1fr;
+            }
+            /* Tabelas com rolagem horizontal */
+            .bg-white.rounded-xl.border.border-slate-200.overflow-hidden {
+                overflow-x: auto;
+            }
+            .custom-table {
+                min-width: 600px;
+            }
+            /* Editor: empilha colunas */
+            .xl\:col-span-2, .xl\:col-span-1 {
+                grid-column: span 1 / span 1;
+            }
+            .grid-cols-1.xl\:grid-cols-3 {
+                grid-template-columns: 1fr;
+            }
+            /* Campos do cliente em uma coluna */
+            .grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+            /* Itens do escopo (nome, qtd, preço) */
+            .item-box .grid.grid-cols-12 {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 0.5rem;
+            }
+            .item-box .grid.grid-cols-12 > .col-span-8 {
+                grid-column: span 3 / span 3;
+            }
+            .item-box .grid.grid-cols-12 > .col-span-2 {
+                grid-column: span 1 / span 1;
+            }
+            /* Inputs e botões maiores */
+            input, select, textarea, button {
+                font-size: 16px;
+                min-height: 48px;
+            }
+            /* Modais ocupam 90% da largura */
+            .fixed.inset-0 .bg-white {
+                max-width: 90%;
+                margin: 0 auto;
+            }
+            /* Header mobile mais espaçoso */
+            .mobile-header {
+                padding: 0.75rem 1rem;
+            }
+            .mobile-header button {
+                min-height: 48px;
+                min-width: 48px;
+            }
+            /* Filtros rápidos no sidebar */
+            .sidebar .px-6.py-4 .flex.items-center {
+                min-height: 44px;
+            }
+            /* Botão de novo orçamento flutuante? mantido no menu */
+        }
+
+        /* ===== FIM DAS MELHORIAS MOBILE ===== */
     </style>
 </head>
 <body>
@@ -515,6 +618,9 @@
                 <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="flex items-center text-sm text-red-500 font-medium w-full px-4 py-2"><i class="fas fa-sign-out-alt mr-3"></i> Sair</button>
             </div>
         </aside>
+
+        <!-- Backdrop para fechar o sidebar no mobile -->
+        <div class="sidebar-backdrop hidden md:hidden" onclick="document.querySelector('.sidebar').classList.remove('open')"></div>
 
         <main class="main-content">
             <!-- DASHBOARD -->
@@ -3011,4 +3117,3 @@
     </script>
 </body>
 </html>
-
