@@ -2187,6 +2187,9 @@
             const countData = Object.values(days).map(d => d.count);
             const totalData = Object.values(days).map(d => d.total);
 
+            // Detectar mobile para ajustar gráfico
+            const isMobile = window.innerWidth < 768;
+
             chartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -2211,8 +2214,8 @@
                             pointBackgroundColor: 'rgba(16, 185, 129, 1)',
                             pointBorderColor: 'white',
                             pointBorderWidth: 1,
-                            pointRadius: 3,
-                            pointHoverRadius: 5,
+                            pointRadius: isMobile ? 2 : 3,
+                            pointHoverRadius: isMobile ? 4 : 5,
                             yAxisID: 'y1',
                             order: 1,
                             tension: 0.3
@@ -2243,30 +2246,38 @@
                             display: true,
                             position: 'top',
                             align: 'center',
-                            labels: { usePointStyle: true, boxWidth: 6, padding: 20 }
+                            labels: { usePointStyle: true, boxWidth: isMobile ? 4 : 6, padding: isMobile ? 10 : 20 }
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
-                            title: { display: true, text: 'Orçamentos', color: '#64748b', font: { size: 11, weight: '500' } },
-                            grid: { color: 'rgba(0,0,0,0.05)' }
+                            title: { display: !isMobile, text: 'Orçamentos', color: '#64748b', font: { size: 11, weight: '500' } },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            ticks: {
+                                maxTicksLimit: isMobile ? 5 : undefined,
+                                font: { size: isMobile ? 8 : 11 }
+                            }
                         },
                         y1: {
                             beginAtZero: true,
                             position: 'right',
-                            title: { display: true, text: 'Valor (R$)', color: '#64748b', font: { size: 11, weight: '500' } },
+                            title: { display: !isMobile, text: 'Valor (R$)', color: '#64748b', font: { size: 11, weight: '500' } },
                             grid: { drawOnChartArea: false },
-                            ticks: { callback: function(value) { return 'R$ ' + (value / 1000).toFixed(0) + 'k'; } }
+                            ticks: { 
+                                callback: function(value) { return 'R$ ' + (value / 1000).toFixed(0) + 'k'; },
+                                maxTicksLimit: isMobile ? 4 : undefined,
+                                font: { size: isMobile ? 8 : 11 }
+                            }
                         },
                         x: {
                             ticks: {
-                                maxRotation: 45,
-                                minRotation: 30,
-                                font: { size: 10 },
-                                maxTicksLimit: chartPeriod === 90 ? 15 : undefined,
+                                maxRotation: isMobile ? 60 : 45,
+                                minRotation: isMobile ? 40 : 30,
+                                font: { size: isMobile ? 8 : 10 },
+                                maxTicksLimit: isMobile ? 8 : (chartPeriod === 90 ? 15 : undefined),
                                 autoSkip: true,
-                                autoSkipPadding: 5
+                                autoSkipPadding: isMobile ? 3 : 5
                             }
                         }
                     }
@@ -2418,8 +2429,12 @@
             const locDiv = document.getElementById('loc-custom-div');
             if(locDiv) locDiv.style.display = d.location.sameAsClient ? 'none' : 'block';
             setVal('loc-addr', d.location.address);
+            
+            // Lista de elementos que devem ser desabilitados quando isLocked
             const staticInputs = [
                 'p-name','p-doc','p-addr','p-phone',
+                'c-name','c-doc','c-phone','c-email','c-addr',
+                'client-search-input',
                 'loc-check','loc-addr',
                 't-deadline','t-val','t-obs','pay-mode'
             ];
@@ -2427,12 +2442,35 @@
                 const el = document.getElementById(id); 
                 if(el) el.disabled = isLocked; 
             });
+            
+            // Botões específicos
             const btnAdd = document.getElementById('btn-add-item');
-            if(btnAdd) btnAdd.style.display = isLocked ? 'none' : 'inline-block';
+            if(btnAdd) {
+                btnAdd.disabled = isLocked;
+                btnAdd.style.opacity = isLocked ? '0.5' : '1';
+                btnAdd.style.pointerEvents = isLocked ? 'none' : 'auto';
+            }
+            const btnImport = document.querySelector('button[onclick="openCatalogSelector()"]');
+            if(btnImport) {
+                btnImport.disabled = isLocked;
+                btnImport.style.opacity = isLocked ? '0.5' : '1';
+                btnImport.style.pointerEvents = isLocked ? 'none' : 'auto';
+            }
             const btnCalc = document.getElementById('btn-calc-pay');
-            if(btnCalc) btnCalc.style.display = isLocked ? 'none' : 'inline-block';
+            if(btnCalc) {
+                btnCalc.disabled = isLocked;
+                btnCalc.style.opacity = isLocked ? '0.5' : '1';
+                btnCalc.style.pointerEvents = isLocked ? 'none' : 'auto';
+            }
+            // Botões de cliente
+            const btnNewClient = document.querySelector('button[onclick="openClientModal(true)"]');
+            if(btnNewClient) btnNewClient.disabled = isLocked;
+            const btnClearClient = document.querySelector('button[onclick="clearSelectedClient()"]');
+            if(btnClearClient) btnClearClient.disabled = isLocked;
+            
             const uploadArea = document.getElementById('upload-area');
             if(uploadArea) uploadArea.style.display = isLocked ? 'none' : 'block';
+            
             const headerActions = document.getElementById('ed-actions-header');
             if (headerActions) {
                 if (isLocked) {
