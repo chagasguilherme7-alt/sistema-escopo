@@ -9,80 +9,211 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; color: #334155; }
-        .sidebar { width: 260px; background: white; height: 100vh; position: fixed; left: 0; top: 0; border-right: 1px solid #E2E8F0; display: flex; flex-direction: column; z-index: 50; transition: transform 0.3s; }
-        .main-content { margin-left: 260px; padding: 2rem; min-height: 100vh; transition: margin 0.3s; }
-        .nav-item { display: flex; align-items: center; padding: 12px 24px; color: #64748B; font-weight: 500; transition: all 0.2s; cursor: pointer; border-left: 3px solid transparent; }
-        .nav-item:hover, .nav-item.active { background: #F8FAFC; color: #3B82F6; border-left-color: #3B82F6; }
-        .nav-item i { width: 24px; margin-right: 10px; }
-        .btn-new { background: #3B82F6; color: white; border-radius: 8px; padding: 12px; margin: 20px; text-align: center; font-weight: 600; cursor: pointer; transition: background 0.2s; display: block; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5); }
-        .btn-new:hover { background: #2563EB; }
-        .custom-table { width: 100%; text-align: left; border-collapse: separate; border-spacing: 0; }
-        .custom-table th { padding: 16px; background: #F8FAFC; color: #64748B; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #E2E8F0; }
-        .custom-table td { padding: 16px; border-bottom: 1px solid #E2E8F0; background: white; font-size: 0.9rem; }
-        .custom-table tr:hover td { background: #F1F5F9; cursor: pointer; }
-        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-        .mobile-header { display: none; justify-content: space-between; align-items: center; padding: 1rem; background: white; border-bottom: 1px solid #E2E8F0; margin-bottom: 1rem; }
+        /* ===== VARIÁVEIS DE COR ===== */
+        :root {
+            --primary: #1E3A8A;
+            --primary-light: #3B5BA5;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--gray-100); 
+            color: var(--gray-700); 
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar { 
+            width: 260px; 
+            background: white; 
+            height: 100vh; 
+            position: fixed; 
+            left: 0; 
+            top: 0; 
+            border-right: 1px solid var(--gray-200); 
+            display: flex; 
+            flex-direction: column; 
+            z-index: 50; 
+            transition: transform 0.3s; 
+            box-shadow: 4px 0 12px rgba(0,0,0,0.02);
+        }
+        .main-content { 
+            margin-left: 260px; 
+            padding: 2rem; 
+            min-height: 100vh; 
+            transition: margin 0.3s; 
+        }
+        .nav-item { 
+            display: flex; 
+            align-items: center; 
+            padding: 12px 24px; 
+            color: var(--gray-500); 
+            font-weight: 500; 
+            transition: all 0.2s; 
+            cursor: pointer; 
+            border-left: 3px solid transparent; 
+        }
+        .nav-item:hover, .nav-item.active { 
+            background: var(--gray-50); 
+            color: var(--primary); 
+            border-left-color: var(--primary); 
+        }
+        .nav-item i { 
+            width: 24px; 
+            margin-right: 12px; 
+            font-size: 1.2rem; 
+        }
+        .btn-new { 
+            background: var(--primary); 
+            color: white; 
+            border-radius: 8px; 
+            padding: 12px; 
+            margin: 20px; 
+            text-align: center; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            display: block; 
+            box-shadow: 0 4px 8px rgba(30,58,138,0.2); 
+        }
+        .btn-new:hover { 
+            background: var(--primary-light); 
+            transform: scale(1.02); 
+        }
+        .mobile-header { 
+            display: none; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 1rem; 
+            background: white; 
+            border-bottom: 1px solid var(--gray-200); 
+            margin-bottom: 1rem; 
+        }
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); width: 100%; }
+            .sidebar { transform: translateX(-100%); width: 100%; max-width: 320px; box-shadow: 4px 0 20px rgba(0,0,0,0.1); }
             .sidebar.open { transform: translateX(0); }
             .main-content { margin-left: 0; padding: 1rem; }
             .mobile-header { display: flex !important; }
+            .mobile-header button { min-width: 48px; min-height: 48px; }
+            .sidebar-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 45; backdrop-filter: blur(2px); }
+            .sidebar.open ~ .sidebar-backdrop { display: block; }
+            .grid-cols-1.md\:grid-cols-2.lg\:grid-cols-5 { grid-template-columns: repeat(2,1fr); }
+            #project-cards-container { grid-template-columns: 1fr; }
+            .bg-white.rounded-xl.border.border-slate-200.overflow-hidden { overflow-x: auto; }
+            .custom-table { min-width: 600px; }
+            .grid-cols-1.xl\:grid-cols-3 { grid-template-columns: 1fr; }
+            .grid-cols-2 { grid-template-columns: 1fr; }
+            .item-box .grid.grid-cols-12 { grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; }
+            .item-box .grid.grid-cols-12 > .col-span-8 { grid-column: span 3; }
+            .item-box .grid.grid-cols-12 > .col-span-2 { grid-column: span 1; }
+            input, select, textarea, button { font-size: 16px; min-height: 48px; }
+            .fixed.inset-0 .bg-white { max-width: 90%; margin: 0 auto; }
         }
 
-        .item-box { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s; }
-        .item-box:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .item-optional { border: 2px dashed #94a3b8 !important; background-color: #f8fafc; opacity: 0.9; }
-        .optional-badge { background: #64748b; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; font-weight: bold; text-transform: uppercase; margin-left: 8px; }
-        .diff-box { background-color: #fff7ed; border: 1px dashed #f97316; border-radius: 6px; padding: 8px; margin-top: 8px; font-size: 0.75rem; color: #9a3412; display: flex; align-items: center; gap: 8px; }
-        .diff-tag { background: #f97316; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.65rem; text-transform: uppercase; }
-        .old-val { text-decoration: line-through; color: #ef4444; margin-right: 4px; }
-        .new-val { color: #16a34a; font-weight: bold; }
-        .item-modified { border-left: 4px solid #f59e0b !important; }
-        .item-new { border-left: 4px solid #10b981 !important; }
-        .timeline-item { position: relative; padding-left: 2rem; border-left: 2px solid #e2e8f0; padding-bottom: 1.5rem; }
-        .timeline-item::before { content: ''; position: absolute; left: -5px; top: 0; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
+        /* ===== CARDS E TABELAS ===== */
+        .custom-table { width: 100%; text-align: left; border-collapse: separate; border-spacing: 0; }
+        .custom-table th { padding: 16px; background: var(--gray-50); color: var(--gray-500); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid var(--gray-200); }
+        .custom-table td { padding: 16px; border-bottom: 1px solid var(--gray-200); background: white; font-size: 0.9rem; }
+        .custom-table tr:hover td { background: var(--gray-50); cursor: pointer; }
+
+        .project-card { background: white; border: 1px solid var(--gray-200); border-radius: 16px; padding: 1.5rem; transition: all 0.2s; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.02); }
+        .project-card:hover { border-color: var(--primary); box-shadow: 0 12px 24px -8px rgba(30,58,138,0.15); transform: translateY(-2px); }
+
+        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+
+        /* ===== BADGES DE STATUS ===== */
+        .status-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.03em; white-space: nowrap; }
+        .st-draft { background: #EFF6FF; color: var(--primary); } 
+        .st-sent { background: #DBEAFE; color: #1E3A8A; } 
+        .st-negotiating { background: #FEF3C7; color: #B45309; } 
+        .st-approved { background: #D1FAE5; color: #065F46; } 
+        .st-canceled { background: #FEE2E2; color: #991B1B; }
+
+        /* ===== ITENS DO ESCOPO ===== */
+        .item-box { background: white; border: 1px solid var(--gray-200); border-radius: 12px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s; }
+        .item-box:hover { border-color: var(--primary); box-shadow: 0 8px 16px rgba(0,0,0,0.05); }
+        .item-optional { border: 2px dashed var(--gray-400) !important; background-color: var(--gray-50); opacity: 0.9; }
+        .optional-badge { background: var(--gray-500); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; font-weight: bold; text-transform: uppercase; margin-left: 8px; }
+        .diff-box { background-color: #FFFBEB; border: 1px dashed var(--warning); border-radius: 6px; padding: 8px; margin-top: 8px; font-size: 0.75rem; color: #9A3412; display: flex; align-items: center; gap: 8px; }
+        .diff-tag { background: var(--warning); color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.65rem; text-transform: uppercase; }
+        .old-val { text-decoration: line-through; color: var(--danger); margin-right: 4px; }
+        .new-val { color: var(--success); font-weight: bold; }
+        .item-modified { border-left: 4px solid var(--warning) !important; }
+        .item-new { border-left: 4px solid var(--success) !important; }
+
+        /* ===== TIMELINE ===== */
+        .timeline-item { position: relative; padding-left: 2rem; border-left: 2px solid var(--gray-200); padding-bottom: 1.5rem; }
+        .timeline-item::before { content: ''; position: absolute; left: -5px; top: 0; width: 8px; height: 8px; border-radius: 50%; background: var(--gray-400); }
         .timeline-item:last-child { border-left: transparent; }
-        .timeline-desc { font-size: 0.85rem; color: #334155; margin-top: 6px; background: #fff7ed; padding: 12px; border-radius: 8px; border: 1px solid #fed7aa; font-style: italic; }
-        .timeline-desc.system { background: #f8fafc; border-color: #f1f5f9; font-style: normal; }
-        .status-badge { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.05em; white-space: nowrap; }
-        .st-draft { background: #e0f2fe; color: #0284c7; } 
-        .st-sent { background: #dbeafe; color: #1e40af; } 
-        .st-negotiating { background: #ffedd5; color: #c2410c; } 
-        .st-approved { background: #dcfce7; color: #166534; } 
-        .st-canceled { background: #fee2e2; color: #991b1b; }
-        
-        #signature-pad { border: 2px dashed #cbd5e1; border-radius: 12px; background: #f8fafc; cursor: crosshair; touch-action: none; width: 100%; height: 200px; }
-        
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .anim-entry { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
-        .delay-4 { animation-delay: 0.4s; }
-        .delay-5 { animation-delay: 0.5s; }
-        
-        .loader-spin { width: 30px; height: 30px; border: 3px solid #E2E8F0; border-top-color: #3B82F6; border-radius: 50%; animation: spin 1s linear infinite; }
+        .timeline-desc { font-size: 0.85rem; color: var(--gray-700); margin-top: 6px; background: #FFFBEB; padding: 12px; border-radius: 8px; border: 1px solid #FED7AA; font-style: italic; }
+        .timeline-desc.system { background: var(--gray-50); border-color: var(--gray-200); font-style: normal; }
+
+        /* ===== ASSINATURA ===== */
+        #signature-pad { border: 2px dashed var(--gray-300); border-radius: 12px; background: var(--gray-50); cursor: crosshair; touch-action: none; width: 100%; height: 200px; }
+
+        /* ===== LOADER ===== */
+        .loader-spin { width: 30px; height: 30px; border: 3px solid var(--gray-200); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .hidden { display: none !important; }
 
-        #view-public { background: #f1f5f9; }
-        #public-content { max-width: 1200px; margin: 0 auto; background: white; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
-        #stamp-approved { position: absolute; top: 30px; right: 30px; border: 4px solid #16a34a; color: #16a34a; font-size: 2rem; font-weight: 800; padding: 0.5rem 2rem; text-transform: uppercase; opacity: 0.3; transform: rotate(-12deg); z-index: 20; }
-        .doc-section-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: #64748b; margin-bottom: 1rem; border-left: 3px solid #3b82f6; padding-left: 0.75rem; }
-        .att-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; transition: all 0.2s; display: flex; flex-direction: column; gap: 0.5rem; }
-        .att-card:hover { border-color: #3b82f6; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        /* ===== TOAST ===== */
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: white; border-radius: 12px; padding: 16px 20px; box-shadow: 0 20px 30px -10px rgba(0,0,0,0.2); border-left: 6px solid; display: flex; align-items: center; gap: 12px; min-width: 280px; max-width: 400px; animation: slideIn 0.3s; }
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--danger); }
+        .toast.warning { border-left-color: var(--warning); }
+        .toast.info { border-left-color: var(--primary); }
+        .toast-icon { font-size: 1.5rem; }
+        .toast-message { flex: 1; font-size: 0.9rem; font-weight: 500; }
+        .toast-close { cursor: pointer; color: var(--gray-400); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        /* ----- LOGIN COM FUNDO CINZA-VERDE ELEMENTOS COLORIDOS ----- */
+        /* ===== SKELETON ===== */
+        .skeleton { background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* ===== TOOLTIP ===== */
+        [data-tooltip] { position: relative; cursor: help; }
+        [data-tooltip]:hover:after { content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: var(--gray-800); color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; white-space: nowrap; z-index: 10; margin-bottom: 6px; }
+
+        /* ===== PROGRESS BAR ===== */
+        .progress-bar { height: 6px; background: var(--gray-200); border-radius: 999px; overflow: hidden; margin-top: 8px; }
+        .progress-fill { height: 100%; border-radius: 999px; transition: width 0.3s; }
+        .progress-fill.draft { background: var(--gray-400); width: 20%; }
+        .progress-fill.sent { background: var(--primary); width: 40%; }
+        .progress-fill.negotiating { background: var(--warning); width: 60%; }
+        .progress-fill.approved { background: var(--success); width: 100%; }
+        .progress-fill.canceled { background: var(--danger); width: 100%; }
+
+        /* ===== AVATAR CIRCLE ===== */
+        .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+
+        /* ===== LOGIN ===== */
         .split-screen { display: flex; min-height: 100vh; width: 100%; position: absolute; top: 0; left: 0; z-index: 50; background: white; }
         .left-area { 
             width: 60%; 
-            background: linear-gradient(145deg, #f0f4f8 0%, #d9e2e9 50%, #b0c4d9 100%);
-            color: #1e293b; 
+            background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+            color: var(--gray-800); 
             display: flex; 
             flex-direction: column; 
             justify-content: center; 
@@ -94,24 +225,22 @@
             position: absolute; 
             border-radius: 50%; 
             filter: blur(100px); 
-            opacity: 0.4; 
+            opacity: 0.2; 
         }
         .orb-1 { 
             width: 700px; 
             height: 700px; 
-            background: #a5d6a7; 
+            background: var(--primary); 
             top: -20%; 
             left: -20%; 
-            opacity: 0.2;
             animation: float 18s ease-in-out infinite; 
         }
         .orb-2 { 
             width: 600px; 
             height: 600px; 
-            background: #81c784; 
+            background: var(--success); 
             bottom: -20%; 
             right: -15%; 
-            opacity: 0.15;
             animation: float 22s ease-in-out infinite reverse; 
         }
         @keyframes float { 
@@ -125,37 +254,37 @@
             gap: 1.25rem; 
             padding: 1.25rem; 
             margin-bottom: 1.25rem; 
-            background: rgba(255, 255, 255, 0.8); 
+            background: rgba(255,255,255,0.7); 
             backdrop-filter: blur(8px);
             border-radius: 16px; 
             transition: all 0.3s ease; 
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.02);
             border-left: 4px solid transparent;
         }
-        .benefit-item:nth-child(1) { border-left-color: #f97316; }
-        .benefit-item:nth-child(2) { border-left-color: #3b82f6; }
-        .benefit-item:nth-child(3) { border-left-color: #ec4899; }
+        .benefit-item:nth-child(1) { border-left-color: var(--warning); }
+        .benefit-item:nth-child(2) { border-left-color: var(--primary); }
+        .benefit-item:nth-child(3) { border-left-color: var(--success); }
         .benefit-item:hover { 
-            background: rgba(255, 255, 255, 0.95); 
+            background: white; 
             transform: translateX(8px); 
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.05);
         }
         .icon-circle { 
             width: 48px; 
             height: 48px; 
             border-radius: 16px; 
             background: white; 
-            color: #1e293b; 
+            color: var(--primary); 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-size: 1.2rem; 
+            font-size: 1.5rem; 
             flex-shrink: 0; 
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.05); 
         }
         .right-area { 
             width: 40%; 
-            background: #ffffff; 
+            background: white; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
@@ -168,18 +297,18 @@
             max-width: 420px; 
             padding: 3rem 2rem; 
             border-radius: 32px; 
-            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.2); 
-            border: 1px solid #f1f5f9; 
+            box-shadow: 0 30px 60px -20px rgba(0,0,0,0.2); 
+            border: 1px solid var(--gray-200); 
             text-align: center; 
         }
         .input-pro { 
             width: 100%; 
             padding: 16px; 
-            background: #f8fafc; 
-            border: 1px solid #e2e8f0; 
+            background: var(--gray-50); 
+            border: 1px solid var(--gray-200); 
             border-radius: 16px; 
             font-size: 1rem; 
-            color: #1e293b; 
+            color: var(--gray-800); 
             text-align: center; 
             transition: all 0.2s; 
             margin-bottom: 1.5rem; 
@@ -187,8 +316,8 @@
         }
         .input-pro:focus { 
             background: white; 
-            border-color: #3b82f6; 
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15); 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 4px rgba(30,58,138,0.1); 
         }
         .btn-pro { 
             width: 100%; 
@@ -196,131 +325,29 @@
             border-radius: 16px; 
             font-weight: 700; 
             color: white; 
-            background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%); 
+            background: var(--primary); 
             border: none; 
             cursor: pointer; 
             transition: all 0.3s; 
             font-size: 1rem; 
-            box-shadow: 0 10px 25px -5px rgba(46, 125, 50, 0.4); 
-        }
-        .btn-pro:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 20px 30px -5px rgba(46, 125, 50, 0.5); 
-        }
-        .btn-pro:disabled { 
-            opacity: 0.7; 
-            cursor: not-allowed; 
-        }
-        .ideal-para-container { 
+            box-shadow: 0 10px 20px -5px rgba(30,58,138,0.3); 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            font-size: 1.25rem; 
-            color: #334155; 
-            margin-bottom: 2rem; 
-            margin-top: 1rem; 
+            gap: 8px;
         }
-        @media (min-width: 1024px) { 
-            .ideal-para-container { 
-                justify-content: flex-start; 
-            } 
+        .btn-pro:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 20px 30px -5px rgba(30,58,138,0.4); 
         }
-        .rotating-wrapper { 
-            position: relative; 
-            height: 1.5em; 
-            width: 300px; 
-            overflow: hidden; 
-            margin-left: 0.5rem; 
-            display: inline-block; 
-            vertical-align: middle; 
-            text-align: left; 
-        }
-        .rotate-word { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            display: flex; 
-            align-items: center; 
-            font-weight: 700; 
-            color: #2e7d32; 
-            opacity: 0; 
-            transform: translateY(100%); 
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); 
-        }
-        .rotate-word.active { 
-            opacity: 1; 
-            transform: translateY(0); 
-        } 
-        .rotate-word.exit { 
-            opacity: 0; 
-            transform: translateY(-100%); 
-        }
-        .step-card {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(8px);
-            border-radius: 24px;
-            padding: 1.5rem;
-            transition: transform 0.3s;
-            border: 1px solid rgba(46, 125, 50, 0.2);
-        }
-        .step-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(46, 125, 50, 0.5);
-        }
-        .stat-item {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(4px);
-            border-radius: 40px;
-            padding: 0.5rem 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            border: 1px solid rgba(46, 125, 50, 0.2);
-        }
-        @media (max-width: 1024px) { 
-            .split-screen { 
-                flex-direction: column; 
-                position: relative; 
-                height: auto; 
-                min-height: 100vh; 
-            } 
-            .left-area { 
-                width: 100%; 
-                padding: 3rem 1.5rem; 
-                min-height: auto; 
-                text-align: center; 
-            } 
-            .ideal-para-container { 
-                justify-content: center; 
-                font-size: 1rem; 
-            } 
-            .rotating-wrapper { 
-                width: 200px; 
-            }
-            .right-area { 
-                width: 100%; 
-                padding: 2rem 1rem; 
-                background: white; 
-            } 
-            .login-card { 
-                box-shadow: none; 
-                border: none; 
-                padding: 0; 
-                max-width: 100%; 
-            } 
-            .benefit-item { 
-                flex-direction: column; 
-                align-items: center; 
-                text-align: center; 
-            } 
-            .glow-orb { 
-                display: none; 
-            } 
-        }
+        .btn-pro:disabled { opacity: 0.6; cursor: not-allowed; }
 
+        /* ===== COLLAPSIBLE ===== */
+        .collapsible-header { cursor: pointer; user-select: none; }
+        .collapsible-content { transition: max-height 0.3s ease; overflow: hidden; }
+        .collapsible-content.collapsed { max-height: 0; }
+
+        /* ===== PRINT ===== */
         @media print {
             body { background: white; }
             .no-print { display: none !important; }
@@ -331,169 +358,12 @@
             .print-break-after { page-break-after: always; }
             .print-break-inside { page-break-inside: avoid; }
         }
-
-        .project-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; transition: all 0.2s; cursor: pointer; }
-        .project-card:hover { border-color: #3b82f6; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-
-        .period-btn.active { background-color: #2563eb; color: white; }
-
-        .activity-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid #f1f5f9; }
-        .activity-icon { width: 2rem; height: 2rem; border-radius: 9999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .activity-content { flex: 1; }
-        .activity-title { font-weight: 600; color: #0f172a; }
-        .activity-meta { font-size: 0.75rem; color: #64748b; display: flex; gap: 0.5rem; margin-top: 0.125rem; }
-
-        .autocomplete-suggestions {
-            position: absolute;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            width: 100%;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-        .autocomplete-suggestion {
-            padding: 8px 12px;
-            cursor: pointer;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .autocomplete-suggestion:hover {
-            background-color: #f8fafc;
-        }
-
-        .catalog-item {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .catalog-item:hover {
-            background-color: #f8fafc;
-        }
-
-        .public-catalog-card {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 1rem;
-            transition: all 0.2s;
-        }
-        .public-catalog-card:hover {
-            border-color: #2e7d32;
-            box-shadow: 0 4px 12px rgba(46,125,50,0.1);
-        }
-
-        #client-data-modal .modal-box {
-            max-width: 500px;
-        }
-
-        /* ========== MELHORIAS MOBILE ========== */
-        @media (max-width: 767px) {
-            /* Aumenta área de toque */
-            .nav-item {
-                padding: 16px 24px;
-                min-height: 56px;
-            }
-            .btn-new {
-                margin: 16px;
-                padding: 16px;
-                font-size: 1rem;
-            }
-            .sidebar {
-                width: 100%;
-                max-width: 320px;
-                box-shadow: 2px 0 20px rgba(0,0,0,0.15);
-                z-index: 60;
-            }
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-left: 0;
-                padding: 1rem;
-            }
-            /* Backdrop para o sidebar */
-            .sidebar-backdrop {
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.5);
-                z-index: 55;
-            }
-            .sidebar.open ~ .sidebar-backdrop {
-                display: block;
-            }
-            /* KPIs: 2 por linha */
-            .grid-cols-1.md\:grid-cols-2.lg\:grid-cols-5 {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            /* Cards de projeto em coluna única */
-            #project-cards-container {
-                grid-template-columns: 1fr;
-            }
-            /* Tabelas com rolagem horizontal */
-            .bg-white.rounded-xl.border.border-slate-200.overflow-hidden {
-                overflow-x: auto;
-            }
-            .custom-table {
-                min-width: 600px;
-            }
-            /* Editor: empilha colunas */
-            .xl\:col-span-2, .xl\:col-span-1 {
-                grid-column: span 1 / span 1;
-            }
-            .grid-cols-1.xl\:grid-cols-3 {
-                grid-template-columns: 1fr;
-            }
-            /* Campos do cliente em uma coluna */
-            .grid-cols-2 {
-                grid-template-columns: 1fr;
-            }
-            /* Itens do escopo (nome, qtd, preço) */
-            .item-box .grid.grid-cols-12 {
-                grid-template-columns: 1fr 1fr 1fr;
-                gap: 0.5rem;
-            }
-            .item-box .grid.grid-cols-12 > .col-span-8 {
-                grid-column: span 3 / span 3;
-            }
-            .item-box .grid.grid-cols-12 > .col-span-2 {
-                grid-column: span 1 / span 1;
-            }
-            /* Inputs e botões maiores */
-            input, select, textarea, button {
-                font-size: 16px;
-                min-height: 48px;
-            }
-            /* Modais ocupam 90% da largura */
-            .fixed.inset-0 .bg-white {
-                max-width: 90%;
-                margin: 0 auto;
-            }
-            /* Header mobile mais espaçoso */
-            .mobile-header {
-                padding: 0.75rem 1rem;
-            }
-            .mobile-header button {
-                min-height: 48px;
-                min-width: 48px;
-            }
-            /* Filtros rápidos no sidebar */
-            .sidebar .px-6.py-4 .flex.items-center {
-                min-height: 44px;
-            }
-            /* Botão de novo orçamento flutuante? mantido no menu */
-        }
-
-        /* ===== FIM DAS MELHORIAS MOBILE ===== */
     </style>
 </head>
 <body>
+
+    <!-- Toast container -->
+    <div id="toast-container"></div>
 
     <div id="system-loader" style="position:fixed; inset:0; background:white; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
         <div class="loader-spin mb-4"></div>
@@ -502,7 +372,7 @@
     </div>
 
     <div id="fatal-error" class="hidden fixed inset-0 bg-rose-50 z-[10000] flex flex-col items-center justify-center p-8 text-center">
-        <i class="fas fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i>
+        <i class="far fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i>
         <h2 class="text-2xl font-bold text-slate-800">Ops! Algo deu errado.</h2>
         <p id="error-msg" class="text-slate-600 mt-2 mb-6 max-w-md"></p>
         <button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button>
@@ -516,81 +386,81 @@
                 <div class="mb-6 anim-entry">
                     <img src="logo.png" alt="Aprova Ai" class="h-16">
                 </div>
-                <h1 class="text-5xl font-extrabold leading-tight mb-4 font-heading anim-entry delay-1">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-green-900">protegem seu negócio</span></h1>
-                <p class="text-xl text-slate-700 mb-8 anim-entry delay-2">Crie, envie e acompanhe orçamentos com aprovação digital e histórico completo.</p>
+                <h1 class="text-5xl font-extrabold leading-tight mb-4 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-[#1E3A8A] to-[#3B5BA5]">protegem seu negócio</span></h1>
+                <p class="text-xl text-slate-600 mb-8">Crie, envie e acompanhe orçamentos com aprovação digital e histórico completo.</p>
                 <div class="space-y-4">
-                    <div class="benefit-item anim-entry delay-2">
-                        <div class="icon-circle text-orange-500"><i class="fas fa-shield-alt"></i></div>
-                        <div><h3 class="font-bold text-xl text-slate-800">Evite prejuízos</h3><p class="text-sm text-slate-600">Registre mudanças de escopo e evite retrabalho.</p></div>
+                    <div class="benefit-item">
+                        <div class="icon-circle"><i class="far fa-shield-alt"></i></div>
+                        <div><h3 class="font-bold text-xl text-slate-800">Evite prejuízos</h3><p class="text-sm text-slate-500">Registre mudanças de escopo e evite retrabalho.</p></div>
                     </div>
-                    <div class="benefit-item anim-entry delay-3">
-                        <div class="icon-circle text-blue-500"><i class="fas fa-check"></i></div>
-                        <div><h3 class="font-bold text-xl text-slate-800">Aprovação rápida</h3><p class="text-sm text-slate-600">Link direto para o cliente aprovar com assinatura digital.</p></div>
+                    <div class="benefit-item">
+                        <div class="icon-circle"><i class="far fa-check-circle"></i></div>
+                        <div><h3 class="font-bold text-xl text-slate-800">Aprovação rápida</h3><p class="text-sm text-slate-500">Link direto para o cliente aprovar com assinatura digital.</p></div>
                     </div>
-                    <div class="benefit-item anim-entry delay-4">
-                        <div class="icon-circle text-pink-500"><i class="fas fa-file-contract"></i></div>
-                        <div><h3 class="font-bold text-xl text-slate-800">Sem discussão</h3><p class="text-sm text-slate-600">Tudo documentado, histórico completo e PDF comprovante.</p></div>
+                    <div class="benefit-item">
+                        <div class="icon-circle"><i class="far fa-file-contract"></i></div>
+                        <div><h3 class="font-bold text-xl text-slate-800">Sem discussão</h3><p class="text-sm text-slate-500">Tudo documentado, histórico completo e PDF comprovante.</p></div>
                     </div>
                 </div>
                 <div class="mt-12">
-                    <h3 class="text-2xl font-bold text-slate-800 mb-6 anim-entry delay-3">Como funciona?</h3>
+                    <h3 class="text-2xl font-bold text-slate-800 mb-6">Como funciona?</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div class="step-card anim-entry delay-3">
-                            <div class="w-12 h-12 bg-green-600 text-white rounded-2xl flex items-center justify-center font-bold text-xl mb-3">1</div>
+                        <div class="step-card bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-[#1E3A8A]/20 hover:border-[#1E3A8A]/40 transition">
+                            <div class="w-12 h-12 bg-[#1E3A8A] text-white rounded-2xl flex items-center justify-center font-bold text-xl mb-3">1</div>
                             <h4 class="font-bold text-slate-800 text-lg">Crie</h4>
-                            <p class="text-sm text-slate-600">Adicione itens, opcionais e anexos. Seus dados são salvos automaticamente.</p>
+                            <p class="text-sm text-slate-500">Adicione itens, opcionais e anexos. Seus dados são salvos automaticamente.</p>
                         </div>
-                        <div class="step-card anim-entry delay-4">
-                            <div class="w-12 h-12 bg-green-600 text-white rounded-2xl flex items-center justify-center font-bold text-xl mb-3">2</div>
+                        <div class="step-card bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-[#1E3A8A]/20 hover:border-[#1E3A8A]/40 transition">
+                            <div class="w-12 h-12 bg-[#1E3A8A] text-white rounded-2xl flex items-center justify-center font-bold text-xl mb-3">2</div>
                             <h4 class="font-bold text-slate-800 text-lg">Envie</h4>
-                            <p class="text-sm text-slate-600">Compartilhe o link por WhatsApp ou e-mail. O cliente vê tudo.</p>
+                            <p class="text-sm text-slate-500">Compartilhe o link por WhatsApp ou e-mail. O cliente vê tudo.</p>
                         </div>
-                        <div class="step-card anim-entry delay-5">
-                            <div class="w-12 h-12 bg-green-600 text-white rounded-2xl flex items-center justify-center font-bold text-xl mb-3">3</div>
+                        <div class="step-card bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-[#1E3A8A]/20 hover:border-[#1E3A8A]/40 transition">
+                            <div class="w-12 h-12 bg-[#1E3A8A] text-white rounded-2xl flex items-center justify-center font-bold text-xl mb-3">3</div>
                             <h4 class="font-bold text-slate-800 text-lg">Aprovação</h4>
-                            <p class="text-sm text-slate-600">Cliente aprova com assinatura digital. Você recebe notificação e PDF.</p>
+                            <p class="text-sm text-slate-500">Cliente aprova com assinatura digital. Você recebe notificação e PDF.</p>
                         </div>
                     </div>
                 </div>
-                <div class="mt-12 flex flex-wrap items-center gap-4 anim-entry delay-5">
-                    <div class="stat-item">
-                        <i class="fas fa-users text-green-600"></i>
-                        <span class="text-slate-700 font-medium">+500 usuários</span>
+                <div class="mt-12 flex flex-wrap items-center gap-4">
+                    <div class="stat-item bg-white/70 backdrop-blur-sm rounded-full px-4 py-2 border border-[#1E3A8A]/20">
+                        <i class="far fa-users text-[#10B981]"></i>
+                        <span class="text-slate-600 font-medium">+500 usuários</span>
                     </div>
-                    <div class="stat-item">
-                        <i class="fas fa-file-invoice text-green-600"></i>
-                        <span class="text-slate-700 font-medium">+2.000 orçamentos</span>
+                    <div class="stat-item bg-white/70 backdrop-blur-sm rounded-full px-4 py-2 border border-[#1E3A8A]/20">
+                        <i class="far fa-file-invoice text-[#10B981]"></i>
+                        <span class="text-slate-600 font-medium">+2.000 orçamentos</span>
                     </div>
-                    <div class="stat-item">
-                        <i class="fas fa-star text-green-600"></i>
-                        <span class="text-slate-700 font-medium">98% satisfação</span>
+                    <div class="stat-item bg-white/70 backdrop-blur-sm rounded-full px-4 py-2 border border-[#1E3A8A]/20">
+                        <i class="far fa-star text-[#10B981]"></i>
+                        <span class="text-slate-600 font-medium">98% satisfação</span>
                     </div>
                 </div>
-                <div class="mt-12 text-sm text-slate-500 flex gap-6 anim-entry delay-5">
-                    <a href="#" class="hover:text-green-700 transition">Termos</a>
-                    <a href="#" class="hover:text-green-700 transition">Privacidade</a>
+                <div class="mt-12 text-sm text-slate-400 flex gap-6">
+                    <a href="#" onclick="openTermsModal()" class="hover:text-[#1E3A8A] transition">Termos</a>
+                    <a href="#" onclick="openPrivacyModal()" class="hover:text-[#1E3A8A] transition">Privacidade</a>
                     <span>© 2025 Aprova Ai</span>
                 </div>
             </div>
         </div>
         <div class="right-area">
-            <div class="login-card anim-entry delay-2">
-                <div class="avatar-circle flex justify-center mb-4">
-                    <img src="logo.png" alt="Logo" class="h-16">
+            <div class="login-card">
+                <div class="avatar-circle flex justify-center mb-4 mx-auto w-16 h-16 bg-[#1E3A8A] text-white text-2xl">
+                    <i class="far fa-envelope"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-slate-800 mb-2 font-heading">Acesse sua conta</h2>
-                <p class="text-slate-500 mb-8 text-sm">Digite seu e-mail para entrar.</p>
-                <input type="email" id="email" placeholder="E-mail" class="input-pro">
-                <button onclick="handleLogin()" id="btn-login" class="btn-pro">Enviar link de acesso</button>
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Acesse sua conta</h2>
+                <p class="text-slate-400 mb-8 text-sm">Digite seu e-mail para entrar.</p>
+                <input type="email" id="email" placeholder="seu@email.com" class="input-pro">
+                <button onclick="handleLogin()" id="btn-login" class="btn-pro"><i class="far fa-paper-plane"></i> Enviar link de acesso</button>
             </div>
         </div>
     </section>
 
-    <!-- LAYOUT PRINCIPAL (APÓS LOGIN) -->
+    <!-- LAYOUT PRINCIPAL -->
     <div id="app-layout" class="hidden">
         <div class="mobile-header">
             <img src="logo.png" alt="Aprova Ai" class="h-8">
-            <button onclick="document.querySelector('.sidebar').classList.toggle('open')" class="text-slate-600"><i class="fas fa-bars text-xl"></i></button>
+            <button onclick="document.querySelector('.sidebar').classList.toggle('open')" class="text-slate-600"><i class="far fa-bars text-xl"></i></button>
         </div>
 
         <aside class="sidebar">
@@ -598,28 +468,27 @@
                 <img src="logo.png" alt="Aprova Ai" class="h-16">
             </div>
             <div onclick="createProject()" class="btn-new">
-                <i class="fas fa-plus mr-2"></i> Novo Orçamento
+                <i class="far fa-plus mr-2"></i> Novo Orçamento
             </div>
             <nav class="flex-1 overflow-y-auto py-2">
-                <div onclick="switchTab('dashboard')" class="nav-item active" id="nav-dashboard"><i class="fas fa-home"></i> Visão geral</div>
-                <div onclick="switchTab('projects')" class="nav-item" id="nav-projects"><i class="fas fa-file-invoice"></i> Orçamentos</div>
+                <div onclick="switchTab('dashboard')" class="nav-item active" id="nav-dashboard"><i class="far fa-home"></i> Visão geral</div>
+                <div onclick="switchTab('projects')" class="nav-item" id="nav-projects"><i class="far fa-file-invoice"></i> Orçamentos</div>
                 <div class="px-6 py-4 mt-2">
                     <p class="text-[10px] font-bold text-slate-400 uppercase mb-3">Filtros rápidos</p>
-                    <div onclick="filterProjects('draft')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#94a3b8"></span> Rascunho</div>
-                    <div onclick="filterProjects('sent')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#3b82f6"></span> Aguardando resposta</div>
-                    <div onclick="filterProjects('negotiating')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#f97316"></span> Em Negociação</div>
-                    <div onclick="filterProjects('approved')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600 mb-2"><span class="status-dot" style="background:#22c55e"></span> Aprovados</div>
-                    <div onclick="filterProjects('canceled')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-blue-600"><span class="status-dot" style="background:#ef4444"></span> Cancelados</div>
+                    <div onclick="filterProjects('draft')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-[#1E3A8A] mb-2"><span class="status-dot" style="background:#9CA3AF"></span> Rascunho</div>
+                    <div onclick="filterProjects('sent')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-[#1E3A8A] mb-2"><span class="status-dot" style="background:#1E3A8A"></span> Aguardando resposta</div>
+                    <div onclick="filterProjects('negotiating')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-[#1E3A8A] mb-2"><span class="status-dot" style="background:#F59E0B"></span> Em Negociação</div>
+                    <div onclick="filterProjects('approved')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-[#1E3A8A] mb-2"><span class="status-dot" style="background:#10B981"></span> Aprovados</div>
+                    <div onclick="filterProjects('canceled')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-[#1E3A8A]"><span class="status-dot" style="background:#EF4444"></span> Cancelados</div>
                 </div>
-                <div onclick="switchTab('clients')" class="nav-item" id="nav-clients"><i class="fas fa-users"></i> Clientes</div>
-                <div onclick="switchTab('catalog')" class="nav-item" id="nav-catalog"><i class="fas fa-box"></i> Catálogo</div>
+                <div onclick="switchTab('clients')" class="nav-item" id="nav-clients"><i class="far fa-users"></i> Clientes</div>
+                <div onclick="switchTab('catalog')" class="nav-item" id="nav-catalog"><i class="far fa-box"></i> Catálogo</div>
             </nav>
             <div class="p-4 border-t border-slate-100">
-                <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="flex items-center text-sm text-red-500 font-medium w-full px-4 py-2"><i class="fas fa-sign-out-alt mr-3"></i> Sair</button>
+                <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="flex items-center text-sm text-red-500 font-medium w-full px-4 py-2"><i class="far fa-sign-out-alt mr-3"></i> Sair</button>
             </div>
         </aside>
 
-        <!-- Backdrop para fechar o sidebar no mobile -->
         <div class="sidebar-backdrop hidden md:hidden" onclick="document.querySelector('.sidebar').classList.remove('open')"></div>
 
         <main class="main-content">
@@ -627,25 +496,55 @@
             <section id="view-dashboard" class="space-y-6">
                 <h2 class="text-2xl font-bold text-slate-800">Visão geral</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <div class="text-xs text-slate-500 uppercase mb-1">Faturamento Aprovado</div>
-                        <div class="text-2xl font-bold text-emerald-600" id="kpi-total-apr">R$ 0,00</div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-xs text-slate-500 uppercase mb-1">Faturamento Aprovado</div>
+                                <div class="text-2xl font-bold text-[#10B981]" id="kpi-total-apr">R$ 0,00</div>
+                            </div>
+                            <i class="far fa-chart-line text-2xl text-[#10B981]"></i>
+                        </div>
+                        <span class="text-xs text-green-500">↑ 12%</span>
                     </div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <div class="text-xs text-slate-500 uppercase mb-1">Pipeline (Total)</div>
-                        <div class="text-2xl font-bold text-blue-600" id="kpi-total-est">R$ 0,00</div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-xs text-slate-500 uppercase mb-1">Pipeline (Total)</div>
+                                <div class="text-2xl font-bold text-[#1E3A8A]" id="kpi-total-est">R$ 0,00</div>
+                            </div>
+                            <i class="far fa-chart-bar text-2xl text-[#1E3A8A]"></i>
+                        </div>
+                        <span class="text-xs text-green-500">↑ 8%</span>
                     </div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <div class="text-xs text-slate-500 uppercase mb-1">Aguardando resposta</div>
-                        <div class="text-2xl font-bold text-blue-600" id="kpi-count-sent">0</div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-xs text-slate-500 uppercase mb-1">Aguardando resposta</div>
+                                <div class="text-2xl font-bold text-[#1E3A8A]" id="kpi-count-sent">0</div>
+                            </div>
+                            <i class="far fa-clock text-2xl text-[#1E3A8A]"></i>
+                        </div>
+                        <span class="text-xs text-amber-500">↘ 3%</span>
                     </div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <div class="text-xs text-slate-500 uppercase mb-1">Em Negociação</div>
-                        <div class="text-2xl font-bold text-orange-600" id="kpi-count-neg">0</div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-xs text-slate-500 uppercase mb-1">Em Negociação</div>
+                                <div class="text-2xl font-bold text-[#F59E0B]" id="kpi-count-neg">0</div>
+                            </div>
+                            <i class="far fa-handshake text-2xl text-[#F59E0B]"></i>
+                        </div>
+                        <span class="text-xs text-green-500">↑ 2%</span>
                     </div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <div class="text-xs text-slate-500 uppercase mb-1">Rascunhos</div>
-                        <div class="text-2xl font-bold text-slate-600" id="kpi-count-open">0</div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-xs text-slate-500 uppercase mb-1">Rascunhos</div>
+                                <div class="text-2xl font-bold text-slate-600" id="kpi-count-open">0</div>
+                            </div>
+                            <i class="far fa-pen text-2xl text-slate-600"></i>
+                        </div>
+                        <span class="text-xs text-slate-400">↔ 0%</span>
                     </div>
                 </div>
 
@@ -653,7 +552,7 @@
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-slate-700">Atividade de orçamentos</h3>
                         <div class="flex gap-2">
-                            <button onclick="setChartPeriod(7)" class="period-btn px-3 py-1 text-xs font-medium rounded-lg bg-blue-600 text-white" data-period="7">7d</button>
+                            <button onclick="setChartPeriod(7)" class="period-btn px-3 py-1 text-xs font-medium rounded-lg bg-[#1E3A8A] text-white" data-period="7">7d</button>
                             <button onclick="setChartPeriod(30)" class="period-btn px-3 py-1 text-xs font-medium rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-period="30">30d</button>
                             <button onclick="setChartPeriod(90)" class="period-btn px-3 py-1 text-xs font-medium rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200" data-period="90">90d</button>
                         </div>
@@ -666,14 +565,15 @@
                 <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="font-bold text-slate-700 flex items-center gap-2">
-                            <i class="fas fa-history text-blue-600"></i> Atividade recente
+                            <i class="far fa-history text-[#1E3A8A]"></i> Atividade recente
                         </h3>
                         <span class="text-xs text-slate-400">últimas 10 ações</span>
                     </div>
                     <div id="activity-feed" class="divide-y divide-slate-100">
-                        <div class="text-center py-8 text-slate-400 italic">
-                            Nenhuma atividade do cliente registrada ainda.
-                        </div>
+                        <!-- preenchido via JS -->
+                    </div>
+                    <div class="mt-4 text-center">
+                        <button onclick="showAllActivities()" class="text-xs font-bold text-[#1E3A8A] hover:underline">Ver todas</button>
                     </div>
                 </div>
             </section>
@@ -682,21 +582,26 @@
             <section id="view-projects" class="hidden space-y-6">
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-slate-800">Orçamentos</h2>
-                    <button onclick="createProject()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">+ Novo</button>
+                    <button onclick="createProject()" class="bg-[#1E3A8A] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#3B5BA5] transition"><i class="far fa-plus mr-2"></i> Novo</button>
                 </div>
                 <div class="flex flex-col md:flex-row gap-4 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex-1 w-full relative">
-                        <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
-                        <input id="project-search" onkeyup="renderProjectCards()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Buscar cliente ou projeto...">
+                        <i class="far fa-search absolute left-3 top-3 text-slate-400"></i>
+                        <input id="project-search" onkeyup="renderProjectCards()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-[#1E3A8A]" placeholder="Buscar cliente ou projeto...">
                     </div>
-                    <select id="project-status-filter" onchange="renderProjectCards()" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
-                        <option value="all">Todos os Status</option>
-                        <option value="draft">Rascunho</option>
-                        <option value="sent">Aguardando resposta</option>
-                        <option value="negotiating">Em Negociação</option>
-                        <option value="approved">Aprovados</option>
-                        <option value="canceled">Cancelados</option>
-                    </select>
+                    <div class="flex gap-2">
+                        <select id="project-status-filter" onchange="renderProjectCards()" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
+                            <option value="all">Todos os Status</option>
+                            <option value="draft">Rascunho</option>
+                            <option value="sent">Aguardando resposta</option>
+                            <option value="negotiating">Em Negociação</option>
+                            <option value="approved">Aprovados</option>
+                            <option value="canceled">Cancelados</option>
+                        </select>
+                        <div class="relative" data-tooltip="Filtrar por data (em breve)">
+                            <button class="p-2 bg-slate-50 border border-slate-200 rounded-lg"><i class="far fa-calendar-alt"></i></button>
+                        </div>
+                    </div>
                 </div>
                 <div id="project-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
@@ -705,15 +610,13 @@
             <section id="view-clients" class="hidden space-y-6">
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-slate-800">Clientes</h2>
-                    <button onclick="openClientModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">
-                        <i class="fas fa-plus mr-2"></i> Novo Cliente
-                    </button>
+                    <button onclick="openClientModal()" class="bg-[#1E3A8A] text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="far fa-plus mr-2"></i> Novo Cliente</button>
                 </div>
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex gap-4 items-center">
                         <div class="flex-1 relative">
-                            <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
-                            <input id="client-search" onkeyup="renderClients()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Buscar cliente...">
+                            <i class="far fa-search absolute left-3 top-3 text-slate-400"></i>
+                            <input id="client-search" onkeyup="renderClients()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-[#1E3A8A]" placeholder="Buscar cliente...">
                         </div>
                     </div>
                 </div>
@@ -739,46 +642,30 @@
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-slate-800">Catálogo de Serviços</h2>
                     <div class="flex gap-2">
-                        <button onclick="openShareCatalogModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold">
-                            <i class="fas fa-share-alt mr-2"></i> Compartilhar Catálogo
-                        </button>
-                        <button onclick="openCatalogModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">
-                            <i class="fas fa-plus mr-2"></i> Novo Serviço
-                        </button>
+                        <button onclick="openShareCatalogModal()" class="bg-[#10B981] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#0E9E6F] transition"><i class="far fa-share-alt mr-2"></i> Compartilhar Catálogo</button>
+                        <button onclick="openCatalogModal()" class="bg-[#1E3A8A] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#3B5BA5] transition"><i class="far fa-plus mr-2"></i> Novo Serviço</button>
                     </div>
                 </div>
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex gap-4 items-center">
                         <div class="flex-1 relative">
-                            <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
-                            <input id="catalog-search" onkeyup="renderCatalog()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Buscar serviço...">
+                            <i class="far fa-search absolute left-3 top-3 text-slate-400"></i>
+                            <input id="catalog-search" onkeyup="renderCatalog()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-[#1E3A8A]" placeholder="Buscar serviço...">
                         </div>
                         <select id="catalog-category-filter" onchange="renderCatalog()" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
                             <option value="">Todas categorias</option>
                         </select>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                    <table class="custom-table">
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Descrição</th>
-                                <th>Preço</th>
-                                <th>Categoria</th>
-                                <th class="text-right">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="catalog-table-body"></tbody>
-                    </table>
-                </div>
+                <!-- Cards em vez de tabela -->
+                <div id="catalog-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
 
             <!-- EDITOR -->
             <section id="view-editor" class="hidden pb-20">
-                <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm sticky top-0 z-10 backdrop-blur-sm bg-white/90">
                     <div class="flex items-center gap-4">
-                        <button onclick="switchTab('projects')" class="text-slate-400 hover:text-slate-800"><i class="fas fa-arrow-left"></i></button>
+                        <button onclick="switchTab('projects')" class="text-slate-400 hover:text-slate-800"><i class="far fa-arrow-left"></i></button>
                         <div>
                             <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
                                 <span id="ed-title">...</span>
@@ -788,8 +675,8 @@
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="openShareModal()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-blue-200">
-                            <i class="fas fa-share-alt mr-2"></i> Enviar Link
+                        <button onclick="openShareModal()" class="bg-[#1E3A8A] text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-[#1E3A8A]/20 hover:bg-[#3B5BA5] transition">
+                            <i class="far fa-share-alt mr-2"></i> Enviar Link
                         </button>
                         <div id="ed-actions-header" class="flex gap-2"></div>
                     </div>
@@ -797,83 +684,97 @@
 
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
                     <div class="xl:col-span-2 space-y-6">
-                        <!-- DADOS DO PRESTADOR -->
+                        <!-- DADOS DO PRESTADOR (colapsável) -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold border-b pb-2 mb-4 text-slate-700 flex items-center gap-2"><i class="fas fa-id-card text-blue-600"></i> Seus Dados</h3>
-                            <div class="grid grid-cols-2 gap-4">
-                                <input id="p-name" onchange="upSettings('providerName',this.value)" class="border p-2 rounded text-sm" placeholder="Nome da Sua Empresa">
-                                <input id="p-doc" onchange="upSettings('providerDoc',this.value)" class="border p-2 rounded text-sm" placeholder="CNPJ/CPF">
-                                <input id="p-phone" onchange="upSettings('providerPhone',this.value)" class="border p-2 rounded text-sm" placeholder="Telefone">
-                                <input id="p-addr" onchange="upSettings('providerAddr',this.value)" class="border p-2 rounded text-sm" placeholder="Endereço">
+                            <div class="collapsible-header flex justify-between items-center" onclick="toggleCollapse(this)">
+                                <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="far fa-id-card text-[#1E3A8A]"></i> Seus Dados</h3>
+                                <i class="far fa-chevron-down transition-transform"></i>
                             </div>
-                        </div>
-
-                        <!-- DADOS DO CLIENTE -->
-                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-user-tie text-blue-600"></i> Dados do Cliente</h3>
-                                <div class="flex gap-2">
-                                    <div class="relative w-64">
-                                        <input type="text" id="client-search-input" placeholder="Buscar cliente..." class="w-full border p-2 rounded text-sm pr-8" onkeyup="searchClients(event)" autocomplete="off">
-                                        <i class="fas fa-search absolute right-3 top-3 text-slate-400"></i>
-                                        <div id="client-suggestions" class="autocomplete-suggestions hidden"></div>
-                                    </div>
-                                    <button onclick="openClientModal(true)" class="text-blue-600 text-sm font-bold border border-blue-200 px-3 py-1 rounded hover:bg-blue-50">
-                                        <i class="fas fa-plus mr-1"></i> Novo Cliente
-                                    </button>
-                                    <button onclick="clearSelectedClient()" class="text-red-600 text-sm font-bold border border-red-200 px-3 py-1 rounded hover:bg-red-50" title="Remover cliente">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div id="client-fields-container" class="hidden">
+                            <div class="collapsible-content mt-4">
                                 <div class="grid grid-cols-2 gap-4">
-                                    <input id="c-name" onchange="upVal('c-name',this.value)" class="border p-2 rounded text-sm" placeholder="Nome / Razão Social">
-                                    <input id="c-doc" onchange="upVal('c-doc',this.value)" class="border p-2 rounded text-sm" placeholder="CPF/CNPJ">
-                                    <input id="c-phone" onchange="upVal('c-phone',this.value)" class="border p-2 rounded text-sm" placeholder="Telefone">
-                                    <input id="c-email" onchange="upVal('c-email',this.value)" class="border p-2 rounded text-sm" placeholder="E-mail">
-                                    <input id="c-addr" onchange="upVal('c-addr',this.value)" class="col-span-2 border p-2 rounded text-sm" placeholder="Endereço">
-                                </div>
-                            </div>
-
-                            <div class="mt-4 pt-4 border-t border-dashed">
-                                <label class="flex items-center gap-2 text-sm text-slate-600 mb-2 cursor-pointer">
-                                    <input type="checkbox" id="loc-check" onchange="toggleLoc(this.checked)" class="accent-blue-600">
-                                    Endereço do serviço é o mesmo do cliente?
-                                </label>
-                                <div id="loc-custom-div">
-                                    <label class="text-xs font-bold text-slate-500 mb-1 block">Endereço do Serviço/Obra</label>
-                                    <input id="loc-addr" class="w-full border p-2 rounded text-sm" placeholder="Onde será realizado o serviço?" onchange="upLoc(this.value)">
+                                    <input id="p-name" onchange="upSettings('providerName',this.value)" class="border p-2 rounded text-sm" placeholder="Nome da Sua Empresa">
+                                    <input id="p-doc" onchange="upSettings('providerDoc',this.value)" class="border p-2 rounded text-sm" placeholder="CNPJ/CPF">
+                                    <input id="p-phone" onchange="upSettings('providerPhone',this.value)" class="border p-2 rounded text-sm" placeholder="Telefone">
+                                    <input id="p-addr" onchange="upSettings('providerAddr',this.value)" class="border p-2 rounded text-sm" placeholder="Endereço">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- ESCOPO DO SERVIÇO -->
+                        <!-- DADOS DO CLIENTE (colapsável) -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-list-ol text-blue-600"></i> Escopo do Serviço</h3>
-                                <div class="flex gap-2">
-                                    <button id="btn-add-item" onclick="addItem()" class="text-blue-600 text-sm font-bold border border-blue-200 px-3 py-1 rounded hover:bg-blue-50">+ Adicionar Item</button>
-                                    <button onclick="openCatalogSelector()" class="text-green-600 text-sm font-bold border border-green-200 px-3 py-1 rounded hover:bg-green-50">
-                                        <i class="fas fa-import mr-1"></i> Importar do catálogo
-                                    </button>
+                            <div class="collapsible-header flex justify-between items-center" onclick="toggleCollapse(this)">
+                                <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="far fa-user-tie text-[#1E3A8A]"></i> Dados do Cliente</h3>
+                                <i class="far fa-chevron-down transition-transform"></i>
+                            </div>
+                            <div class="collapsible-content mt-4">
+                                <div class="flex justify-between items-center mb-4">
+                                    <div class="flex gap-2">
+                                        <div class="relative w-64">
+                                            <input type="text" id="client-search-input" placeholder="Buscar cliente..." class="w-full border p-2 rounded text-sm pr-8" onkeyup="searchClients(event)" autocomplete="off">
+                                            <i class="far fa-search absolute right-3 top-3 text-slate-400"></i>
+                                            <div id="client-suggestions" class="autocomplete-suggestions hidden"></div>
+                                        </div>
+                                        <button onclick="openClientModal(true)" class="text-[#1E3A8A] text-sm font-bold border border-[#1E3A8A]/20 px-3 py-1 rounded hover:bg-blue-50">
+                                            <i class="far fa-plus mr-1"></i> Novo Cliente
+                                        </button>
+                                        <button onclick="clearSelectedClient()" class="text-red-600 text-sm font-bold border border-red-200 px-3 py-1 rounded hover:bg-red-50" title="Remover cliente">
+                                            <i class="far fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="client-fields-container" class="hidden">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <input id="c-name" onchange="upVal('c-name',this.value)" class="border p-2 rounded text-sm" placeholder="Nome / Razão Social">
+                                        <input id="c-doc" onchange="upVal('c-doc',this.value)" class="border p-2 rounded text-sm" placeholder="CPF/CNPJ">
+                                        <input id="c-phone" onchange="upVal('c-phone',this.value)" class="border p-2 rounded text-sm" placeholder="Telefone">
+                                        <input id="c-email" onchange="upVal('c-email',this.value)" class="border p-2 rounded text-sm" placeholder="E-mail">
+                                        <input id="c-addr" onchange="upVal('c-addr',this.value)" class="col-span-2 border p-2 rounded text-sm" placeholder="Endereço">
+                                    </div>
+                                </div>
+                                <div class="mt-4 pt-4 border-t border-dashed">
+                                    <label class="flex items-center gap-2 text-sm text-slate-600 mb-2 cursor-pointer">
+                                        <input type="checkbox" id="loc-check" onchange="toggleLoc(this.checked)" class="accent-[#1E3A8A]">
+                                        Endereço do serviço é o mesmo do cliente?
+                                    </label>
+                                    <div id="loc-custom-div">
+                                        <label class="text-xs font-bold text-slate-500 mb-1 block">Endereço do Serviço/Obra</label>
+                                        <input id="loc-addr" class="w-full border p-2 rounded text-sm" placeholder="Onde será realizado o serviço?" onchange="upLoc(this.value)">
+                                    </div>
                                 </div>
                             </div>
-                            <div id="ed-items" class="space-y-3"></div>
-                            <div class="mt-6 pt-4 border-t border-dashed">
-                                <label class="text-xs font-bold text-slate-500 mb-1 block flex items-center gap-1">
-                                    <i class="fas fa-truck text-blue-600"></i> Prazo de entrega
-                                </label>
-                                <input id="t-deadline" onchange="upVal('t-deadline',this.value)" class="w-full border p-2 rounded text-sm" placeholder="Ex: 30 dias úteis após aprovação">
+                        </div>
+
+                        <!-- ESCOPO DO SERVIÇO (colapsável) -->
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                            <div class="collapsible-header flex justify-between items-center" onclick="toggleCollapse(this)">
+                                <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="far fa-list-ol text-[#1E3A8A]"></i> Escopo do Serviço</h3>
+                                <i class="far fa-chevron-down transition-transform"></i>
                             </div>
-                            <div class="mt-6 pt-4 border-t border-dashed">
-                                <h4 class="font-bold text-slate-700 mb-3 flex items-center gap-2"><i class="fas fa-paperclip text-blue-600"></i> Anexos e Documentos</h4>
-                                <div id="ed-attachments-list" class="mb-3 space-y-3"></div>
-                                <div id="upload-area">
-                                    <label for="file-upload" id="upload-label" class="cursor-pointer block w-full text-center border-2 border-dashed border-slate-300 p-4 rounded hover:bg-slate-50 text-xs text-slate-500 font-bold uppercase">
-                                        <i class="fas fa-cloud-upload-alt mr-2"></i> Adicionar PDF/IMG
+                            <div class="collapsible-content mt-4">
+                                <div class="flex justify-between items-center mb-4">
+                                    <div class="flex gap-2">
+                                        <button id="btn-add-item" onclick="addItem()" class="text-[#1E3A8A] text-sm font-bold border border-[#1E3A8A]/20 px-3 py-1 rounded hover:bg-blue-50">+ Adicionar Item</button>
+                                        <button onclick="openCatalogSelector()" class="text-[#10B981] text-sm font-bold border border-[#10B981]/20 px-3 py-1 rounded hover:bg-green-50">
+                                            <i class="far fa-import mr-1"></i> Importar do catálogo
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="ed-items" class="space-y-3"></div>
+                                <div class="mt-6 pt-4 border-t border-dashed">
+                                    <label class="text-xs font-bold text-slate-500 mb-1 block flex items-center gap-1">
+                                        <i class="far fa-truck text-[#1E3A8A]"></i> Prazo de entrega
                                     </label>
-                                    <input id="file-upload" type="file" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleUpload(event)">
+                                    <input id="t-deadline" onchange="upVal('t-deadline',this.value)" class="w-full border p-2 rounded text-sm" placeholder="Ex: 30 dias úteis após aprovação">
+                                </div>
+                                <div class="mt-6 pt-4 border-t border-dashed">
+                                    <h4 class="font-bold text-slate-700 mb-3 flex items-center gap-2"><i class="far fa-paperclip text-[#1E3A8A]"></i> Anexos e Documentos</h4>
+                                    <div id="ed-attachments-list" class="mb-3 space-y-3"></div>
+                                    <div id="upload-area">
+                                        <label for="file-upload" id="upload-label" class="cursor-pointer block w-full text-center border-2 border-dashed border-slate-300 p-4 rounded hover:bg-slate-50 text-xs text-slate-500 font-bold uppercase">
+                                            <i class="far fa-cloud-upload-alt mr-2"></i> Adicionar PDF/IMG
+                                        </label>
+                                        <input id="file-upload" type="file" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleUpload(event)">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -887,14 +788,14 @@
                         </div>
 
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-coins text-blue-600"></i> Pagamento</h3>
+                            <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="far fa-coins text-[#1E3A8A]"></i> Pagamento</h3>
                             <select id="pay-mode" class="w-full border p-2 rounded mb-2 text-sm">
                                 <option value="entry_installments">Entrada + Parcelas</option>
                                 <option value="no_entry_installments">Parcelas sem entrada</option>
                                 <option value="single">À vista</option>
                             </select>
-                            <button id="btn-calc-pay" onclick="generatePayment()" class="w-full bg-slate-100 text-slate-600 text-xs font-bold py-2 rounded mb-3 flex items-center justify-center gap-2">
-                                <i class="fas fa-calculator"></i> Gerar Cronograma
+                            <button id="btn-calc-pay" onclick="generatePayment()" class="w-full bg-slate-100 text-slate-600 text-xs font-bold py-2 rounded mb-3 flex items-center justify-center gap-2 hover:bg-slate-200 transition">
+                                <i class="far fa-calculator"></i> Gerar Cronograma
                             </button>
                             <textarea id="t-obs" onchange="upVal('t-obs',this.value)" class="w-full border p-2 rounded text-sm h-20" placeholder="Condições de pagamento..."></textarea>
                             <div class="grid grid-cols-2 gap-2 mt-2">
@@ -903,12 +804,12 @@
                         </div>
 
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-code-branch text-blue-600"></i> Versões</h3>
+                            <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="far fa-code-branch text-[#1E3A8A]"></i> Versões</h3>
                             <div id="ed-actions-area" class="space-y-3"></div>
                         </div>
 
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-history text-blue-600"></i> Histórico</h3>
+                            <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="far fa-history text-[#1E3A8A]"></i> Histórico</h3>
                             <div id="ed-history" class="space-y-4 max-h-80 overflow-y-auto pr-1"></div>
                         </div>
                     </div>
@@ -917,8 +818,8 @@
         </main>
     </div>
 
-    <!-- MODAL CLIENTE (CRUD) -->
-    <div id="client-modal" class="hidden fixed inset-0 bg-black/50 z-[80] flex items-center justify-center p-4">
+    <!-- MODAIS (mantidos os mesmos, apenas com ajustes de cor) -->
+    <div id="client-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl">
             <h3 id="client-modal-title" class="text-xl font-bold mb-4 text-slate-800">Novo Cliente</h3>
             <input type="hidden" id="client-id">
@@ -931,13 +832,12 @@
             </div>
             <div class="flex gap-2 mt-6">
                 <button onclick="closeClientModal()" class="flex-1 border py-2 rounded text-slate-600 font-bold hover:bg-slate-50">Cancelar</button>
-                <button onclick="saveClient()" class="flex-1 bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700">Salvar</button>
+                <button onclick="saveClient()" class="flex-1 bg-[#1E3A8A] text-white py-2 rounded font-bold hover:bg-[#3B5BA5]">Salvar</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL CATÁLOGO (CRUD) -->
-    <div id="catalog-modal" class="hidden fixed inset-0 bg-black/50 z-[80] flex items-center justify-center p-4">
+    <div id="catalog-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl">
             <h3 id="catalog-modal-title" class="text-xl font-bold mb-4 text-slate-800">Novo Serviço</h3>
             <input type="hidden" id="catalog-id">
@@ -949,13 +849,12 @@
             </div>
             <div class="flex gap-2 mt-6">
                 <button onclick="closeCatalogModal()" class="flex-1 border py-2 rounded text-slate-600 font-bold hover:bg-slate-50">Cancelar</button>
-                <button onclick="saveCatalogItem()" class="flex-1 bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700">Salvar</button>
+                <button onclick="saveCatalogItem()" class="flex-1 bg-[#1E3A8A] text-white py-2 rounded font-bold hover:bg-[#3B5BA5]">Salvar</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL SELETOR CATÁLOGO (no editor) -->
-    <div id="catalog-selector-modal" class="hidden fixed inset-0 bg-black/50 z-[90] flex items-center justify-center p-4">
+    <div id="catalog-selector-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl p-6 rounded-xl max-h-[80vh] overflow-y-auto">
             <h3 class="text-xl font-bold mb-4 text-slate-800">Selecionar serviços do catálogo</h3>
             <div class="mb-4 flex gap-2">
@@ -967,27 +866,25 @@
             <div id="catalog-selector-list" class="space-y-2 max-h-96 overflow-y-auto border rounded p-2"></div>
             <div class="flex gap-2 mt-6">
                 <button onclick="closeCatalogSelector()" class="flex-1 border py-2 rounded text-slate-600 font-bold hover:bg-slate-50">Cancelar</button>
-                <button onclick="importSelectedCatalogItems()" class="flex-1 bg-green-600 text-white py-2 rounded font-bold hover:bg-green-700">Adicionar selecionados</button>
+                <button onclick="importSelectedCatalogItems()" class="flex-1 bg-[#10B981] text-white py-2 rounded font-bold hover:bg-[#0E9E6F]">Adicionar selecionados</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL COMPARTILHAR CATÁLOGO -->
-    <div id="share-catalog-modal" class="hidden fixed inset-0 bg-black/50 z-[90] flex items-center justify-center p-4">
+    <div id="share-catalog-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl">
             <h3 class="text-xl font-bold mb-4 text-slate-800">Compartilhar Catálogo</h3>
-            <p class="text-sm text-slate-600 mb-4">Compartilhe este link com seus clientes para que eles possam selecionar os serviços desejados.</p>
-            <div class="bg-slate-100 p-3 rounded-lg text-sm break-all mb-4" id="catalog-share-link">Carregando...</div>
+            <p class="text-sm text-slate-500 mb-4">Compartilhe este link com seus clientes para que eles possam selecionar os serviços desejados.</p>
+            <div class="bg-slate-50 p-3 rounded-lg text-sm break-all mb-4 border" id="catalog-share-link">Carregando...</div>
             <div class="flex gap-2">
-                <button onclick="copyCatalogLink()" class="flex-1 bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700">Copiar Link</button>
-                <button onclick="shareCatalogViaWhatsApp()" class="flex-1 bg-green-600 text-white py-2 rounded font-bold hover:bg-green-700">WhatsApp</button>
+                <button onclick="copyCatalogLink()" class="flex-1 bg-[#1E3A8A] text-white py-2 rounded font-bold hover:bg-[#3B5BA5]">Copiar Link</button>
+                <button onclick="shareCatalogViaWhatsApp()" class="flex-1 bg-[#10B981] text-white py-2 rounded font-bold hover:bg-[#0E9E6F]">WhatsApp</button>
             </div>
             <button onclick="document.getElementById('share-catalog-modal').classList.add('hidden')" class="mt-4 text-sm text-slate-500 underline w-full">Fechar</button>
         </div>
     </div>
 
-    <!-- MODAL DE DADOS DO CLIENTE (PÚBLICO) -->
-    <div id="client-data-modal" class="hidden fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4">
+    <div id="client-data-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl">
             <h3 class="text-xl font-bold mb-4 text-slate-800">Para continuar, informe seus dados</h3>
             <div class="space-y-3">
@@ -998,7 +895,7 @@
             </div>
             <div class="flex gap-2 mt-6">
                 <button onclick="cancelPublicClientData()" class="flex-1 border py-2 rounded text-slate-600 font-bold hover:bg-slate-50">Cancelar</button>
-                <button onclick="savePublicClientData()" class="flex-1 bg-green-600 text-white py-2 rounded font-bold hover:bg-green-700">Continuar</button>
+                <button onclick="savePublicClientData()" class="flex-1 bg-[#10B981] text-white py-2 rounded font-bold hover:bg-[#0E9E6F]">Continuar</button>
             </div>
         </div>
     </div>
@@ -1027,7 +924,7 @@
                     </div>
 
                     <div class="mt-8 flex justify-end">
-                        <button onclick="submitPublicCatalogRequest()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-green-700">
+                        <button onclick="submitPublicCatalogRequest()" class="bg-[#10B981] text-white px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-[#0E9E6F] transition">
                             Solicitar Orçamento
                         </button>
                     </div>
@@ -1040,7 +937,7 @@
     <section id="view-public" class="hidden min-h-screen bg-slate-200 p-4 md:py-10 overflow-y-auto print:p-0">
         <div id="public-loading" class="flex justify-center mt-20"><div class="loader-spin"></div></div>
         <div id="public-content" class="hidden max-w-4xl mx-auto bg-white shadow-2xl min-h-[297mm] relative flex flex-col print:shadow-none print:min-h-0">
-            <div id="stamp-approved" class="hidden">APROVADO</div>
+            <div id="stamp-approved" class="hidden absolute top-10 right-10 border-4 border-[#10B981] text-[#10B981] text-4xl font-extrabold py-2 px-8 rotate-[-12deg] opacity-30 z-20">APROVADO</div>
             <div class="bg-slate-900 text-white p-12 print:bg-white print:text-black print:border-b-2">
                 <div id="doc-provider-info"></div>
                 <div class="flex justify-between items-start mt-4">
@@ -1107,7 +1004,7 @@
             </div>
             <div class="bg-slate-50 p-4 text-center border-t no-print">
                 <button onclick="downloadPDF()" id="btn-download-pdf" class="text-xs font-bold text-slate-400 uppercase hover:text-slate-600">
-                    <i class="fas fa-file-pdf"></i> Baixar Comprovante PDF
+                    <i class="far fa-file-pdf"></i> Baixar Comprovante PDF
                 </button>
             </div>
         </div>
@@ -1115,15 +1012,15 @@
 
     <section id="view-success" class="hidden min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
         <div class="max-w-md w-full">
-            <i id="success-icon" class="fas fa-check-circle text-6xl text-green-500 mb-6 anim-entry"></i>
-            <h2 id="success-title" class="text-3xl font-bold text-slate-900 mb-4 anim-entry delay-100">Tudo Certo!</h2>
-            <p id="success-desc" class="text-slate-600 text-lg anim-entry delay-200">Sua resposta foi registrada com sucesso.</p>
-            <div id="success-actions" class="mt-8 anim-entry delay-300"></div>
+            <i id="success-icon" class="far fa-check-circle text-6xl text-[#10B981] mb-6 anim-entry"></i>
+            <h2 id="success-title" class="text-3xl font-bold text-slate-900 mb-4">Tudo Certo!</h2>
+            <p id="success-desc" class="text-slate-500 text-lg">Sua resposta foi registrada com sucesso.</p>
+            <div id="success-actions" class="mt-8"></div>
             <div class="mt-8 text-xs text-slate-400">Pode fechar esta janela.</div>
         </div>
     </section>
 
-    <div id="interaction-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+    <div id="interaction-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl animate-[fadeInUp_0.3s]">
             <h3 id="modal-title" class="text-xl font-bold mb-2 text-slate-800"></h3>
             <p id="modal-desc" class="text-sm text-slate-500 mb-4"></p>
@@ -1139,15 +1036,15 @@
         </div>
     </div>
 
-    <div id="share-modal" class="hidden fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4">
+    <div id="share-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
         <div class="bg-white p-6 rounded-xl w-full max-w-sm text-center">
-            <h3 class="text-xl font-bold mb-6 text-slate-800"><i class="fas fa-share-alt mr-2 text-blue-600"></i>Enviar Proposta</h3>
+            <h3 class="text-xl font-bold mb-6 text-slate-800"><i class="far fa-share-alt mr-2 text-[#1E3A8A]"></i>Enviar Proposta</h3>
             <div class="space-y-3">
                 <button id="btn-share-wa" class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-3 transition-transform hover:scale-[1.02] shadow-lg shadow-emerald-100">
                     <i class="fab fa-whatsapp text-2xl"></i> Enviar no WhatsApp
                 </button>
                 <button id="btn-share-copy" class="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl font-bold flex items-center justify-center gap-3 transition-colors">
-                    <i class="fas fa-link text-lg"></i> Copiar Link
+                    <i class="far fa-link text-lg"></i> Copiar Link
                 </button>
             </div>
             <button onclick="document.getElementById('share-modal').classList.add('hidden')" class="mt-6 text-sm text-slate-400 hover:text-slate-600 underline">Cancelar</button>
@@ -1174,6 +1071,28 @@
         };
         let chartInstance = null;
         let chartPeriod = 30;
+        let sortableInstance = null;
+
+        // ----- TOAST -----
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            let icon = 'info-circle';
+            if (type === 'success') icon = 'check-circle';
+            if (type === 'error') icon = 'times-circle';
+            if (type === 'warning') icon = 'exclamation-triangle';
+            toast.innerHTML = `
+                <i class="far fa-${icon} toast-icon"></i>
+                <span class="toast-message">${message}</span>
+                <i class="far fa-times toast-close" onclick="this.parentElement.remove()"></i>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        // Override alert
+        window.alert = function(msg) { showToast(msg, 'warning'); };
 
         // ----- FUNÇÕES AUXILIARES -----
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
@@ -1183,7 +1102,6 @@
         function safeShow(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
         function safeHide(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
 
-        // ----- FORMATAÇÃO DE MOEDA -----
         function formatPrice(value) {
             if (value === null || value === undefined || value === '') return '';
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -1191,15 +1109,12 @@
 
         function parsePrice(str) {
             if (!str) return 0;
-            // Remove "R$", espaços, e substitui vírgula por ponto
             let cleaned = str.replace(/[R$\s]/g, '').replace(/\./g, '').replace(',', '.');
             return parseFloat(cleaned) || 0;
         }
 
-        // ----- MÁSCARA DE MOEDA EM TEMPO REAL -----
         function applyPriceMask(input, index) {
             let value = input.value;
-            // Remove tudo que não for dígito
             let digits = value.replace(/\D/g, '');
             if (digits.length === 0) {
                 input.value = '';
@@ -1207,13 +1122,18 @@
                 updateTotal();
                 return;
             }
-            // Converte para centavos
             let numericValue = parseInt(digits) / 100;
-            // Armazena o valor numérico no state
             state.data.items[index].price = numericValue;
-            // Aplica a máscara no campo
             input.value = formatPrice(numericValue);
             updateTotal();
+        }
+
+        // ----- COLLAPSIBLE -----
+        function toggleCollapse(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('i');
+            content.classList.toggle('collapsed');
+            icon.classList.toggle('rotate-180');
         }
 
         // ----- NORMALIZAÇÃO -----
@@ -1259,7 +1179,6 @@
             };
         }
 
-        // ----- HISTÓRICO -----
         function logHistory(action, user, detail) {
             if (!state.data) state.data = { history: [] };
             if (!state.data.history) state.data.history = [];
@@ -1271,7 +1190,6 @@
             });
         }
 
-        // ----- DETECTAR MUDANÇAS -----
         function getChanges(oldArr, newArr) {
             let logs = [];
             const oldMap = new Map(oldArr.map(i => [i.id, i]));
@@ -1324,8 +1242,8 @@
                         <td>${c.email || '-'}</td>
                         <td>${c.address || '-'}</td>
                         <td class="text-right">
-                            <button onclick="editClient('${c.id}')" class="text-blue-600 hover:text-blue-800 mr-2"><i class="fas fa-edit"></i></button>
-                            <button onclick="deleteClient('${c.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
+                            <button onclick="editClient('${c.id}')" class="text-[#1E3A8A] hover:text-[#3B5BA5] mr-2"><i class="far fa-edit"></i></button>
+                            <button onclick="deleteClient('${c.id}')" class="text-red-600 hover:text-red-800"><i class="far fa-trash"></i></button>
                         </td>
                     </tr>`;
                 });
@@ -1356,7 +1274,7 @@
             const id = document.getElementById('client-id').value;
             const name = document.getElementById('client-name').value.trim();
             if (!name) {
-                alert("Nome é obrigatório.");
+                showToast("Nome é obrigatório.", 'error');
                 return;
             }
             const clientData = {
@@ -1370,11 +1288,11 @@
             let savedClient;
             if (id) {
                 const { data, error } = await db.from('clients').update(clientData).eq('id', id).select().single();
-                if (error) { alert("Erro ao atualizar: " + error.message); return; }
+                if (error) { showToast("Erro ao atualizar: " + error.message, 'error'); return; }
                 savedClient = data;
             } else {
                 const { data, error } = await db.from('clients').insert(clientData).select().single();
-                if (error) { alert("Erro ao criar: " + error.message); return; }
+                if (error) { showToast("Erro ao criar: " + error.message, 'error'); return; }
                 savedClient = data;
             }
             await loadClients();
@@ -1384,6 +1302,7 @@
                 window.__clientModalCallback(savedClient);
                 window.__clientModalCallback = null;
             }
+            showToast('Cliente salvo com sucesso!', 'success');
         }
 
         async function editClient(id) {
@@ -1403,11 +1322,12 @@
             if (!confirm("Tem certeza que deseja excluir este cliente?")) return;
             const { error } = await db.from('clients').delete().eq('id', id);
             if (error) {
-                alert("Erro ao excluir: " + error.message);
+                showToast("Erro ao excluir: " + error.message, 'error');
                 return;
             }
             await loadClients();
             renderClients();
+            showToast('Cliente excluído.', 'success');
         }
 
         function searchClients(event) {
@@ -1427,7 +1347,7 @@
             }
             let html = '';
             results.forEach(c => {
-                html += `<div class="autocomplete-suggestion" onclick="selectClient('${c.id}')">${c.name}</div>`;
+                html += `<div class="autocomplete-suggestion p-2 cursor-pointer hover:bg-slate-100" onclick="selectClient('${c.id}')">${c.name}</div>`;
             });
             suggestionsDiv.innerHTML = html;
             suggestionsDiv.classList.remove('hidden');
@@ -1483,6 +1403,7 @@
             }
             state.catalogCache = data || [];
             updateCategoryFilters();
+            renderCatalog();
         }
 
         function updateCategoryFilters() {
@@ -1500,8 +1421,8 @@
         }
 
         function renderCatalog() {
-            const tbody = document.getElementById('catalog-table-body');
-            if (!tbody) return;
+            const container = document.getElementById('catalog-cards-container');
+            if (!container) return;
             const search = safeVal('catalog-search').toLowerCase();
             const category = safeVal('catalog-category-filter');
             const filtered = state.catalogCache.filter(item => 
@@ -1510,22 +1431,31 @@
             );
             let html = '';
             if (filtered.length === 0) {
-                html = '<tr><td colspan="5" class="text-center py-4 text-slate-400">Nenhum serviço encontrado.</td></tr>';
+                html = '<div class="col-span-full text-center py-8 text-slate-400">Nenhum serviço encontrado.</div>';
             } else {
                 filtered.forEach(item => {
-                    html += `<tr>
-                        <td class="font-bold">${item.name}</td>
-                        <td>${item.description || '-'}</td>
-                        <td>${item.price ? formatPrice(item.price) : '-'}</td>
-                        <td>${item.category || '-'}</td>
-                        <td class="text-right">
-                            <button onclick="editCatalogItem('${item.id}')" class="text-blue-600 hover:text-blue-800 mr-2"><i class="fas fa-edit"></i></button>
-                            <button onclick="deleteCatalogItem('${item.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>`;
+                    html += `
+                        <div class="bg-white border border-slate-200 rounded-xl p-4 hover:border-[#1E3A8A] transition shadow-sm">
+                            <div class="flex items-start gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-[#1E3A8A]/10 flex items-center justify-center text-[#1E3A8A]"><i class="far fa-cube"></i></div>
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-slate-800">${item.name}</h4>
+                                    ${item.description ? `<p class="text-xs text-slate-500 mt-1">${item.description}</p>` : ''}
+                                    <div class="flex justify-between items-center mt-2">
+                                        <span class="text-xs bg-slate-100 px-2 py-0.5 rounded">${item.category || 'Sem categoria'}</span>
+                                        <span class="font-bold text-[#10B981]">${item.price ? formatPrice(item.price) : 'Sob consulta'}</span>
+                                    </div>
+                                    <div class="flex justify-end gap-2 mt-3">
+                                        <button onclick="editCatalogItem('${item.id}')" class="text-xs text-[#1E3A8A] hover:underline"><i class="far fa-edit"></i> Editar</button>
+                                        <button onclick="deleteCatalogItem('${item.id}')" class="text-xs text-red-600 hover:underline"><i class="far fa-trash"></i> Excluir</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 });
             }
-            tbody.innerHTML = html;
+            container.innerHTML = html;
         }
 
         function openCatalogModal(editId = null) {
@@ -1559,7 +1489,7 @@
             const id = document.getElementById('catalog-id').value;
             const name = document.getElementById('catalog-name').value.trim();
             if (!name) {
-                alert("Nome é obrigatório.");
+                showToast("Nome é obrigatório.", 'error');
                 return;
             }
             const itemData = {
@@ -1572,16 +1502,17 @@
             let savedItem;
             if (id) {
                 const { data, error } = await db.from('service_catalog').update(itemData).eq('id', id).select().single();
-                if (error) { alert("Erro ao atualizar: " + error.message); return; }
+                if (error) { showToast("Erro ao atualizar: " + error.message, 'error'); return; }
                 savedItem = data;
             } else {
                 const { data, error } = await db.from('service_catalog').insert(itemData).select().single();
-                if (error) { alert("Erro ao criar: " + error.message); return; }
+                if (error) { showToast("Erro ao criar: " + error.message, 'error'); return; }
                 savedItem = data;
             }
             await loadCatalog();
             renderCatalog();
             closeCatalogModal();
+            showToast('Serviço salvo!', 'success');
         }
 
         async function editCatalogItem(id) {
@@ -1592,19 +1523,20 @@
             if (!confirm("Tem certeza que deseja excluir este serviço?")) return;
             const { error } = await db.from('service_catalog').delete().eq('id', id);
             if (error) {
-                alert("Erro ao excluir: " + error.message);
+                showToast("Erro ao excluir: " + error.message, 'error');
                 return;
             }
             await loadCatalog();
             renderCatalog();
+            showToast('Serviço excluído.', 'success');
         }
 
-        // ----- SELETOR CATÁLOGO (no editor) -----
+        // ----- SELETOR CATÁLOGO -----
         let selectedCatalogIds = new Set();
 
         function openCatalogSelector() {
             if (!state.version || state.version.status !== 'draft') {
-                alert("Orçamento bloqueado. Não é possível adicionar itens.");
+                showToast("Orçamento bloqueado. Não é possível adicionar itens.", 'warning');
                 return;
             }
             selectedCatalogIds.clear();
@@ -1631,8 +1563,8 @@
                 filtered.forEach(item => {
                     const checked = selectedCatalogIds.has(item.id) ? 'checked' : '';
                     html += `
-                        <div class="catalog-item">
-                            <input type="checkbox" id="cat_${item.id}" value="${item.id}" ${checked} onchange="toggleCatalogSelect('${item.id}')" class="mr-3">
+                        <div class="catalog-item flex items-center p-2 border-b">
+                            <input type="checkbox" id="cat_${item.id}" value="${item.id}" ${checked} onchange="toggleCatalogSelect('${item.id}')" class="mr-3 accent-[#1E3A8A]">
                             <label for="cat_${item.id}" class="flex-1 cursor-pointer">
                                 <span class="font-bold">${item.name}</span>
                                 ${item.description ? `<span class="text-sm text-slate-500 ml-2">${item.description}</span>` : ''}
@@ -1656,7 +1588,7 @@
 
         function importSelectedCatalogItems() {
             if (selectedCatalogIds.size === 0) {
-                alert("Nenhum item selecionado.");
+                showToast("Nenhum item selecionado.", 'warning');
                 return;
             }
             const selectedItems = state.catalogCache.filter(item => selectedCatalogIds.has(item.id));
@@ -1675,6 +1607,7 @@
             renderItems();
             updateTotal();
             closeCatalogSelector();
+            showToast('Itens adicionados!', 'success');
         }
 
         // ----- COMPARTILHAR CATÁLOGO -----
@@ -1687,7 +1620,7 @@
         function copyCatalogLink() {
             const link = document.getElementById('catalog-share-link').innerText;
             navigator.clipboard.writeText(link).then(() => {
-                alert("Link copiado!");
+                showToast("Link copiado!", 'success');
             }).catch(() => {
                 const textArea = document.createElement("textarea");
                 textArea.value = link;
@@ -1695,7 +1628,7 @@
                 textArea.select();
                 document.execCommand("copy");
                 document.body.removeChild(textArea);
-                alert("Link copiado!");
+                showToast("Link copiado!", 'success');
             });
         }
 
@@ -1722,7 +1655,7 @@
         function savePublicClientData() {
             const name = document.getElementById('public-client-name').value.trim();
             if (!name) {
-                alert("Por favor, informe seu nome.");
+                showToast("Por favor, informe seu nome.", 'error');
                 return;
             }
             publicClientData = {
@@ -1760,13 +1693,13 @@
             } else {
                 catalog.forEach(item => {
                     html += `
-                        <div class="public-catalog-card">
+                        <div class="public-catalog-card border border-slate-200 rounded-xl p-4 hover:border-[#10B981] transition">
                             <label class="flex items-start gap-3 cursor-pointer">
-                                <input type="checkbox" class="catalog-item-checkbox mt-1" data-id="${item.id}" data-name="${item.name}" data-description="${item.description || ''}" data-price="${item.price || 0}">
+                                <input type="checkbox" class="catalog-item-checkbox mt-1 accent-[#10B981]" data-id="${item.id}" data-name="${item.name}" data-description="${item.description || ''}" data-price="${item.price || 0}">
                                 <div class="flex-1">
                                     <div class="font-bold text-slate-800">${item.name}</div>
                                     ${item.description ? `<p class="text-sm text-slate-500">${item.description}</p>` : ''}
-                                    ${item.price ? `<p class="text-sm font-mono text-green-700 mt-1">${formatPrice(item.price)}</p>` : ''}
+                                    ${item.price ? `<p class="text-sm font-mono text-[#10B981] mt-1">${formatPrice(item.price)}</p>` : ''}
                                     ${item.category ? `<span class="text-xs bg-slate-100 px-2 py-0.5 rounded">${item.category}</span>` : ''}
                                 </div>
                             </label>
@@ -1880,7 +1813,7 @@
             window.location.href = '?view=success';
         }
 
-        // ----- DASHBOARD E PROJETOS -----
+        // ----- DASHBOARD -----
         function getRecentActivities(limit = 10) {
             let activities = [];
             state.projectsCache.forEach(project => {
@@ -1922,13 +1855,13 @@
                     case 'approved':
                         icon = 'fa-check-circle';
                         bgColor = 'bg-green-100';
-                        textColor = 'text-green-600';
+                        textColor = 'text-[#10B981]';
                         actionText = 'Aprovou';
                         break;
                     case 'change_request':
                         icon = 'fa-comment-dots';
                         bgColor = 'bg-amber-100';
-                        textColor = 'text-amber-600';
+                        textColor = 'text-[#F59E0B]';
                         actionText = 'Solicitou alteração';
                         break;
                     case 'canceled':
@@ -1945,21 +1878,17 @@
                 }
                 const userLabel = 'Cliente';
                 const detail = act.detail ? ` – ${act.detail}` : '';
+                const initials = act.projectName.charAt(0).toUpperCase();
                 html += `
-                    <div class="activity-item">
-                        <div class="activity-icon ${bgColor} ${textColor}">
-                            <i class="fas ${icon}"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">${act.projectName}</div>
-                            <div class="text-sm text-slate-700">
-                                <span class="font-medium">${actionText}</span> ${detail}
+                    <div class="activity-item flex gap-3 py-3">
+                        <div class="avatar-circle w-8 h-8 bg-[#1E3A8A] text-white text-xs flex items-center justify-center rounded-full">${initials}</div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-sm">${act.projectName}</span>
+                                <span class="text-xs px-2 py-0.5 rounded-full ${bgColor} ${textColor}">${actionText}</span>
                             </div>
-                            <div class="activity-meta">
-                                <span>${userLabel}</span>
-                                <span>•</span>
-                                <span>${timeAgo}</span>
-                            </div>
+                            <p class="text-xs text-slate-500 mt-1">${detail}</p>
+                            <span class="text-xs text-slate-400">${timeAgo}</span>
                         </div>
                     </div>
                 `;
@@ -1980,6 +1909,10 @@
             if (diffHour > 0) return `${diffHour} hora${diffHour > 1 ? 's' : ''} atrás`;
             if (diffMin > 0) return `${diffMin} minuto${diffMin > 1 ? 's' : ''} atrás`;
             return 'agora mesmo';
+        }
+
+        function showAllActivities() {
+            showToast('Em breve: histórico completo.', 'info');
         }
 
         // ----- INICIALIZAÇÃO -----
@@ -2049,20 +1982,20 @@
         async function handleLogin() {
             const email = safeVal('email');
             const btn = document.getElementById('btn-login');
-            if(!email) return alert("Digite o e-mail");
-            btn.innerHTML = 'Enviando...'; 
+            if(!email) return showToast("Digite o e-mail", 'error');
+            btn.innerHTML = '<i class="far fa-spinner fa-spin"></i> Enviando...'; 
             btn.disabled = true;
             const { error } = await db.auth.signInWithOtp({ 
                 email, 
                 options: { emailRedirectTo: window.location.href }
             });
             if(error) { 
-                alert(error.message); 
-                btn.innerText = 'Tentar Novamente'; 
+                showToast(error.message, 'error'); 
+                btn.innerText = 'Enviar link de acesso'; 
                 btn.disabled = false; 
             } else { 
                 btn.innerText = 'Enviado!'; 
-                alert('Verifique seu e-mail.'); 
+                showToast('Verifique seu e-mail.', 'success'); 
             }
         }
 
@@ -2144,13 +2077,13 @@
         function setChartPeriod(days) {
             chartPeriod = days;
             document.querySelectorAll('.period-btn').forEach(btn => {
-                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.remove('bg-[#1E3A8A]', 'text-white');
                 btn.classList.add('bg-slate-100', 'text-slate-700');
             });
             const activeBtn = document.querySelector(`.period-btn[data-period="${days}"]`);
             if (activeBtn) {
                 activeBtn.classList.remove('bg-slate-100', 'text-slate-700');
-                activeBtn.classList.add('bg-blue-600', 'text-white');
+                activeBtn.classList.add('bg-[#1E3A8A]', 'text-white');
             }
             renderDashboardCharts();
         }
@@ -2187,7 +2120,6 @@
             const countData = Object.values(days).map(d => d.count);
             const totalData = Object.values(days).map(d => d.total);
 
-            // Detectar mobile para ajustar gráfico
             const isMobile = window.innerWidth < 768;
 
             chartInstance = new Chart(ctx, {
@@ -2198,8 +2130,8 @@
                         {
                             label: 'Orçamentos',
                             data: countData,
-                            backgroundColor: 'rgba(59, 130, 246, 0.7)',
-                            borderColor: 'rgba(59, 130, 246, 1)',
+                            backgroundColor: 'rgba(30,58,138,0.6)',
+                            borderColor: '#1E3A8A',
                             borderWidth: 1,
                             yAxisID: 'y',
                             order: 2
@@ -2208,10 +2140,10 @@
                             label: 'Valor total (R$)',
                             data: totalData,
                             type: 'line',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            borderColor: 'rgba(16, 185, 129, 1)',
+                            backgroundColor: 'rgba(16,185,129,0.1)',
+                            borderColor: '#10B981',
                             borderWidth: 2,
-                            pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                            pointBackgroundColor: '#10B981',
                             pointBorderColor: 'white',
                             pointBorderWidth: 1,
                             pointRadius: isMobile ? 2 : 3,
@@ -2225,7 +2157,6 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    layout: { padding: { top: 20, bottom: 10 } },
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
                         tooltip: {
@@ -2242,44 +2173,11 @@
                                 }
                             }
                         },
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            align: 'center',
-                            labels: { usePointStyle: true, boxWidth: isMobile ? 4 : 6, padding: isMobile ? 10 : 20 }
-                        }
+                        legend: { display: true, position: 'top' }
                     },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: { display: !isMobile, text: 'Orçamentos', color: '#64748b', font: { size: 11, weight: '500' } },
-                            grid: { color: 'rgba(0,0,0,0.05)' },
-                            ticks: {
-                                maxTicksLimit: isMobile ? 5 : undefined,
-                                font: { size: isMobile ? 8 : 11 }
-                            }
-                        },
-                        y1: {
-                            beginAtZero: true,
-                            position: 'right',
-                            title: { display: !isMobile, text: 'Valor (R$)', color: '#64748b', font: { size: 11, weight: '500' } },
-                            grid: { drawOnChartArea: false },
-                            ticks: { 
-                                callback: function(value) { return 'R$ ' + (value / 1000).toFixed(0) + 'k'; },
-                                maxTicksLimit: isMobile ? 4 : undefined,
-                                font: { size: isMobile ? 8 : 11 }
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                maxRotation: isMobile ? 60 : 45,
-                                minRotation: isMobile ? 40 : 30,
-                                font: { size: isMobile ? 8 : 10 },
-                                maxTicksLimit: isMobile ? 8 : (chartPeriod === 90 ? 15 : undefined),
-                                autoSkip: true,
-                                autoSkipPadding: isMobile ? 3 : 5
-                            }
-                        }
+                        y: { beginAtZero: true, ticks: { maxTicksLimit: isMobile ? 5 : undefined } },
+                        y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: value => 'R$ ' + (value/1000).toFixed(0) + 'k' } }
                     }
                 }
             });
@@ -2304,23 +2202,31 @@
                     const v = p.versions?.[0] || { total_value: 0, status: 'draft', version_number: 1 };
                     const val = parseFloat(v.total_value) || 0;
                     let badgeClass = 'st-draft'; let statusLabel = 'Rascunho';
-                    if (v.status === 'sent') { badgeClass = 'st-sent'; statusLabel = 'Aguardando resposta'; }
-                    if (v.status === 'negotiating') { badgeClass = 'st-negotiating'; statusLabel = 'Em Negociação'; }
-                    if (v.status === 'approved') { badgeClass = 'st-approved'; statusLabel = 'Aprovado'; }
-                    if (v.status === 'canceled') { badgeClass = 'st-canceled'; statusLabel = 'Cancelado'; }
+                    let progressClass = 'draft';
+                    if (v.status === 'sent') { badgeClass = 'st-sent'; statusLabel = 'Aguardando resposta'; progressClass = 'sent'; }
+                    if (v.status === 'negotiating') { badgeClass = 'st-negotiating'; statusLabel = 'Em Negociação'; progressClass = 'negotiating'; }
+                    if (v.status === 'approved') { badgeClass = 'st-approved'; statusLabel = 'Aprovado'; progressClass = 'approved'; }
+                    if (v.status === 'canceled') { badgeClass = 'st-canceled'; statusLabel = 'Cancelado'; progressClass = 'canceled'; }
+                    const initials = (p.client_name || 'NC').charAt(0).toUpperCase();
                     html += `<div onclick="openProject('${p.id}')" class="project-card group">
-                        <div class="flex justify-between items-start mb-3">
-                            <div class="flex-1 pr-2">
-                                <h3 class="font-bold text-slate-800 text-lg group-hover:text-blue-600 transition-colors leading-tight">${p.name}</h3>
-                                <p class="text-xs text-slate-500 mt-1 truncate"><i class="far fa-user mr-1"></i> ${p.client_name || 'Novo Cliente'}</p>
-                            </div>
-                            <span class="status-badge ${badgeClass}">${statusLabel}</span>
-                        </div>
-                        <div class="border-t border-slate-100 pt-3 flex justify-between items-end mt-2">
-                            <div class="text-xs text-slate-400">V${v.version_number} • ${new Date(p.created_at).toLocaleDateString()}</div>
-                            <div class="flex items-center gap-3">
-                                <div class="text-lg font-bold text-slate-900">${formatPrice(val)}</div>
-                                <button onclick="deleteProject('${p.id}', event)" class="text-slate-300 hover:text-red-500 transition-colors p-1 opacity-0 group-hover:opacity-100" title="Excluir"><i class="fas fa-trash-alt"></i></button>
+                        <div class="flex items-start gap-3">
+                            <div class="avatar-circle w-10 h-10 bg-[#1E3A8A] text-white text-sm flex items-center justify-center rounded-full">${initials}</div>
+                            <div class="flex-1">
+                                <div class="flex justify-between">
+                                    <h3 class="font-bold text-slate-800 group-hover:text-[#1E3A8A] transition">${p.name}</h3>
+                                    <span class="status-badge ${badgeClass}">${statusLabel}</span>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1">${p.client_name || 'Novo Cliente'}</p>
+                                <div class="progress-bar mt-2">
+                                    <div class="progress-fill ${progressClass}"></div>
+                                </div>
+                                <div class="flex justify-between items-center mt-3">
+                                    <span class="text-xs text-slate-400">V${v.version_number} • ${new Date(p.created_at).toLocaleDateString()}</span>
+                                    <span class="font-bold text-lg text-slate-900">${formatPrice(val)}</span>
+                                </div>
+                                <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition flex gap-1">
+                                    <button onclick="deleteProject('${p.id}', event)" class="p-2 text-slate-400 hover:text-red-500" title="Excluir"><i class="far fa-trash-alt"></i></button>
+                                </div>
                             </div>
                         </div>
                     </div>`;
@@ -2333,7 +2239,7 @@
             event.stopPropagation(); 
             if(!confirm("Tem certeza que deseja EXCLUIR este orçamento permanentemente?")) return;
             const { error } = await db.from('projects').delete().eq('id', id);
-            if(error) alert("Erro ao excluir: " + error.message);
+            if(error) showToast("Erro ao excluir: " + error.message, 'error');
             else { 
                 state.projectsCache = state.projectsCache.filter(p => p.id !== id); 
                 renderDashboardKPIs();
@@ -2341,6 +2247,7 @@
                 renderProjectCards();
                 renderClients();
                 renderActivityFeed();
+                showToast('Orçamento excluído.', 'success');
             }
         }
 
@@ -2371,6 +2278,7 @@
                 status: 'draft' 
             });
             openProject(p.id);
+            showToast('Orçamento criado!', 'success');
         }
 
         // ========== EDITOR ==========
@@ -2391,6 +2299,22 @@
             } else {
                 document.getElementById('client-fields-container').classList.add('hidden');
             }
+            // Inicializar Sortable após renderização
+            setTimeout(() => {
+                if (sortableInstance) sortableInstance.destroy();
+                const itemsContainer = document.getElementById('ed-items');
+                if (itemsContainer && state.version.status === 'draft') {
+                    sortableInstance = new Sortable(itemsContainer, {
+                        animation: 150,
+                        handle: '.item-box',
+                        onEnd: function(evt) {
+                            const movedItem = state.data.items.splice(evt.oldIndex, 1)[0];
+                            state.data.items.splice(evt.newIndex, 0, movedItem);
+                            renderItems(); // re-render para manter consistência
+                        }
+                    });
+                }
+            }, 100);
         }
 
         function renderEditor() {
@@ -2430,7 +2354,6 @@
             if(locDiv) locDiv.style.display = d.location.sameAsClient ? 'none' : 'block';
             setVal('loc-addr', d.location.address);
             
-            // Lista de elementos que devem ser desabilitados quando isLocked
             const staticInputs = [
                 'p-name','p-doc','p-addr','p-phone',
                 'c-name','c-doc','c-phone','c-email','c-addr',
@@ -2443,7 +2366,6 @@
                 if(el) el.disabled = isLocked; 
             });
             
-            // Botões específicos
             const btnAdd = document.getElementById('btn-add-item');
             if(btnAdd) {
                 btnAdd.disabled = isLocked;
@@ -2462,7 +2384,6 @@
                 btnCalc.style.opacity = isLocked ? '0.5' : '1';
                 btnCalc.style.pointerEvents = isLocked ? 'none' : 'auto';
             }
-            // Botões de cliente
             const btnNewClient = document.querySelector('button[onclick="openClientModal(true)"]');
             if(btnNewClient) btnNewClient.disabled = isLocked;
             const btnClearClient = document.querySelector('button[onclick="clearSelectedClient()"]');
@@ -2474,15 +2395,15 @@
             const headerActions = document.getElementById('ed-actions-header');
             if (headerActions) {
                 if (isLocked) {
-                    headerActions.innerHTML = `<button onclick="createAddon()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded text-sm font-bold shadow"><i class="fas fa-copy mr-2"></i> Criar Revisão (V${state.version.version_number + 1})</button>`;
+                    headerActions.innerHTML = `<button onclick="createAddon()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded text-sm font-bold shadow"><i class="far fa-copy mr-2"></i> Criar Revisão (V${state.version.version_number + 1})</button>`;
                 } else {
-                    headerActions.innerHTML = `<button onclick="save()" class="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold"><i class="fas fa-save mr-2"></i> Salvar</button>`;
+                    headerActions.innerHTML = `<button onclick="save()" class="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold hover:bg-slate-700"><i class="far fa-save mr-2"></i> Salvar</button>`;
                 }
             }
             const area = document.getElementById('ed-actions-area');
             if (area) {
                 if (isLocked) {
-                    area.innerHTML = `<button onclick="createAddon()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg shadow"><i class="fas fa-copy mr-2"></i> Criar Revisão (V${state.version.version_number + 1})</button>`;
+                    area.innerHTML = `<button onclick="createAddon()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg shadow"><i class="far fa-copy mr-2"></i> Criar Revisão (V${state.version.version_number + 1})</button>`;
                 } else {
                     area.innerHTML = `<button onclick="changeStatus('canceled')" class="w-full py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-sm font-bold">Cancelar Orçamento</button>`;
                 }
@@ -2511,8 +2432,8 @@
                         diffHtml = `<div class="diff-box"><span class="diff-tag">NOVO</span> Este item foi adicionado.</div>`;
                     } else {
                         let changes = [];
-                        if (oldItem.price !== i.price) changes.push(`Preço: <span class="old-val">${formatPrice(oldItem.price)}</span> <i class="fas fa-arrow-right text-xs"></i> <span class="new-val">${formatPrice(i.price)}</span>`);
-                        if (oldItem.qty !== i.qty) changes.push(`Qtd: <span class="old-val">${oldItem.qty}</span> <i class="fas fa-arrow-right text-xs"></i> <span class="new-val">${i.qty}</span>`);
+                        if (oldItem.price !== i.price) changes.push(`Preço: <span class="old-val">${formatPrice(oldItem.price)}</span> <i class="far fa-arrow-right text-xs"></i> <span class="new-val">${formatPrice(i.price)}</span>`);
+                        if (oldItem.qty !== i.qty) changes.push(`Qtd: <span class="old-val">${oldItem.qty}</span> <i class="far fa-arrow-right text-xs"></i> <span class="new-val">${i.qty}</span>`);
                         if (changes.length > 0) {
                             cardClass += ' item-modified';
                             diffHtml = `<div class="diff-box"><span class="diff-tag">ALTERADO</span> <span>${changes.join(' &bull; ')}</span></div>`;
@@ -2520,8 +2441,8 @@
                     }
                 }
                 html += `
-                <div class="item-box ${cardClass} group">
-                    ${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}
+                <div class="item-box ${cardClass} group" data-id="${i.id}">
+                    ${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i class="far fa-trash"></i></button>` : ''}
                     <div class="grid grid-cols-12 gap-4 mb-2">
                         <div class="col-span-8">
                             <label class="text-[10px] font-bold text-gray-400 uppercase flex items-center">
@@ -2557,8 +2478,6 @@
             if(f === 'qty') { 
                 it[f] = parseFloat(v) || 0; 
                 updateTotal(); 
-            } else if (f === 'price') {
-                // não usado diretamente, a máscara já atualiza o state
             } else { 
                 it[f] = v; 
             }
@@ -2580,12 +2499,14 @@
                 optional: false 
             }); 
             renderItems(); 
+            showToast('Item adicionado.', 'success');
         }
         function rmItem(i) { 
             if(confirm("Remover este item?")) { 
                 state.data.items.splice(i, 1); 
                 renderItems(); 
                 updateTotal(); 
+                showToast('Item removido.', 'success');
             } 
         }
         function updateTotal() { 
@@ -2630,7 +2551,7 @@
 
         function generatePayment() {
             const total = state.data.items.reduce((acc, i) => (!i.optional ? acc + (i.qty * i.price) : acc), 0);
-            if(total === 0) return alert("Adicione valores (não opcionais) primeiro.");
+            if(total === 0) return showToast("Adicione valores (não opcionais) primeiro.", 'warning');
             const mode = document.getElementById('pay-mode').value;
             let text = "";
             if(mode === 'entry_installments') {
@@ -2654,14 +2575,15 @@
             }
             state.data.terms.paymentText = text;
             setVal('t-obs', text);
+            showToast('Cronograma gerado!', 'success');
         }
 
         async function handleUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
-            if (file.size > 5 * 1024 * 1024) return alert("Arquivo muito grande! Máximo 5MB.");
+            if (file.size > 5 * 1024 * 1024) return showToast("Arquivo muito grande! Máximo 5MB.", 'error');
             const ext = file.name.split('.').pop().toLowerCase();
-            if(!['pdf','png','jpg','jpeg'].includes(ext)) return alert("Formato não permitido. Use PDF, PNG ou JPG.");
+            if(!['pdf','png','jpg','jpeg'].includes(ext)) return showToast("Formato não permitido. Use PDF, PNG ou JPG.", 'error');
             const label = document.getElementById('upload-label');
             const originalText = label.innerHTML;
             label.innerText = "Enviando...";
@@ -2679,8 +2601,9 @@
                 });
                 await save();
                 renderAttachments();
+                showToast('Arquivo enviado!', 'success');
             } catch (err) {
-                alert("Erro no upload: " + err.message);
+                showToast("Erro no upload: " + err.message, 'error');
             } finally {
                 label.innerHTML = originalText;
                 e.target.value = '';
@@ -2690,6 +2613,7 @@
             if(!confirm("Remover este anexo?")) return;
             state.data.attachments.splice(idx, 1);
             save().then(() => renderAttachments());
+            showToast('Anexo removido.', 'success');
         }
         function updateAttachmentDescription(idx, desc) {
             state.data.attachments[idx].description = desc;
@@ -2704,21 +2628,22 @@
             if (state.data.attachments && state.data.attachments.length > 0) {
                 state.data.attachments.forEach((att, idx) => {
                     let icon = att.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500';
+                    let preview = att.type !== 'pdf' ? `<img src="${att.url}" class="h-10 w-10 object-cover rounded mr-2">` : '';
                     attHtml += `<div class="flex flex-col bg-white border p-3 rounded mb-2 text-sm">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2 overflow-hidden">
-                                <i class="fas ${icon}"></i> 
+                                ${preview || `<i class="far ${icon}"></i>`}
                                 <span class="truncate font-medium">${att.name}</span>
                             </div>
                             <div class="flex gap-2">
-                                <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700"><i class="fas fa-eye"></i></a>
-                                ${!isLocked ? `<button onclick="deleteAttachment(${idx})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>` : ''}
+                                <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700"><i class="far fa-eye"></i></a>
+                                ${!isLocked ? `<button onclick="deleteAttachment(${idx})" class="text-red-400 hover:text-red-600"><i class="far fa-trash"></i></button>` : ''}
                             </div>
                         </div>
                         <div class="mt-2">
                             <label class="text-[10px] font-bold text-slate-400 uppercase">Descrição</label>
                             ${!isLocked 
-                                ? `<input type="text" class="w-full border-0 border-b border-slate-200 bg-transparent text-xs p-1 focus:border-blue-500 focus:ring-0" 
+                                ? `<input type="text" class="w-full border-0 border-b border-slate-200 bg-transparent text-xs p-1 focus:border-[#1E3A8A]" 
                                     value="${att.description || ''}" 
                                     placeholder="Ex: Nota fiscal, memorial fotográfico..."
                                     onchange="updateAttachmentDescription(${idx}, this.value);">`
@@ -2749,6 +2674,7 @@
                 notes: state.data.terms.obs || state.data.terms.paymentText
             }).eq('id', state.version.id);
             renderHistory();
+            showToast('Alterações salvas!', 'success');
         }
 
         async function createAddon() {
@@ -2764,6 +2690,7 @@
                 status: 'draft'
             });
             loadEditor(state.project.id);
+            showToast('Nova versão criada!', 'success');
         }
 
         async function changeStatus(newStatus, skipConfirm = false) {
@@ -2776,6 +2703,7 @@
             renderProjectCards();
             renderActivityFeed();
             loadEditor(state.project.id);
+            showToast(`Status alterado para ${newStatus}.`, 'success');
         }
 
         async function openShareModal() {
@@ -2783,7 +2711,7 @@
             if (state.version.status === 'draft') {
                 await changeStatus('sent', true);
             }
-            if (!state.version?.id) return alert("Erro ao salvar versão.");
+            if (!state.version?.id) return showToast("Erro ao salvar versão.", 'error');
             const url = `${window.location.origin}${window.location.pathname}?view=public&id=${state.version.id}`;
             const clientName = state.data.client.name ? ` ${state.data.client.name}` : '';
             const msg = `Olá${clientName}! Segue o link da proposta comercial para sua aprovação: ${url}`;
@@ -2796,7 +2724,7 @@
             document.getElementById('btn-share-copy').onclick = async function() {
                 try {
                     await navigator.clipboard.writeText(url);
-                    alert("✅ Link copiado com sucesso!");
+                    showToast("✅ Link copiado!", 'success');
                 } catch (err) {
                     const textArea = document.createElement("textarea");
                     textArea.value = url;
@@ -2804,7 +2732,7 @@
                     textArea.select();
                     document.execCommand("copy");
                     document.body.removeChild(textArea);
-                    alert("✅ Link copiado!");
+                    showToast("✅ Link copiado!", 'success');
                 }
                 document.getElementById('share-modal').classList.add('hidden');
             };
@@ -2817,18 +2745,18 @@
             if(hist.length > 0) {
                 hist.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(h => {
                     const date = new Date(h.date).toLocaleString('pt-BR');
-                    let icon = 'info-circle text-blue-400';
+                    let icon = 'info-circle';
                     let actionLabel = 'Visualizou';
-                    if (h.action === 'approved') { icon = 'check text-green-500'; actionLabel = 'Aprovou'; }
-                    else if (h.action === 'change_request') { icon = 'comment-dots text-amber-500'; actionLabel = 'Solicitou alteração'; }
-                    else if (h.action === 'canceled') { icon = 'times text-red-500'; actionLabel = 'Recusou/Cancelou'; }
-                    else if (h.action === 'created') { icon = 'plus-circle text-blue-600'; actionLabel = 'Criou o orçamento'; }
+                    if (h.action === 'approved') { icon = 'check-circle text-[#10B981]'; actionLabel = 'Aprovou'; }
+                    else if (h.action === 'change_request') { icon = 'comment-dots text-[#F59E0B]'; actionLabel = 'Solicitou alteração'; }
+                    else if (h.action === 'canceled') { icon = 'times-circle text-red-500'; actionLabel = 'Recusou/Cancelou'; }
+                    else if (h.action === 'created') { icon = 'plus-circle text-[#1E3A8A]'; actionLabel = 'Criou o orçamento'; }
                     else if (h.action === 'edited') { icon = 'pen text-indigo-500'; actionLabel = 'Alterou o escopo'; }
-                    else if (h.action === 'sent') { icon = 'paper-plane text-blue-500'; actionLabel = 'Enviou link'; }
+                    else if (h.action === 'sent') { icon = 'paper-plane text-[#1E3A8A]'; actionLabel = 'Enviou link'; }
                     histHtml += `<div class="timeline-item">
                         <div class="text-xs text-slate-400">${date} • ${h.user === 'provider' ? 'Você' : 'Cliente'}</div>
                         <div class="font-bold text-sm text-slate-700 flex items-center gap-2 mt-1">
-                            <i class="fas fa-${icon}"></i> ${actionLabel}
+                            <i class="far fa-${icon}"></i> ${actionLabel}
                         </div>
                         ${h.detail ? `<div class="timeline-desc ${h.action.includes('request') ? '' : 'system'}">${h.detail}</div>` : ''}
                     </div>`;
@@ -2875,11 +2803,11 @@
                     let attHtml = '<h3 class="font-bold text-xs uppercase text-slate-400 mb-2 mt-8 tracking-wider">Documentos Anexos</h3><div class="grid grid-cols-1 gap-3">';
                     d.attachments.forEach(att => {
                         let icon = att.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500';
-                        attHtml += `<div class="att-card">
+                        attHtml += `<div class="att-card border rounded-lg p-3">
                             <div class="flex items-center gap-3">
-                                <i class="fas ${icon} text-lg"></i>
+                                <i class="far ${icon} text-lg"></i>
                                 <span class="text-sm font-medium text-slate-700 truncate">${att.name}</span>
-                                <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700 ml-auto"><i class="fas fa-eye"></i></a>
+                                <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700 ml-auto"><i class="far fa-eye"></i></a>
                             </div>
                             ${att.description ? `<p class="text-xs text-slate-500 mt-1 pl-2 border-l-2 border-blue-200">${att.description}</p>` : ''}
                         </div>`;
@@ -2898,7 +2826,7 @@
                         showSuccessScreen(v.status);
                     } else {
                         actions.innerHTML = `
-                            <button onclick="openModal('approve')" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-green-700 mb-3 transition-transform hover:scale-[1.01]">APROVAR PROPOSTA</button>
+                            <button onclick="openModal('approve')" class="w-full bg-[#10B981] text-white font-bold py-4 rounded-xl shadow-lg hover:bg-[#0E9E6F] mb-3 transition-transform hover:scale-[1.01]">APROVAR PROPOSTA</button>
                             <div class="grid grid-cols-2 gap-3">
                                 <button onclick="openModal('change')" class="bg-amber-100 text-amber-700 font-bold py-3 rounded-xl hover:bg-amber-200">Solicitar Alteração</button>
                                 <button onclick="openModal('cancel')" class="bg-red-50 text-red-600 font-bold py-3 rounded-xl hover:bg-red-100">Recusar</button>
@@ -2929,8 +2857,8 @@
                 html += `<tr class="border-b border-slate-100 ${i.optional ? 'bg-slate-50' : ''}">
                     <td class="py-4 pl-4">
                         <div class="flex items-start gap-3">
-                            ${i.optional && !isFrozen ? `<input type="checkbox" onchange="togglePublicOpt(${idx})" ${i.publicSelected ? 'checked' : ''} class="mt-1 w-5 h-5 cursor-pointer accent-green-600">` : ''}
-                            ${i.optional && isFrozen ? (i.publicSelected ? '<i class="fas fa-check-square text-green-600 mt-1"></i>' : '<i class="far fa-square text-slate-400 mt-1"></i>') : ''}
+                            ${i.optional && !isFrozen ? `<input type="checkbox" onchange="togglePublicOpt(${idx})" ${i.publicSelected ? 'checked' : ''} class="mt-1 w-5 h-5 cursor-pointer accent-[#10B981]">` : ''}
+                            ${i.optional && isFrozen ? (i.publicSelected ? '<i class="far fa-check-square text-[#10B981] mt-1"></i>' : '<i class="far fa-square text-slate-400 mt-1"></i>') : ''}
                             <div>
                                 <div class="font-bold text-slate-800 ${i.optional ? 'text-slate-600' : ''}">
                                     ${i.name} ${i.optional ? '<span class="text-[10px] bg-slate-200 text-slate-600 px-1 rounded uppercase ml-2">Opcional</span>' : ''}
@@ -2941,7 +2869,7 @@
                     </td>
                     <td class="text-center text-sm">${i.qty}</td>
                     <td class="text-right text-sm text-slate-500">${formatPrice(i.price)}</td>
-                    <td class="text-right pr-4 font-bold text-sm ${i.optional && !i.publicSelected ? 'text-slate-400 decoration-slate-400 line-through' : 'text-slate-800'}">
+                    <td class="text-right pr-4 font-bold text-sm ${i.optional && !i.publicSelected ? 'text-slate-400 line-through' : 'text-slate-800'}">
                         ${formatPrice(i.qty * i.price)}
                     </td>
                 </tr>`; 
@@ -2994,7 +2922,7 @@
                 desc.innerText = 'Por favor, assine abaixo para confirmar a aprovação.';
                 sigArea.classList.remove('hidden');
                 btn.innerText = 'Confirmar Aprovação';
-                btn.className = "flex-1 bg-green-600 text-white py-3 rounded font-bold hover:bg-green-700";
+                btn.className = "flex-1 bg-[#10B981] text-white py-3 rounded font-bold hover:bg-[#0E9E6F]";
                 btn.onclick = () => executeAction('approve');
                 setTimeout(initSignaturePad, 100); 
             } else if(type === 'change') {
@@ -3002,7 +2930,7 @@
                 desc.innerText = 'Descreva as mudanças desejadas:';
                 input.classList.remove('hidden');
                 btn.innerText = 'Enviar Solicitação';
-                btn.className = "flex-1 bg-amber-600 text-white py-3 rounded font-bold hover:bg-amber-700";
+                btn.className = "flex-1 bg-[#F59E0B] text-white py-3 rounded font-bold hover:bg-[#E68A00]";
                 btn.onclick = () => executeAction('change');
             } else if(type === 'cancel') {
                 title.innerText = 'Recusar Orçamento';
@@ -3072,7 +3000,7 @@
                 await approveLogic();
             } else if (type === 'change') {
                 if(!inputVal) { 
-                    alert("Escreva o que deseja alterar."); 
+                    showToast("Escreva o que deseja alterar.", 'warning'); 
                     btn.disabled = false; 
                     btn.innerText = "Enviar Solicitação"; 
                     return; 
@@ -3134,19 +3062,26 @@
             const actions = document.getElementById('success-actions');
             actions.innerHTML = ''; 
             if(type === 'approved' || type === 'approve') {
-                icon.className = "fas fa-check-circle text-6xl text-green-500 mb-4";
+                icon.className = "far fa-check-circle text-6xl text-[#10B981] mb-4";
                 title.innerText = "Orçamento Aprovado!";
                 desc.innerText = "Obrigado pela confiança. O comprovante foi gerado.";
-                actions.innerHTML = `<button onclick="window.location.href='?view=public&id=${state.version.id}'; setTimeout(downloadPDF, 1000)" class="px-6 py-3 bg-slate-800 text-white rounded-lg font-bold shadow hover:bg-slate-700"><i class="fas fa-file-pdf mr-2"></i> Baixar Comprovante PDF</button>`;
+                actions.innerHTML = `<button onclick="window.location.href='?view=public&id=${state.version.id}'; setTimeout(downloadPDF, 1000)" class="px-6 py-3 bg-slate-800 text-white rounded-lg font-bold shadow hover:bg-slate-700"><i class="far fa-file-pdf mr-2"></i> Baixar Comprovante PDF</button>`;
             } else if (type === 'change_request' || type === 'negotiating') {
-                icon.className = "fas fa-clock text-6xl text-amber-500 mb-4";
+                icon.className = "far fa-clock text-6xl text-[#F59E0B] mb-4";
                 title.innerText = "Solicitação Enviada";
                 desc.innerText = "Aguarde o retorno do prestador.";
             } else {
-                icon.className = "fas fa-times-circle text-6xl text-slate-400 mb-4";
+                icon.className = "far fa-times-circle text-6xl text-slate-400 mb-4";
                 title.innerText = "Orçamento Recusado";
                 desc.innerText = "O orçamento foi marcado como recusado.";
             }
+        }
+
+        function openTermsModal() {
+            showToast('Termos de uso em breve.', 'info');
+        }
+        function openPrivacyModal() {
+            showToast('Política de privacidade em breve.', 'info');
         }
 
         setChartPeriod(30);
