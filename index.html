@@ -130,6 +130,7 @@
             .fixed.inset-0 .bg-white { max-width: 90%; margin: 0 auto; }
             .kpi-card .text-2xl { font-size: 1.2rem; }
             .reports-grid { grid-template-columns: 1fr; }
+            .project-card { padding: 1rem; } /* Reduzir padding em mobile */
         }
 
         .custom-table { width: 100%; text-align: left; border-collapse: separate; border-spacing: 0; }
@@ -137,12 +138,36 @@
         .custom-table td { padding: 16px; border-bottom: 1px solid var(--gray-200); background: white; font-size: 0.9rem; }
         .custom-table tr:hover td { background: var(--gray-50); cursor: pointer; }
 
-        .project-card { background: white; border: 1px solid var(--gray-200); border-radius: 16px; padding: 1.5rem; transition: all 0.2s; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.02); }
-        .project-card:hover { border-color: var(--primary); box-shadow: 0 12px 24px -8px rgba(30,58,138,0.15); transform: translateY(-2px); }
+        .project-card { 
+            background: white; 
+            border: 1px solid var(--gray-200); 
+            border-radius: 16px; 
+            padding: 1.5rem; 
+            transition: all 0.2s; 
+            cursor: pointer; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.02); 
+            width: 100%;
+            overflow: hidden;
+        }
+        .project-card:hover { 
+            border-color: var(--primary); 
+            box-shadow: 0 12px 24px -8px rgba(30,58,138,0.15); 
+            transform: translateY(-2px); 
+        }
 
         .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
 
-        .status-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.03em; white-space: nowrap; box-shadow: none; }
+        .status-badge { 
+            font-size: 0.7rem; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            padding: 4px 10px; 
+            border-radius: 999px; 
+            letter-spacing: 0.03em; 
+            white-space: nowrap; 
+            box-shadow: none !important; 
+            border: none;
+        }
         .st-draft { background: #EFF6FF; color: var(--primary); } 
         .st-sent { background: #DBEAFE; color: #1E3A8A; } 
         .st-negotiating { background: #FEF3C7; color: #B45309; } 
@@ -1427,7 +1452,8 @@
             const templates = state.templatesCache.length > 0 ? state.templatesCache : state.localStorageTemplates;
             const template = templates.find(t => t.id === id);
             if (!template) return;
-            const projectName = prompt("Nome do novo orçamento:", template.name);
+            // Solicita um novo nome para o projeto (evita duplicação de nome)
+            const projectName = prompt("Nome do novo orçamento:", template.name + " (cópia)");
             if (!projectName) return;
             const { data: p, error } = await db.from('projects').insert({ 
                 name: projectName, 
@@ -2304,10 +2330,10 @@
                             <div class="avatar-circle w-10 h-10 bg-[#1E3A8A] text-white text-sm flex items-center justify-center rounded-full">${initials}</div>
                             <div class="flex-1">
                                 <div class="flex justify-between">
-                                    <h3 class="font-bold text-slate-800 group-hover:text-[#1E3A8A] transition">${p.name}</h3>
-                                    <span class="status-badge ${badgeClass}">${statusLabel}</span>
+                                    <h3 class="font-bold text-slate-800 group-hover:text-[#1E3A8A] transition truncate">${p.name}</h3>
+                                    <span class="status-badge ${badgeClass} ml-2">${statusLabel}</span>
                                 </div>
-                                <p class="text-xs text-slate-500 mt-1">${p.client_name || 'Novo Cliente'}</p>
+                                <p class="text-xs text-slate-500 mt-1 truncate">${p.client_name || 'Novo Cliente'}</p>
                                 <div class="progress-bar mt-2">
                                     <div class="progress-fill ${progressClass}"></div>
                                 </div>
