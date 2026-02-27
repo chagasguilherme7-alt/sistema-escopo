@@ -14,7 +14,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        /* ===== VARIÁVEIS DE COR ===== */
         :root {
             --primary: #1E3A8A;
             --primary-light: #3B5BA5;
@@ -43,7 +42,6 @@
             font-weight: 700;
         }
 
-        /* ===== SIDEBAR ===== */
         .sidebar { 
             width: 260px; 
             background: white; 
@@ -129,9 +127,9 @@
             .item-box .grid.grid-cols-12 > .col-span-2 { grid-column: span 1; }
             input, select, textarea, button { font-size: 16px; min-height: 48px; }
             .fixed.inset-0 .bg-white { max-width: 90%; margin: 0 auto; }
+            .kpi-card .text-2xl { font-size: 1.2rem; } /* Ajuste para mobile */
         }
 
-        /* ===== CARDS E TABELAS ===== */
         .custom-table { width: 100%; text-align: left; border-collapse: separate; border-spacing: 0; }
         .custom-table th { padding: 16px; background: var(--gray-50); color: var(--gray-500); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid var(--gray-200); }
         .custom-table td { padding: 16px; border-bottom: 1px solid var(--gray-200); background: white; font-size: 0.9rem; }
@@ -142,7 +140,6 @@
 
         .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
 
-        /* ===== BADGES DE STATUS ===== */
         .status-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.03em; white-space: nowrap; }
         .st-draft { background: #EFF6FF; color: var(--primary); } 
         .st-sent { background: #DBEAFE; color: #1E3A8A; } 
@@ -150,7 +147,6 @@
         .st-approved { background: #D1FAE5; color: #065F46; } 
         .st-canceled { background: #FEE2E2; color: #991B1B; }
 
-        /* ===== ITENS DO ESCOPO ===== */
         .item-box { background: white; border: 1px solid var(--gray-200); border-radius: 12px; padding: 16px; margin-bottom: 12px; position: relative; transition: all 0.2s; }
         .item-box:hover { border-color: var(--primary); box-shadow: 0 8px 16px rgba(0,0,0,0.05); }
         .item-optional { border: 2px dashed var(--gray-400) !important; background-color: var(--gray-50); opacity: 0.9; }
@@ -162,21 +158,17 @@
         .item-modified { border-left: 4px solid var(--warning) !important; }
         .item-new { border-left: 4px solid var(--success) !important; }
 
-        /* ===== TIMELINE ===== */
         .timeline-item { position: relative; padding-left: 2rem; border-left: 2px solid var(--gray-200); padding-bottom: 1.5rem; }
         .timeline-item::before { content: ''; position: absolute; left: -5px; top: 0; width: 8px; height: 8px; border-radius: 50%; background: var(--gray-400); }
         .timeline-item:last-child { border-left: transparent; }
         .timeline-desc { font-size: 0.85rem; color: var(--gray-700); margin-top: 6px; background: #FFFBEB; padding: 12px; border-radius: 8px; border: 1px solid #FED7AA; font-style: italic; }
         .timeline-desc.system { background: var(--gray-50); border-color: var(--gray-200); font-style: normal; }
 
-        /* ===== ASSINATURA ===== */
         #signature-pad { border: 2px dashed var(--gray-300); border-radius: 12px; background: var(--gray-50); cursor: crosshair; touch-action: none; width: 100%; height: 200px; }
 
-        /* ===== LOADER ===== */
         .loader-spin { width: 30px; height: 30px; border: 3px solid var(--gray-200); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ===== TOAST ===== */
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { background: white; border-radius: 12px; padding: 16px 20px; box-shadow: 0 20px 30px -10px rgba(0,0,0,0.2); border-left: 6px solid; display: flex; align-items: center; gap: 12px; min-width: 280px; max-width: 400px; animation: slideIn 0.3s; }
         .toast.success { border-left-color: var(--success); }
@@ -188,15 +180,12 @@
         .toast-close { cursor: pointer; color: var(--gray-400); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        /* ===== SKELETON ===== */
         .skeleton { background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-        /* ===== TOOLTIP ===== */
         [data-tooltip] { position: relative; cursor: help; }
         [data-tooltip]:hover:after { content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: var(--gray-800); color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; white-space: nowrap; z-index: 10; margin-bottom: 6px; }
 
-        /* ===== PROGRESS BAR ===== */
         .progress-bar { height: 6px; background: var(--gray-200); border-radius: 999px; overflow: hidden; margin-top: 8px; }
         .progress-fill { height: 100%; border-radius: 999px; transition: width 0.3s; }
         .progress-fill.draft { background: var(--gray-400); width: 20%; }
@@ -205,10 +194,8 @@
         .progress-fill.approved { background: var(--success); width: 100%; }
         .progress-fill.canceled { background: var(--danger); width: 100%; }
 
-        /* ===== AVATAR CIRCLE ===== */
         .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
 
-        /* ===== LOGIN ===== */
         .split-screen { display: flex; min-height: 100vh; width: 100%; position: absolute; top: 0; left: 0; z-index: 50; background: white; }
         .left-area { 
             width: 60%; 
@@ -342,12 +329,10 @@
         }
         .btn-pro:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        /* ===== COLLAPSIBLE ===== */
         .collapsible-header { cursor: pointer; user-select: none; }
         .collapsible-content { transition: max-height 0.3s ease; overflow: hidden; }
         .collapsible-content.collapsed { max-height: 0; }
 
-        /* ===== PRINT ===== */
         @media print {
             body { background: white; }
             .no-print { display: none !important; }
@@ -370,12 +355,14 @@
             #stamp-approved { opacity: 0.3 !important; }
         }
 
-        /* ===== VIEW PÚBLICA MOBILE ===== */
         @media (max-width: 768px) {
             #public-content .p-12 { padding: 1rem !important; }
             #public-content .flex.gap-12 { flex-direction: column; gap: 1rem; }
             #public-content table { font-size: 0.8rem; }
             #public-content .text-3xl { font-size: 1.5rem; }
+            .kpi-card .text-2xl { font-size: 1.1rem; }
+            .kpi-card .text-xs { font-size: 0.65rem; }
+            #public-content .overflow-x-auto { overflow-x: auto; }
         }
     </style>
 </head>
@@ -390,7 +377,7 @@
     </div>
 
     <div id="fatal-error" class="hidden fixed inset-0 bg-rose-50 z-[10000] flex flex-col items-center justify-center p-8 text-center">
-        <i class="far fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i>
+        <i class="fas fa-exclamation-triangle text-4xl text-amber-500 mb-4"></i>
         <h2 class="text-2xl font-bold text-slate-800">Ops! Algo deu errado.</h2>
         <p id="error-msg" class="text-slate-600 mt-2 mb-6 max-w-md"></p>
         <button onclick="localStorage.clear(); window.location.reload()" class="px-6 py-3 bg-slate-900 text-white rounded font-bold">Recarregar</button>
@@ -408,15 +395,15 @@
                 <p class="text-xl text-slate-600 mb-8">Crie, envie e acompanhe orçamentos com aprovação digital e histórico completo.</p>
                 <div class="space-y-4">
                     <div class="benefit-item">
-                        <div class="icon-circle"><i class="far fa-shield-alt"></i></div>
+                        <div class="icon-circle"><i class="fas fa-shield-alt"></i></div>
                         <div><h3 class="font-bold text-xl text-slate-800">Evite prejuízos</h3><p class="text-sm text-slate-500">Registre mudanças de escopo e evite retrabalho.</p></div>
                     </div>
                     <div class="benefit-item">
-                        <div class="icon-circle"><i class="far fa-check-circle"></i></div>
+                        <div class="icon-circle"><i class="fas fa-check-circle"></i></div>
                         <div><h3 class="font-bold text-xl text-slate-800">Aprovação rápida</h3><p class="text-sm text-slate-500">Link direto para o cliente aprovar com assinatura digital.</p></div>
                     </div>
                     <div class="benefit-item">
-                        <div class="icon-circle"><i class="far fa-file-contract"></i></div>
+                        <div class="icon-circle"><i class="fas fa-file-contract"></i></div>
                         <div><h3 class="font-bold text-xl text-slate-800">Sem discussão</h3><p class="text-sm text-slate-500">Tudo documentado, histórico completo e PDF comprovante.</p></div>
                     </div>
                 </div>
@@ -442,15 +429,15 @@
                 </div>
                 <div class="mt-12 flex flex-wrap items-center gap-4">
                     <div class="stat-item bg-white/70 backdrop-blur-sm rounded-full px-4 py-2 border border-[#1E3A8A]/20">
-                        <i class="far fa-users text-[#10B981]"></i>
+                        <i class="fas fa-users text-[#10B981]"></i>
                         <span class="text-slate-600 font-medium">+500 usuários</span>
                     </div>
                     <div class="stat-item bg-white/70 backdrop-blur-sm rounded-full px-4 py-2 border border-[#1E3A8A]/20">
-                        <i class="far fa-file-invoice text-[#10B981]"></i>
+                        <i class="fas fa-file-invoice text-[#10B981]"></i>
                         <span class="text-slate-600 font-medium">+2.000 orçamentos</span>
                     </div>
                     <div class="stat-item bg-white/70 backdrop-blur-sm rounded-full px-4 py-2 border border-[#1E3A8A]/20">
-                        <i class="far fa-star text-[#10B981]"></i>
+                        <i class="fas fa-star text-[#10B981]"></i>
                         <span class="text-slate-600 font-medium">98% satisfação</span>
                     </div>
                 </div>
@@ -464,12 +451,12 @@
         <div class="right-area">
             <div class="login-card">
                 <div class="avatar-circle flex justify-center mb-4 mx-auto w-16 h-16 bg-[#1E3A8A] text-white text-2xl">
-                    <i class="far fa-envelope"></i>
+                    <i class="fas fa-envelope"></i>
                 </div>
                 <h2 class="text-2xl font-bold text-slate-800 mb-2">Acesse sua conta</h2>
                 <p class="text-slate-400 mb-8 text-sm">Digite seu e-mail para entrar.</p>
                 <input type="email" id="email" placeholder="seu@email.com" class="input-pro">
-                <button onclick="handleLogin()" id="btn-login" class="btn-pro"><i class="far fa-paper-plane"></i> Enviar link de acesso</button>
+                <button onclick="handleLogin()" id="btn-login" class="btn-pro"><i class="fas fa-paper-plane"></i> Enviar link de acesso</button>
             </div>
         </div>
     </section>
@@ -478,7 +465,7 @@
     <div id="app-layout" class="hidden">
         <div class="mobile-header">
             <img src="logo.png" alt="Aprova Ai" class="h-8">
-            <button onclick="document.querySelector('.sidebar').classList.toggle('open')" class="text-slate-600"><i class="far fa-bars text-xl"></i></button>
+            <button onclick="document.querySelector('.sidebar').classList.toggle('open')" class="text-slate-600"><i class="fas fa-bars text-xl"></i></button>
         </div>
 
         <aside class="sidebar">
@@ -486,11 +473,11 @@
                 <img src="logo.png" alt="Aprova Ai" class="h-16">
             </div>
             <div onclick="createProject()" class="btn-new">
-                <i class="far fa-plus mr-2"></i> Novo Orçamento
+                <i class="fas fa-plus mr-2"></i> Novo Orçamento
             </div>
             <nav class="flex-1 overflow-y-auto py-2">
-                <div onclick="switchTab('dashboard')" class="nav-item active" id="nav-dashboard"><i class="far fa-home"></i> Visão geral</div>
-                <div onclick="switchTab('projects')" class="nav-item" id="nav-projects"><i class="far fa-file-invoice"></i> Orçamentos</div>
+                <div onclick="switchTab('dashboard')" class="nav-item active" id="nav-dashboard"><i class="fas fa-home"></i> Visão geral</div>
+                <div onclick="switchTab('projects')" class="nav-item" id="nav-projects"><i class="fas fa-file-invoice"></i> Orçamentos</div>
                 <div class="px-6 py-4 mt-2">
                     <p class="text-[10px] font-bold text-slate-400 uppercase mb-3">Filtros rápidos</p>
                     <div onclick="filterProjects('draft')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-[#1E3A8A] mb-2"><span class="status-dot" style="background:#9CA3AF"></span> Rascunho</div>
@@ -499,12 +486,12 @@
                     <div onclick="filterProjects('approved')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-[#1E3A8A] mb-2"><span class="status-dot" style="background:#10B981"></span> Aprovados</div>
                     <div onclick="filterProjects('canceled')" class="flex items-center text-sm text-slate-600 py-1 cursor-pointer hover:text-[#1E3A8A]"><span class="status-dot" style="background:#EF4444"></span> Cancelados</div>
                 </div>
-                <div onclick="switchTab('clients')" class="nav-item" id="nav-clients"><i class="far fa-users"></i> Clientes</div>
-                <div onclick="switchTab('catalog')" class="nav-item" id="nav-catalog"><i class="far fa-box"></i> Catálogo</div>
-                <div onclick="switchTab('reports')" class="nav-item" id="nav-reports"><i class="far fa-chart-pie"></i> Relatórios</div>
+                <div onclick="switchTab('clients')" class="nav-item" id="nav-clients"><i class="fas fa-users"></i> Clientes</div>
+                <div onclick="switchTab('catalog')" class="nav-item" id="nav-catalog"><i class="fas fa-box"></i> Catálogo</div>
+                <div onclick="switchTab('reports')" class="nav-item" id="nav-reports"><i class="fas fa-chart-pie"></i> Relatórios</div>
             </nav>
             <div class="p-4 border-t border-slate-100">
-                <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="flex items-center text-sm text-red-500 font-medium w-full px-4 py-2"><i class="far fa-sign-out-alt mr-3"></i> Sair</button>
+                <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="flex items-center text-sm text-red-500 font-medium w-full px-4 py-2"><i class="fas fa-sign-out-alt mr-3"></i> Sair</button>
             </div>
         </aside>
 
@@ -515,53 +502,53 @@
             <section id="view-dashboard" class="space-y-6">
                 <h2 class="text-2xl font-bold text-slate-800">Visão geral</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                    <div class="kpi-card bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
                         <div class="flex items-center justify-between">
-                            <div>
+                            <div class="truncate">
                                 <div class="text-xs text-slate-500 uppercase mb-1">Faturamento Aprovado</div>
-                                <div class="text-2xl font-bold text-[#10B981]" id="kpi-total-apr">R$ 0,00</div>
+                                <div class="text-2xl font-bold text-[#10B981] truncate" id="kpi-total-apr">R$ 0,00</div>
                             </div>
-                            <i class="far fa-chart-line text-2xl text-[#10B981]"></i>
+                            <i class="fas fa-chart-line text-2xl text-[#10B981]"></i>
                         </div>
                         <span class="text-xs text-green-500">↑ 12%</span>
                     </div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                    <div class="kpi-card bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
                         <div class="flex items-center justify-between">
-                            <div>
+                            <div class="truncate">
                                 <div class="text-xs text-slate-500 uppercase mb-1">Pipeline (Total)</div>
-                                <div class="text-2xl font-bold text-[#1E3A8A]" id="kpi-total-est">R$ 0,00</div>
+                                <div class="text-2xl font-bold text-[#1E3A8A] truncate" id="kpi-total-est">R$ 0,00</div>
                             </div>
-                            <i class="far fa-chart-bar text-2xl text-[#1E3A8A]"></i>
+                            <i class="fas fa-chart-bar text-2xl text-[#1E3A8A]"></i>
                         </div>
                         <span class="text-xs text-green-500">↑ 8%</span>
                     </div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                    <div class="kpi-card bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
                         <div class="flex items-center justify-between">
-                            <div>
+                            <div class="truncate">
                                 <div class="text-xs text-slate-500 uppercase mb-1">Aguardando resposta</div>
-                                <div class="text-2xl font-bold text-[#1E3A8A]" id="kpi-count-sent">0</div>
+                                <div class="text-2xl font-bold text-[#1E3A8A] truncate" id="kpi-count-sent">0</div>
                             </div>
-                            <i class="far fa-clock text-2xl text-[#1E3A8A]"></i>
+                            <i class="fas fa-clock text-2xl text-[#1E3A8A]"></i>
                         </div>
                         <span class="text-xs text-amber-500">↘ 3%</span>
                     </div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                    <div class="kpi-card bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
                         <div class="flex items-center justify-between">
-                            <div>
+                            <div class="truncate">
                                 <div class="text-xs text-slate-500 uppercase mb-1">Em Negociação</div>
-                                <div class="text-2xl font-bold text-[#F59E0B]" id="kpi-count-neg">0</div>
+                                <div class="text-2xl font-bold text-[#F59E0B] truncate" id="kpi-count-neg">0</div>
                             </div>
-                            <i class="far fa-handshake text-2xl text-[#F59E0B]"></i>
+                            <i class="fas fa-handshake text-2xl text-[#F59E0B]"></i>
                         </div>
                         <span class="text-xs text-green-500">↑ 2%</span>
                     </div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                    <div class="kpi-card bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition">
                         <div class="flex items-center justify-between">
-                            <div>
+                            <div class="truncate">
                                 <div class="text-xs text-slate-500 uppercase mb-1">Rascunhos</div>
-                                <div class="text-2xl font-bold text-slate-600" id="kpi-count-open">0</div>
+                                <div class="text-2xl font-bold text-slate-600 truncate" id="kpi-count-open">0</div>
                             </div>
-                            <i class="far fa-pen text-2xl text-slate-600"></i>
+                            <i class="fas fa-pen text-2xl text-slate-600"></i>
                         </div>
                         <span class="text-xs text-slate-400">↔ 0%</span>
                     </div>
@@ -584,7 +571,7 @@
                 <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="font-bold text-slate-700 flex items-center gap-2">
-                            <i class="far fa-history text-[#1E3A8A]"></i> Atividade recente
+                            <i class="fas fa-history text-[#1E3A8A]"></i> Atividade recente
                         </h3>
                         <span class="text-xs text-slate-400">últimas 10 ações</span>
                     </div>
@@ -600,13 +587,13 @@
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-slate-800">Orçamentos</h2>
                     <div class="flex gap-2">
-                        <button onclick="openTemplateModal()" class="bg-[#10B981] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#0E9E6F] transition"><i class="far fa-copy mr-2"></i> Carregar Template</button>
-                        <button onclick="createProject()" class="bg-[#1E3A8A] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#3B5BA5] transition"><i class="far fa-plus mr-2"></i> Novo</button>
+                        <button onclick="openTemplateModal()" class="bg-[#10B981] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#0E9E6F] transition"><i class="fas fa-copy mr-2"></i> Carregar Template</button>
+                        <button onclick="createProject()" class="bg-[#1E3A8A] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#3B5BA5] transition"><i class="fas fa-plus mr-2"></i> Novo</button>
                     </div>
                 </div>
                 <div class="flex flex-col md:flex-row gap-4 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex-1 w-full relative">
-                        <i class="far fa-search absolute left-3 top-3 text-slate-400"></i>
+                        <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
                         <input id="project-search" onkeyup="renderProjectCards()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-[#1E3A8A]" placeholder="Buscar cliente ou projeto...">
                     </div>
                     <div class="flex gap-2">
@@ -619,7 +606,7 @@
                             <option value="canceled">Cancelados</option>
                         </select>
                         <div class="relative" data-tooltip="Filtrar por data (em breve)">
-                            <button class="p-2 bg-slate-50 border border-slate-200 rounded-lg"><i class="far fa-calendar-alt"></i></button>
+                            <button class="p-2 bg-slate-50 border border-slate-200 rounded-lg"><i class="fas fa-calendar-alt"></i></button>
                         </div>
                     </div>
                 </div>
@@ -630,12 +617,12 @@
             <section id="view-clients" class="hidden space-y-6">
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-slate-800">Clientes</h2>
-                    <button onclick="openClientModal()" class="bg-[#1E3A8A] text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="far fa-plus mr-2"></i> Novo Cliente</button>
+                    <button onclick="openClientModal()" class="bg-[#1E3A8A] text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="fas fa-plus mr-2"></i> Novo Cliente</button>
                 </div>
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex gap-4 items-center">
                         <div class="flex-1 relative">
-                            <i class="far fa-search absolute left-3 top-3 text-slate-400"></i>
+                            <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
                             <input id="client-search" onkeyup="renderClients()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-[#1E3A8A]" placeholder="Buscar cliente...">
                         </div>
                     </div>
@@ -662,14 +649,14 @@
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-slate-800">Catálogo de Serviços</h2>
                     <div class="flex gap-2">
-                        <button onclick="openShareCatalogModal()" class="bg-[#10B981] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#0E9E6F] transition"><i class="far fa-share-alt mr-2"></i> Compartilhar Catálogo</button>
-                        <button onclick="openCatalogModal()" class="bg-[#1E3A8A] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#3B5BA5] transition"><i class="far fa-plus mr-2"></i> Novo Serviço</button>
+                        <button onclick="openShareCatalogModal()" class="bg-[#10B981] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#0E9E6F] transition"><i class="fas fa-share-alt mr-2"></i> Compartilhar Catálogo</button>
+                        <button onclick="openCatalogModal()" class="bg-[#1E3A8A] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#3B5BA5] transition"><i class="fas fa-plus mr-2"></i> Novo Serviço</button>
                     </div>
                 </div>
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex gap-4 items-center">
                         <div class="flex-1 relative">
-                            <i class="far fa-search absolute left-3 top-3 text-slate-400"></i>
+                            <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
                             <input id="catalog-search" onkeyup="renderCatalog()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-[#1E3A8A]" placeholder="Buscar serviço...">
                         </div>
                         <select id="catalog-category-filter" onchange="renderCatalog()" class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
@@ -680,7 +667,7 @@
                 <div id="catalog-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
 
-            <!-- RELATÓRIOS (NOVO) -->
+            <!-- RELATÓRIOS -->
             <section id="view-reports" class="hidden space-y-6">
                 <h2 class="text-2xl font-bold text-slate-800">Relatórios</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -715,7 +702,7 @@
             <section id="view-editor" class="hidden pb-20">
                 <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm sticky top-0 z-10 backdrop-blur-sm bg-white/90">
                     <div class="flex items-center gap-4">
-                        <button onclick="switchTab('projects')" class="text-slate-400 hover:text-slate-800"><i class="far fa-arrow-left"></i></button>
+                        <button onclick="switchTab('projects')" class="text-slate-400 hover:text-slate-800"><i class="fas fa-arrow-left"></i></button>
                         <div>
                             <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
                                 <span id="ed-title">...</span>
@@ -725,9 +712,9 @@
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="saveAsTemplate()" class="bg-[#10B981] text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-[#10B981]/20 hover:bg-[#0E9E6F] transition"><i class="far fa-save mr-2"></i> Salvar como Template</button>
+                        <button onclick="saveAsTemplate()" class="bg-[#10B981] text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-[#10B981]/20 hover:bg-[#0E9E6F] transition"><i class="fas fa-save mr-2"></i> Salvar como Template</button>
                         <button onclick="openShareModal()" class="bg-[#1E3A8A] text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-[#1E3A8A]/20 hover:bg-[#3B5BA5] transition">
-                            <i class="far fa-share-alt mr-2"></i> Enviar Link
+                            <i class="fas fa-share-alt mr-2"></i> Enviar Link
                         </button>
                         <div id="ed-actions-header" class="flex gap-2"></div>
                     </div>
@@ -738,8 +725,8 @@
                         <!-- DADOS DO PRESTADOR -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <div class="collapsible-header flex justify-between items-center" onclick="toggleCollapse(this)">
-                                <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="far fa-id-card text-[#1E3A8A]"></i> Seus Dados</h3>
-                                <i class="far fa-chevron-down transition-transform"></i>
+                                <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-id-card text-[#1E3A8A]"></i> Seus Dados</h3>
+                                <i class="fas fa-chevron-down transition-transform"></i>
                             </div>
                             <div class="collapsible-content mt-4">
                                 <div class="grid grid-cols-2 gap-4">
@@ -754,22 +741,22 @@
                         <!-- DADOS DO CLIENTE -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <div class="collapsible-header flex justify-between items-center" onclick="toggleCollapse(this)">
-                                <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="far fa-user-tie text-[#1E3A8A]"></i> Dados do Cliente</h3>
-                                <i class="far fa-chevron-down transition-transform"></i>
+                                <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-user-tie text-[#1E3A8A]"></i> Dados do Cliente</h3>
+                                <i class="fas fa-chevron-down transition-transform"></i>
                             </div>
                             <div class="collapsible-content mt-4">
                                 <div class="flex justify-between items-center mb-4">
                                     <div class="flex gap-2">
                                         <div class="relative w-64">
                                             <input type="text" id="client-search-input" placeholder="Buscar cliente..." class="w-full border p-2 rounded text-sm pr-8" onkeyup="searchClients(event)" autocomplete="off">
-                                            <i class="far fa-search absolute right-3 top-3 text-slate-400"></i>
+                                            <i class="fas fa-search absolute right-3 top-3 text-slate-400"></i>
                                             <div id="client-suggestions" class="autocomplete-suggestions hidden"></div>
                                         </div>
                                         <button onclick="openClientModal(true)" class="text-[#1E3A8A] text-sm font-bold border border-[#1E3A8A]/20 px-3 py-1 rounded hover:bg-blue-50">
-                                            <i class="far fa-plus mr-1"></i> Novo Cliente
+                                            <i class="fas fa-plus mr-1"></i> Novo Cliente
                                         </button>
                                         <button onclick="clearSelectedClient()" class="text-red-600 text-sm font-bold border border-red-200 px-3 py-1 rounded hover:bg-red-50" title="Remover cliente">
-                                            <i class="far fa-times"></i>
+                                            <i class="fas fa-times"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -798,31 +785,31 @@
                         <!-- ESCOPO DO SERVIÇO -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <div class="collapsible-header flex justify-between items-center" onclick="toggleCollapse(this)">
-                                <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="far fa-list-ol text-[#1E3A8A]"></i> Escopo do Serviço</h3>
-                                <i class="far fa-chevron-down transition-transform"></i>
+                                <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-list-ol text-[#1E3A8A]"></i> Escopo do Serviço</h3>
+                                <i class="fas fa-chevron-down transition-transform"></i>
                             </div>
                             <div class="collapsible-content mt-4">
                                 <div class="flex justify-between items-center mb-4">
                                     <div class="flex gap-2">
                                         <button id="btn-add-item" onclick="addItem()" class="text-[#1E3A8A] text-sm font-bold border border-[#1E3A8A]/20 px-3 py-1 rounded hover:bg-blue-50">+ Adicionar Item</button>
                                         <button onclick="openCatalogSelector()" class="text-[#10B981] text-sm font-bold border border-[#10B981]/20 px-3 py-1 rounded hover:bg-green-50">
-                                            <i class="far fa-import mr-1"></i> Importar do catálogo
+                                            <i class="fas fa-file-import mr-1"></i> Importar do catálogo
                                         </button>
                                     </div>
                                 </div>
                                 <div id="ed-items" class="space-y-3"></div>
                                 <div class="mt-6 pt-4 border-t border-dashed">
                                     <label class="text-xs font-bold text-slate-500 mb-1 block flex items-center gap-1">
-                                        <i class="far fa-truck text-[#1E3A8A]"></i> Prazo de entrega
+                                        <i class="fas fa-truck text-[#1E3A8A]"></i> Prazo de entrega
                                     </label>
                                     <input id="t-deadline" onchange="upVal('t-deadline',this.value)" class="w-full border p-2 rounded text-sm" placeholder="Ex: 30 dias úteis após aprovação">
                                 </div>
                                 <div class="mt-6 pt-4 border-t border-dashed">
-                                    <h4 class="font-bold text-slate-700 mb-3 flex items-center gap-2"><i class="far fa-paperclip text-[#1E3A8A]"></i> Anexos e Documentos</h4>
+                                    <h4 class="font-bold text-slate-700 mb-3 flex items-center gap-2"><i class="fas fa-paperclip text-[#1E3A8A]"></i> Anexos e Documentos</h4>
                                     <div id="ed-attachments-list" class="mb-3 space-y-3"></div>
                                     <div id="upload-area">
                                         <label for="file-upload" id="upload-label" class="cursor-pointer block w-full text-center border-2 border-dashed border-slate-300 p-4 rounded hover:bg-slate-50 text-xs text-slate-500 font-bold uppercase">
-                                            <i class="far fa-cloud-upload-alt mr-2"></i> Adicionar PDF/IMG
+                                            <i class="fas fa-cloud-upload-alt mr-2"></i> Adicionar PDF/IMG
                                         </label>
                                         <input id="file-upload" type="file" class="hidden" accept=".pdf,.png,.jpg,.jpeg" onchange="handleUpload(event)">
                                     </div>
@@ -839,14 +826,14 @@
                         </div>
 
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="far fa-coins text-[#1E3A8A]"></i> Pagamento</h3>
+                            <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-coins text-[#1E3A8A]"></i> Pagamento</h3>
                             <select id="pay-mode" class="w-full border p-2 rounded mb-2 text-sm">
                                 <option value="entry_installments">Entrada + Parcelas</option>
                                 <option value="no_entry_installments">Parcelas sem entrada</option>
                                 <option value="single">À vista</option>
                             </select>
                             <button id="btn-calc-pay" onclick="generatePayment()" class="w-full bg-slate-100 text-slate-600 text-xs font-bold py-2 rounded mb-3 flex items-center justify-center gap-2 hover:bg-slate-200 transition">
-                                <i class="far fa-calculator"></i> Gerar Cronograma
+                                <i class="fas fa-calculator"></i> Gerar Cronograma
                             </button>
                             <textarea id="t-obs" onchange="upVal('t-obs',this.value)" class="w-full border p-2 rounded text-sm h-20" placeholder="Condições de pagamento..."></textarea>
                             <div class="grid grid-cols-2 gap-2 mt-2">
@@ -855,12 +842,12 @@
                         </div>
 
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="far fa-code-branch text-[#1E3A8A]"></i> Versões</h3>
+                            <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-code-branch text-[#1E3A8A]"></i> Versões</h3>
                             <div id="ed-actions-area" class="space-y-3"></div>
                         </div>
 
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="far fa-history text-[#1E3A8A]"></i> Histórico</h3>
+                            <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-history text-[#1E3A8A]"></i> Histórico</h3>
                             <div id="ed-history" class="space-y-4 max-h-80 overflow-y-auto pr-1"></div>
                         </div>
                     </div>
@@ -869,7 +856,7 @@
         </main>
     </div>
 
-    <!-- MODAIS (mantidos os mesmos) -->
+    <!-- MODAIS (com ícones corrigidos) -->
     <div id="client-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl">
             <h3 id="client-modal-title" class="text-xl font-bold mb-4 text-slate-800">Novo Cliente</h3>
@@ -951,7 +938,6 @@
         </div>
     </div>
 
-    <!-- MODAL DE TEMPLATES -->
     <div id="template-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl p-6 rounded-xl max-h-[80vh] overflow-y-auto">
             <h3 class="text-xl font-bold mb-4 text-slate-800">Carregar Template</h3>
@@ -988,7 +974,7 @@
                     </div>
 
                     <div class="mt-8 flex justify-end">
-                        <button onclick="submitPublicCatalogRequest()" class="bg-[#10B981] text-white px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-[#0E9E6F] transition">
+                        <button onclick="submitPublicCatalogRequest()" class="bg-[#10B981] text-white px-6 py-3 rounded-lg font-bold shadow-sm hover:bg-[#0E9E6F] transition">
                             Solicitar Orçamento
                         </button>
                     </div>
@@ -1015,7 +1001,7 @@
                     </div>
                 </div>
             </div>
-            <div class="p-12 flex-1 print:p-8">
+            <div class="p-12 flex-1 print:p-8 overflow-x-auto">
                 <div class="flex gap-12 mb-12 text-sm print:flex-row print:gap-12">
                     <div class="flex-1">
                         <h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Contratante</h3>
@@ -1028,9 +1014,9 @@
                     </div>
                 </div>
 
-                <div class="mb-12 print-break-inside">
+                <div class="mb-12 print-break-inside overflow-x-auto">
                     <h3 class="font-bold text-xs uppercase text-slate-400 mb-4 tracking-wider">Escopo do Serviço</h3>
-                    <table class="w-full">
+                    <table class="w-full min-w-[600px]">
                         <thead>
                             <tr class="text-left text-xs uppercase text-slate-400 border-b">
                                 <th class="pb-2 pl-4">Item</th>
@@ -1068,7 +1054,7 @@
             </div>
             <div class="bg-slate-50 p-4 text-center border-t no-print">
                 <button onclick="downloadPDF()" id="btn-download-pdf" class="text-xs font-bold text-slate-400 uppercase hover:text-slate-600">
-                    <i class="far fa-file-pdf"></i> Baixar Comprovante PDF
+                    <i class="fas fa-file-pdf"></i> Baixar Comprovante PDF
                 </button>
             </div>
         </div>
@@ -1076,7 +1062,7 @@
 
     <section id="view-success" class="hidden min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
         <div class="max-w-md w-full">
-            <i id="success-icon" class="far fa-check-circle text-6xl text-[#10B981] mb-6"></i>
+            <i id="success-icon" class="fas fa-check-circle text-6xl text-[#10B981] mb-6"></i>
             <h2 id="success-title" class="text-3xl font-bold text-slate-900 mb-4">Tudo Certo!</h2>
             <p id="success-desc" class="text-slate-500 text-lg">Sua resposta foi registrada com sucesso.</p>
             <div id="success-actions" class="mt-8"></div>
@@ -1102,13 +1088,13 @@
 
     <div id="share-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
         <div class="bg-white p-6 rounded-xl w-full max-w-sm text-center">
-            <h3 class="text-xl font-bold mb-6 text-slate-800"><i class="far fa-share-alt mr-2 text-[#1E3A8A]"></i>Enviar Proposta</h3>
+            <h3 class="text-xl font-bold mb-6 text-slate-800"><i class="fas fa-share-alt mr-2 text-[#1E3A8A]"></i>Enviar Proposta</h3>
             <div class="space-y-3">
                 <button id="btn-share-wa" class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-3 transition-transform hover:scale-[1.02] shadow-lg shadow-emerald-100">
                     <i class="fab fa-whatsapp text-2xl"></i> Enviar no WhatsApp
                 </button>
                 <button id="btn-share-copy" class="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl font-bold flex items-center justify-center gap-3 transition-colors">
-                    <i class="far fa-link text-lg"></i> Copiar Link
+                    <i class="fas fa-link text-lg"></i> Copiar Link
                 </button>
             </div>
             <button onclick="document.getElementById('share-modal').classList.add('hidden')" class="mt-6 text-sm text-slate-400 hover:text-slate-600 underline">Cancelar</button>
@@ -1116,7 +1102,6 @@
     </div>
 
     <script>
-        // ----- SUPABASE -----
         const SUPABASE_URL = 'https://outasfgohiiyndsjciau.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91dGFzZmdvaGlpeW5kc2pjaWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4MTk4ODIsImV4cCI6MjA4NTM5NTg4Mn0.4yvGfYbQYf806FJcs34yPGkuU_kVTYHW8mBtbU3JD80';
         const { createClient } = supabase;
@@ -1137,8 +1122,8 @@
         let chartInstance = null;
         let chartPeriod = 30;
         let sortableInstance = null;
+        let salesChart = null;
 
-        // ----- TOAST -----
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -1148,16 +1133,15 @@
             if (type === 'error') icon = 'times-circle';
             if (type === 'warning') icon = 'exclamation-triangle';
             toast.innerHTML = `
-                <i class="far fa-${icon} toast-icon"></i>
+                <i class="fas fa-${icon} toast-icon"></i>
                 <span class="toast-message">${message}</span>
-                <i class="far fa-times toast-close" onclick="this.parentElement.remove()"></i>
+                <i class="fas fa-times toast-close" onclick="this.parentElement.remove()"></i>
             `;
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 5000);
         }
         window.alert = function(msg) { showToast(msg, 'warning'); };
 
-        // ----- FUNÇÕES AUXILIARES -----
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
         function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
@@ -1191,7 +1175,6 @@
             updateTotal();
         }
 
-        // ----- COLLAPSIBLE -----
         function toggleCollapse(header) {
             const content = header.nextElementSibling;
             const icon = header.querySelector('i');
@@ -1199,7 +1182,6 @@
             icon.classList.toggle('rotate-180');
         }
 
-        // ----- NORMALIZAÇÃO -----
         function normalizeData(dbData) {
             const schema = { 
                 client: { name: '', doc: '', email: '', phone: '', address: '' }, 
@@ -1210,7 +1192,7 @@
                 history: [],
                 attachments: [],
                 signature: null,
-                viewedAt: null // novo campo para notificação
+                viewedAt: null
             };
             if (!dbData) return JSON.parse(JSON.stringify(schema));
             let rawItems = Array.isArray(dbData.items) ? dbData.items : (dbData.scope || []);
@@ -1271,7 +1253,6 @@
             return logs.length ? logs.join('; ') : null;
         }
 
-        // ----- TEMPLATES -----
         async function loadTemplates() {
             if (!state.user) return;
             const { data, error } = await db
@@ -1328,7 +1309,6 @@
         async function loadTemplate(id) {
             const template = state.templatesCache.find(t => t.id === id);
             if (!template) return;
-            // Criar novo projeto baseado no template
             const projectName = prompt("Nome do novo orçamento:", template.name);
             if (!projectName) return;
             const { data: p, error } = await db.from('projects').insert({ 
@@ -1354,19 +1334,13 @@
             showToast('Template carregado!', 'success');
         }
 
-        // ----- NOTIFICAÇÕES -----
         async function registerView(versionId) {
-            // Chamado quando o cliente visualiza a proposta
             if (!state.data.viewedAt) {
                 state.data.viewedAt = new Date().toISOString();
                 await db.from('versions').update({ items: state.data }).eq('id', versionId);
-                // Enviar notificação para o prestador (simulado via toast)
                 showToast("Cliente visualizou o orçamento!", 'info');
             }
         }
-
-        // ----- RELATÓRIOS -----
-        let salesChart = null;
 
         async function loadSalesReport() {
             const period = document.getElementById('report-period').value;
@@ -1374,24 +1348,46 @@
             const now = new Date();
             const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
 
-            const { data: versions, error } = await db
-                .from('versions')
-                .select('created_at, total_value, status')
-                .eq('user_id', state.user.id)
-                .gte('created_at', startDate.toISOString());
-            if (error) return;
+            // Buscar projetos do usuário com suas versões
+            const { data: projects, error } = await db
+                .from('projects')
+                .select('*, versions(created_at, total_value, status, items)')
+                .eq('user_id', state.user.id);
+            if (error) {
+                showToast("Erro ao carregar relatórios", 'error');
+                return;
+            }
 
-            // Agrupar por dia
             const daily = {};
             for (let i = 0; i < days; i++) {
                 const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
                 const key = d.toLocaleDateString('pt-BR').slice(0,5);
                 daily[key] = 0;
             }
-            versions.forEach(v => {
-                if (v.status === 'approved') {
-                    const key = new Date(v.created_at).toLocaleDateString('pt-BR').slice(0,5);
-                    if (daily[key] !== undefined) daily[key] += v.total_value || 0;
+
+            const clientTotal = {};
+            const itemTotal = {};
+
+            projects.forEach(p => {
+                const v = p.versions?.[0]; // versão mais recente
+                if (v && v.status === 'approved') {
+                    const date = new Date(v.created_at);
+                    if (date >= startDate) {
+                        const key = date.toLocaleDateString('pt-BR').slice(0,5);
+                        if (daily[key] !== undefined) daily[key] += v.total_value || 0;
+                    }
+                    // Acumular por cliente
+                    const clientName = p.client_name || 'Sem nome';
+                    clientTotal[clientName] = (clientTotal[clientName] || 0) + (v.total_value || 0);
+                    // Acumular por item
+                    if (v.items?.items) {
+                        v.items.items.forEach(i => {
+                            if (!i.optional || i.publicSelected) {
+                                const itemName = i.name;
+                                itemTotal[itemName] = (itemTotal[itemName] || 0) + (i.qty * i.price);
+                            }
+                        });
+                    }
                 }
             });
 
@@ -1415,36 +1411,14 @@
                 options: { responsive: true }
             });
 
-            // Top clientes
-            const clientCount = {};
-            state.projectsCache.forEach(p => {
-                const v = p.versions?.[0];
-                if (v && v.status === 'approved') {
-                    const client = p.client_name || 'Sem nome';
-                    clientCount[client] = (clientCount[client] || 0) + (v.total_value || 0);
-                }
-            });
-            const sortedClients = Object.entries(clientCount).sort((a,b) => b[1] - a[1]).slice(0,5);
+            const sortedClients = Object.entries(clientTotal).sort((a,b) => b[1] - a[1]).slice(0,5);
             let clientHtml = '';
             sortedClients.forEach(([name, total]) => {
                 clientHtml += `<div class="flex justify-between"><span>${name}</span><span class="font-bold">${formatPrice(total)}</span></div>`;
             });
             document.getElementById('top-clients-list').innerHTML = clientHtml || 'Nenhum dado.';
 
-            // Top itens
-            const itemCount = {};
-            state.projectsCache.forEach(p => {
-                const v = p.versions?.[0];
-                if (v && v.status === 'approved' && v.items?.items) {
-                    v.items.items.forEach(i => {
-                        if (!i.optional || i.publicSelected) {
-                            const name = i.name;
-                            itemCount[name] = (itemCount[name] || 0) + (i.qty * i.price);
-                        }
-                    });
-                }
-            });
-            const sortedItems = Object.entries(itemCount).sort((a,b) => b[1] - a[1]).slice(0,10);
+            const sortedItems = Object.entries(itemTotal).sort((a,b) => b[1] - a[1]).slice(0,10);
             let itemHtml = '';
             sortedItems.forEach(([name, total]) => {
                 itemHtml += `<div class="flex justify-between"><span>${name}</span><span class="font-bold">${formatPrice(total)}</span></div>`;
@@ -1452,7 +1426,6 @@
             document.getElementById('top-items-list').innerHTML = itemHtml || 'Nenhum dado.';
         }
 
-        // ----- CLIENTES (CRUD) -----
         async function loadClients() {
             if (!state.user) return;
             const { data, error } = await db
@@ -1488,8 +1461,8 @@
                         <td>${c.email || '-'}</td>
                         <td>${c.address || '-'}</td>
                         <td class="text-right">
-                            <button onclick="editClient('${c.id}')" class="text-[#1E3A8A] hover:text-[#3B5BA5] mr-2"><i class="far fa-edit"></i></button>
-                            <button onclick="deleteClient('${c.id}')" class="text-red-600 hover:text-red-800"><i class="far fa-trash"></i></button>
+                            <button onclick="editClient('${c.id}')" class="text-[#1E3A8A] hover:text-[#3B5BA5] mr-2"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteClient('${c.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
                         </td>
                     </tr>`;
                 });
@@ -1635,7 +1608,6 @@
             document.getElementById('client-fields-container').classList.add('hidden');
         }
 
-        // ----- CATÁLOGO (CRUD) -----
         async function loadCatalog() {
             if (!state.user) return;
             const { data, error } = await db
@@ -1683,7 +1655,7 @@
                     html += `
                         <div class="bg-white border border-slate-200 rounded-xl p-4 hover:border-[#1E3A8A] transition shadow-sm">
                             <div class="flex items-start gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-[#1E3A8A]/10 flex items-center justify-center text-[#1E3A8A]"><i class="far fa-cube"></i></div>
+                                <div class="w-10 h-10 rounded-lg bg-[#1E3A8A]/10 flex items-center justify-center text-[#1E3A8A]"><i class="fas fa-cube"></i></div>
                                 <div class="flex-1">
                                     <h4 class="font-bold text-slate-800">${item.name}</h4>
                                     ${item.description ? `<p class="text-xs text-slate-500 mt-1">${item.description}</p>` : ''}
@@ -1692,8 +1664,8 @@
                                         <span class="font-bold text-[#10B981]">${item.price ? formatPrice(item.price) : 'Sob consulta'}</span>
                                     </div>
                                     <div class="flex justify-end gap-2 mt-3">
-                                        <button onclick="editCatalogItem('${item.id}')" class="text-xs text-[#1E3A8A] hover:underline"><i class="far fa-edit"></i> Editar</button>
-                                        <button onclick="deleteCatalogItem('${item.id}')" class="text-xs text-red-600 hover:underline"><i class="far fa-trash"></i> Excluir</button>
+                                        <button onclick="editCatalogItem('${item.id}')" class="text-xs text-[#1E3A8A] hover:underline"><i class="fas fa-edit"></i> Editar</button>
+                                        <button onclick="deleteCatalogItem('${item.id}')" class="text-xs text-red-600 hover:underline"><i class="fas fa-trash"></i> Excluir</button>
                                     </div>
                                 </div>
                             </div>
@@ -1777,7 +1749,6 @@
             showToast('Serviço excluído.', 'success');
         }
 
-        // ----- SELETOR CATÁLOGO -----
         let selectedCatalogIds = new Set();
 
         function openCatalogSelector() {
@@ -1856,7 +1827,6 @@
             showToast('Itens adicionados!', 'success');
         }
 
-        // ----- COMPARTILHAR CATÁLOGO -----
         function openShareCatalogModal() {
             const link = `${window.location.origin}${window.location.pathname}?view=public-catalog&user=${state.user.id}`;
             document.getElementById('catalog-share-link').innerText = link;
@@ -1884,7 +1854,6 @@
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        // ----- PÁGINA PÚBLICA DO CATÁLOGO -----
         let publicClientData = null;
 
         async function loadPublicCatalog(userId) {
@@ -1939,7 +1908,7 @@
             } else {
                 catalog.forEach(item => {
                     html += `
-                        <div class="public-catalog-card border border-slate-200 rounded-xl p-4 hover:border-[#10B981] transition">
+                        <div class="public-catalog-card border border-slate-200 rounded-xl p-4 hover:border-[#10B981] transition shadow-sm">
                             <label class="flex items-start gap-3 cursor-pointer">
                                 <input type="checkbox" class="catalog-item-checkbox mt-1 accent-[#10B981]" data-id="${item.id}" data-name="${item.name}" data-description="${item.description || ''}" data-price="${item.price || 0}">
                                 <div class="flex-1">
@@ -2059,7 +2028,6 @@
             window.location.href = '?view=success';
         }
 
-        // ----- DASHBOARD -----
         function getRecentActivities(limit = 10) {
             let activities = [];
             state.projectsCache.forEach(project => {
@@ -2079,7 +2047,6 @@
                         }
                     });
                 }
-                // Adicionar visualizações
                 if (version?.items?.viewedAt) {
                     activities.push({
                         date: version.items.viewedAt,
@@ -2178,7 +2145,6 @@
             showToast('Em breve: histórico completo.', 'info');
         }
 
-        // ----- INICIALIZAÇÃO -----
         async function init() {
             try {
                 db = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -2247,7 +2213,7 @@
             const email = safeVal('email');
             const btn = document.getElementById('btn-login');
             if(!email) return showToast("Digite o e-mail", 'error');
-            btn.innerHTML = '<i class="far fa-spinner fa-spin"></i> Enviando...'; 
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...'; 
             btn.disabled = true;
             const { error } = await db.auth.signInWithOtp({ 
                 email, 
@@ -2492,7 +2458,7 @@
                                     <span class="font-bold text-lg text-slate-900">${formatPrice(val)}</span>
                                 </div>
                                 <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition flex gap-1">
-                                    <button onclick="deleteProject('${p.id}', event)" class="p-2 text-slate-400 hover:text-red-500" title="Excluir"><i class="far fa-trash-alt"></i></button>
+                                    <button onclick="deleteProject('${p.id}', event)" class="p-2 text-slate-400 hover:text-red-500" title="Excluir"><i class="fas fa-trash-alt"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -2548,7 +2514,6 @@
             showToast('Orçamento criado!', 'success');
         }
 
-        // ========== EDITOR ==========
         async function loadEditor(id) {
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
             state.project = proj;
@@ -2661,15 +2626,15 @@
             const headerActions = document.getElementById('ed-actions-header');
             if (headerActions) {
                 if (isLocked) {
-                    headerActions.innerHTML = `<button onclick="createAddon()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded text-sm font-bold shadow"><i class="far fa-copy mr-2"></i> Criar Revisão (V${state.version.version_number + 1})</button>`;
+                    headerActions.innerHTML = `<button onclick="createAddon()" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded text-sm font-bold shadow"><i class="fas fa-copy mr-2"></i> Criar Revisão (V${state.version.version_number + 1})</button>`;
                 } else {
-                    headerActions.innerHTML = `<button onclick="save()" class="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold hover:bg-slate-700"><i class="far fa-save mr-2"></i> Salvar</button>`;
+                    headerActions.innerHTML = `<button onclick="save()" class="bg-slate-800 text-white px-4 py-2 rounded text-sm font-bold hover:bg-slate-700"><i class="fas fa-save mr-2"></i> Salvar</button>`;
                 }
             }
             const area = document.getElementById('ed-actions-area');
             if (area) {
                 if (isLocked) {
-                    area.innerHTML = `<button onclick="createAddon()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg shadow"><i class="far fa-copy mr-2"></i> Criar Revisão (V${state.version.version_number + 1})</button>`;
+                    area.innerHTML = `<button onclick="createAddon()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg shadow"><i class="fas fa-copy mr-2"></i> Criar Revisão (V${state.version.version_number + 1})</button>`;
                 } else {
                     area.innerHTML = `<button onclick="changeStatus('canceled')" class="w-full py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-sm font-bold">Cancelar Orçamento</button>`;
                 }
@@ -2698,8 +2663,8 @@
                         diffHtml = `<div class="diff-box"><span class="diff-tag">NOVO</span> Este item foi adicionado.</div>`;
                     } else {
                         let changes = [];
-                        if (oldItem.price !== i.price) changes.push(`Preço: <span class="old-val">${formatPrice(oldItem.price)}</span> <i class="far fa-arrow-right text-xs"></i> <span class="new-val">${formatPrice(i.price)}</span>`);
-                        if (oldItem.qty !== i.qty) changes.push(`Qtd: <span class="old-val">${oldItem.qty}</span> <i class="far fa-arrow-right text-xs"></i> <span class="new-val">${i.qty}</span>`);
+                        if (oldItem.price !== i.price) changes.push(`Preço: <span class="old-val">${formatPrice(oldItem.price)}</span> <i class="fas fa-arrow-right text-xs"></i> <span class="new-val">${formatPrice(i.price)}</span>`);
+                        if (oldItem.qty !== i.qty) changes.push(`Qtd: <span class="old-val">${oldItem.qty}</span> <i class="fas fa-arrow-right text-xs"></i> <span class="new-val">${i.qty}</span>`);
                         if (changes.length > 0) {
                             cardClass += ' item-modified';
                             diffHtml = `<div class="diff-box"><span class="diff-tag">ALTERADO</span> <span>${changes.join(' &bull; ')}</span></div>`;
@@ -2708,7 +2673,7 @@
                 }
                 html += `
                 <div class="item-box ${cardClass} group" data-id="${i.id}">
-                    ${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i class="far fa-trash"></i></button>` : ''}
+                    ${!isLocked ? `<button onclick="rmItem(${x})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100"><i class="fas fa-trash"></i></button>` : ''}
                     <div class="grid grid-cols-12 gap-4 mb-2">
                         <div class="col-span-8">
                             <label class="text-[10px] font-bold text-gray-400 uppercase flex items-center">
@@ -2898,12 +2863,12 @@
                     attHtml += `<div class="flex flex-col bg-white border p-3 rounded mb-2 text-sm">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2 overflow-hidden">
-                                ${preview || `<i class="far ${icon}"></i>`}
+                                ${preview || `<i class="fas ${icon}"></i>`}
                                 <span class="truncate font-medium">${att.name}</span>
                             </div>
                             <div class="flex gap-2">
-                                <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700"><i class="far fa-eye"></i></a>
-                                ${!isLocked ? `<button onclick="deleteAttachment(${idx})" class="text-red-400 hover:text-red-600"><i class="far fa-trash"></i></button>` : ''}
+                                <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700"><i class="fas fa-eye"></i></a>
+                                ${!isLocked ? `<button onclick="deleteAttachment(${idx})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>` : ''}
                             </div>
                         </div>
                         <div class="mt-2">
@@ -3022,7 +2987,7 @@
                     histHtml += `<div class="timeline-item">
                         <div class="text-xs text-slate-400">${date} • ${h.user === 'provider' ? 'Você' : 'Cliente'}</div>
                         <div class="font-bold text-sm text-slate-700 flex items-center gap-2 mt-1">
-                            <i class="far fa-${icon}"></i> ${actionLabel}
+                            <i class="fas fa-${icon}"></i> ${actionLabel}
                         </div>
                         ${h.detail ? `<div class="timeline-desc ${h.action.includes('request') ? '' : 'system'}">${h.detail}</div>` : ''}
                     </div>`;
@@ -3033,7 +2998,6 @@
             setHTML('ed-history', histHtml);
         }
 
-        // ========== PÁGINA PÚBLICA (PROPOSTA) ==========
         async function loadPublicProposal(id) {
             try {
                 safeShow('public-loading');
@@ -3042,7 +3006,6 @@
                 state.version = v; 
                 state.data = normalizeData(v.items);
                 const d = state.data;
-                // Registrar visualização
                 await registerView(id);
                 if(v.status === 'approved') {
                     document.getElementById('stamp-approved').style.display = 'block';
@@ -3073,9 +3036,9 @@
                         let icon = att.type === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500';
                         attHtml += `<div class="att-card border rounded-lg p-3">
                             <div class="flex items-center gap-3">
-                                <i class="far ${icon} text-lg"></i>
+                                <i class="fas ${icon} text-lg"></i>
                                 <span class="text-sm font-medium text-slate-700 truncate">${att.name}</span>
-                                <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700 ml-auto"><i class="far fa-eye"></i></a>
+                                <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700 ml-auto"><i class="fas fa-eye"></i></a>
                             </div>
                             ${att.description ? `<p class="text-xs text-slate-500 mt-1 pl-2 border-l-2 border-blue-200">${att.description}</p>` : ''}
                         </div>`;
@@ -3126,7 +3089,7 @@
                     <td class="py-4 pl-4">
                         <div class="flex items-start gap-3">
                             ${i.optional && !isFrozen ? `<input type="checkbox" onchange="togglePublicOpt(${idx})" ${i.publicSelected ? 'checked' : ''} class="mt-1 w-5 h-5 cursor-pointer accent-[#10B981]">` : ''}
-                            ${i.optional && isFrozen ? (i.publicSelected ? '<i class="far fa-check-square text-[#10B981] mt-1"></i>' : '<i class="far fa-square text-slate-400 mt-1"></i>') : ''}
+                            ${i.optional && isFrozen ? (i.publicSelected ? '<i class="fas fa-check-square text-[#10B981] mt-1"></i>' : '<i class="fas fa-square text-slate-400 mt-1"></i>') : ''}
                             <div>
                                 <div class="font-bold text-slate-800 ${i.optional ? 'text-slate-600' : ''}">
                                     ${i.name} ${i.optional ? '<span class="text-[10px] bg-slate-200 text-slate-600 px-1 rounded uppercase ml-2">Opcional</span>' : ''}
@@ -3330,16 +3293,16 @@
             const actions = document.getElementById('success-actions');
             actions.innerHTML = ''; 
             if(type === 'approved' || type === 'approve') {
-                icon.className = "far fa-check-circle text-6xl text-[#10B981] mb-4";
+                icon.className = "fas fa-check-circle text-6xl text-[#10B981] mb-4";
                 title.innerText = "Orçamento Aprovado!";
                 desc.innerText = "Obrigado pela confiança. O comprovante foi gerado.";
-                actions.innerHTML = `<button onclick="window.location.href='?view=public&id=${state.version.id}'; setTimeout(downloadPDF, 1000)" class="px-6 py-3 bg-slate-800 text-white rounded-lg font-bold shadow hover:bg-slate-700"><i class="far fa-file-pdf mr-2"></i> Baixar Comprovante PDF</button>`;
+                actions.innerHTML = `<button onclick="window.location.href='?view=public&id=${state.version.id}'; setTimeout(downloadPDF, 1000)" class="px-6 py-3 bg-slate-800 text-white rounded-lg font-bold shadow hover:bg-slate-700"><i class="fas fa-file-pdf mr-2"></i> Baixar Comprovante PDF</button>`;
             } else if (type === 'change_request' || type === 'negotiating') {
-                icon.className = "far fa-clock text-6xl text-[#F59E0B] mb-4";
+                icon.className = "fas fa-clock text-6xl text-[#F59E0B] mb-4";
                 title.innerText = "Solicitação Enviada";
                 desc.innerText = "Aguarde o retorno do prestador.";
             } else {
-                icon.className = "far fa-times-circle text-6xl text-slate-400 mb-4";
+                icon.className = "fas fa-times-circle text-6xl text-slate-400 mb-4";
                 title.innerText = "Orçamento Recusado";
                 desc.innerText = "O orçamento foi marcado como recusado.";
             }
