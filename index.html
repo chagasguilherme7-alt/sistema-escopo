@@ -10,6 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
@@ -127,7 +128,8 @@
             .item-box .grid.grid-cols-12 > .col-span-2 { grid-column: span 1; }
             input, select, textarea, button { font-size: 16px; min-height: 48px; }
             .fixed.inset-0 .bg-white { max-width: 90%; margin: 0 auto; }
-            .kpi-card .text-2xl { font-size: 1.2rem; } /* Ajuste para mobile */
+            .kpi-card .text-2xl { font-size: 1.2rem; }
+            .reports-grid { grid-template-columns: 1fr; }
         }
 
         .custom-table { width: 100%; text-align: left; border-collapse: separate; border-spacing: 0; }
@@ -140,7 +142,7 @@
 
         .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
 
-        .status-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.03em; white-space: nowrap; }
+        .status-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.03em; white-space: nowrap; box-shadow: none; }
         .st-draft { background: #EFF6FF; color: var(--primary); } 
         .st-sent { background: #DBEAFE; color: #1E3A8A; } 
         .st-negotiating { background: #FEF3C7; color: #B45309; } 
@@ -363,6 +365,55 @@
             .kpi-card .text-2xl { font-size: 1.1rem; }
             .kpi-card .text-xs { font-size: 0.65rem; }
             #public-content .overflow-x-auto { overflow-x: auto; }
+            .reports-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Estilos para relatórios */
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--gray-200);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+        .stat-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        .progress-bar-small {
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 999px;
+            overflow: hidden;
+            width: 100%;
+        }
+        .progress-fill-small {
+            height: 100%;
+            background: var(--success);
+            border-radius: 999px;
+        }
+        .client-item, .item-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        .client-item:last-child, .item-item:last-child {
+            border-bottom: none;
+        }
+        .client-rank {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
         }
     </style>
 </head>
@@ -388,7 +439,7 @@
         <div class="left-area">
             <div class="glow-orb orb-1"></div><div class="glow-orb orb-2"></div>
             <div class="relative z-10">
-                <div class="mb-6 anim-entry">
+                <div class="mb-6">
                     <img src="logo.png" alt="Aprova Ai" class="h-16">
                 </div>
                 <h1 class="text-5xl font-extrabold leading-tight mb-4 font-heading">Orçamentos que <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-[#1E3A8A] to-[#3B5BA5]">protegem seu negócio</span></h1>
@@ -410,17 +461,17 @@
                 <div class="mt-12">
                     <h3 class="text-2xl font-bold text-slate-800 mb-6">Como funciona?</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div class="step-card bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-[#1E3A8A]/20 hover:border-[#1E3A8A]/40 transition">
+                        <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-[#1E3A8A]/20 hover:border-[#1E3A8A]/40 transition">
                             <div class="w-12 h-12 bg-[#1E3A8A] text-white rounded-2xl flex items-center justify-center font-bold text-xl mb-3">1</div>
                             <h4 class="font-bold text-slate-800 text-lg">Crie</h4>
                             <p class="text-sm text-slate-500">Adicione itens, opcionais e anexos. Seus dados são salvos automaticamente.</p>
                         </div>
-                        <div class="step-card bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-[#1E3A8A]/20 hover:border-[#1E3A8A]/40 transition">
+                        <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-[#1E3A8A]/20 hover:border-[#1E3A8A]/40 transition">
                             <div class="w-12 h-12 bg-[#1E3A8A] text-white rounded-2xl flex items-center justify-center font-bold text-xl mb-3">2</div>
                             <h4 class="font-bold text-slate-800 text-lg">Envie</h4>
                             <p class="text-sm text-slate-500">Compartilhe o link por WhatsApp ou e-mail. O cliente vê tudo.</p>
                         </div>
-                        <div class="step-card bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-[#1E3A8A]/20 hover:border-[#1E3A8A]/40 transition">
+                        <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-[#1E3A8A]/20 hover:border-[#1E3A8A]/40 transition">
                             <div class="w-12 h-12 bg-[#1E3A8A] text-white rounded-2xl flex items-center justify-center font-bold text-xl mb-3">3</div>
                             <h4 class="font-bold text-slate-800 text-lg">Aprovação</h4>
                             <p class="text-sm text-slate-500">Cliente aprova com assinatura digital. Você recebe notificação e PDF.</p>
@@ -428,15 +479,15 @@
                     </div>
                 </div>
                 <div class="mt-12 flex flex-wrap items-center gap-4">
-                    <div class="stat-item bg-white/70 backdrop-blur-sm rounded-full px-4 py-2 border border-[#1E3A8A]/20">
+                    <div class="bg-white/70 backdrop-blur-sm rounded-full px-4 py-2 border border-[#1E3A8A]/20">
                         <i class="fas fa-users text-[#10B981]"></i>
                         <span class="text-slate-600 font-medium">+500 usuários</span>
                     </div>
-                    <div class="stat-item bg-white/70 backdrop-blur-sm rounded-full px-4 py-2 border border-[#1E3A8A]/20">
+                    <div class="bg-white/70 backdrop-blur-sm rounded-full px-4 py-2 border border-[#1E3A8A]/20">
                         <i class="fas fa-file-invoice text-[#10B981]"></i>
                         <span class="text-slate-600 font-medium">+2.000 orçamentos</span>
                     </div>
-                    <div class="stat-item bg-white/70 backdrop-blur-sm rounded-full px-4 py-2 border border-[#1E3A8A]/20">
+                    <div class="bg-white/70 backdrop-blur-sm rounded-full px-4 py-2 border border-[#1E3A8A]/20">
                         <i class="fas fa-star text-[#10B981]"></i>
                         <span class="text-slate-600 font-medium">98% satisfação</span>
                     </div>
@@ -450,7 +501,7 @@
         </div>
         <div class="right-area">
             <div class="login-card">
-                <div class="avatar-circle flex justify-center mb-4 mx-auto w-16 h-16 bg-[#1E3A8A] text-white text-2xl">
+                <div class="w-16 h-16 bg-[#1E3A8A] text-white text-2xl rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-envelope"></i>
                 </div>
                 <h2 class="text-2xl font-bold text-slate-800 mb-2">Acesse sua conta</h2>
@@ -667,33 +718,69 @@
                 <div id="catalog-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
 
-            <!-- RELATÓRIOS -->
+            <!-- RELATÓRIOS (REFATORADO) -->
             <section id="view-reports" class="hidden space-y-6">
-                <h2 class="text-2xl font-bold text-slate-800">Relatórios</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <h3 class="font-bold text-slate-700 mb-4">Vendas por período</h3>
-                        <div class="flex gap-2 mb-4">
-                            <select id="report-period" class="p-2 border rounded text-sm">
-                                <option value="7">Últimos 7 dias</option>
-                                <option value="30" selected>Últimos 30 dias</option>
-                                <option value="90">Últimos 90 dias</option>
-                            </select>
-                            <button onclick="loadSalesReport()" class="bg-[#1E3A8A] text-white px-4 py-2 rounded text-sm font-bold">Carregar</button>
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-slate-800">Relatórios</h2>
+                    <button onclick="exportToExcel()" class="bg-[#1E3A8A] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#3B5BA5] transition">
+                        <i class="fas fa-file-excel mr-2"></i> Exportar Excel
+                    </button>
+                </div>
+
+                <!-- Cards de resumo -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="stat-card">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-full bg-[#10B981]/10 flex items-center justify-center text-[#10B981]">
+                                <i class="fas fa-chart-line text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 uppercase">Total aprovado</p>
+                                <p class="text-2xl font-bold text-slate-800" id="report-total-approved">R$ 0,00</p>
+                            </div>
                         </div>
-                        <canvas id="salesChart" style="height: 250px;"></canvas>
                     </div>
-                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <h3 class="font-bold text-slate-700 mb-4">Clientes que mais contratam</h3>
-                        <div id="top-clients-list" class="space-y-2 max-h-80 overflow-y-auto">
-                            Carregando...
+                    <div class="stat-card">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-full bg-[#1E3A8A]/10 flex items-center justify-center text-[#1E3A8A]">
+                                <i class="fas fa-ticket-alt text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 uppercase">Ticket médio</p>
+                                <p class="text-2xl font-bold text-slate-800" id="report-average-ticket">R$ 0,00</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-full bg-[#F59E0B]/10 flex items-center justify-center text-[#F59E0B]">
+                                <i class="fas fa-file-invoice text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 uppercase">Total de orçamentos</p>
+                                <p class="text-2xl font-bold text-slate-800" id="report-total-count">0</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                    <h3 class="font-bold text-slate-700 mb-4">Itens mais vendidos</h3>
-                    <div id="top-items-list" class="space-y-2 max-h-96 overflow-y-auto">
-                        Carregando...
+
+                <!-- Top clientes e Top itens -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 reports-grid">
+                    <div class="stat-card">
+                        <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-trophy text-[#F59E0B]"></i> Top Clientes
+                        </h3>
+                        <div id="top-clients-list" class="space-y-1 max-h-96 overflow-y-auto">
+                            Carregando...
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-crown text-[#F59E0B]"></i> Itens mais vendidos
+                        </h3>
+                        <div id="top-items-list" class="space-y-1 max-h-96 overflow-y-auto">
+                            Carregando...
+                        </div>
                     </div>
                 </div>
             </section>
@@ -856,7 +943,7 @@
         </main>
     </div>
 
-    <!-- MODAIS (com ícones corrigidos) -->
+    <!-- MODAIS -->
     <div id="client-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl">
             <h3 id="client-modal-title" class="text-xl font-bold mb-4 text-slate-800">Novo Cliente</h3>
@@ -1102,6 +1189,7 @@
     </div>
 
     <script>
+        // ==================== SUPABASE ====================
         const SUPABASE_URL = 'https://outasfgohiiyndsjciau.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91dGFzZmdvaGlpeW5kc2pjaWF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk4MTk4ODIsImV4cCI6MjA4NTM5NTg4Mn0.4yvGfYbQYf806FJcs34yPGkuU_kVTYHW8mBtbU3JD80';
         const { createClient } = supabase;
@@ -1114,7 +1202,8 @@
             projectsCache: [], 
             clientsCache: [],
             catalogCache: [],
-            templatesCache: [],
+            templatesCache: [], // templates do Supabase
+            localStorageTemplates: [], // templates do localStorage
             data: null, 
             previousData: null, 
             snapshot: [] 
@@ -1122,8 +1211,8 @@
         let chartInstance = null;
         let chartPeriod = 30;
         let sortableInstance = null;
-        let salesChart = null;
 
+        // ==================== TOAST ====================
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -1142,6 +1231,7 @@
         }
         window.alert = function(msg) { showToast(msg, 'warning'); };
 
+        // ==================== FUNÇÕES AUXILIARES ====================
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
         function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
@@ -1253,18 +1343,25 @@
             return logs.length ? logs.join('; ') : null;
         }
 
+        // ==================== TEMPLATES (com fallback localStorage) ====================
         async function loadTemplates() {
             if (!state.user) return;
+            // Tenta carregar do Supabase
             const { data, error } = await db
                 .from('templates')
                 .select('*')
                 .eq('user_id', state.user.id)
                 .order('name', { ascending: true });
             if (error) {
-                console.error("Erro ao carregar templates:", error);
-                return;
+                console.warn("Erro ao carregar templates do Supabase, usando localStorage:", error.message);
+                // Fallback: localStorage
+                const local = localStorage.getItem(`templates_${state.user.id}`);
+                state.localStorageTemplates = local ? JSON.parse(local) : [];
+                state.templatesCache = []; // não usar supabase
+            } else {
+                state.templatesCache = data || [];
+                state.localStorageTemplates = [];
             }
-            state.templatesCache = data || [];
         }
 
         async function saveAsTemplate() {
@@ -1272,17 +1369,36 @@
             const name = prompt("Nome do template:");
             if (!name) return;
             const templateData = {
+                id: 'local_' + Date.now(),
                 name,
                 user_id: state.user.id,
                 data: state.data,
-                created_at: new Date()
+                created_at: new Date().toISOString()
             };
-            const { error } = await db.from('templates').insert(templateData);
-            if (error) {
-                showToast("Erro ao salvar template: " + error.message, 'error');
+
+            // Tenta salvar no Supabase
+            if (state.templatesCache.length > 0 || !state.localStorageTemplates) {
+                const { error } = await db.from('templates').insert(templateData);
+                if (error) {
+                    // Fallback: localStorage
+                    showToast("Erro ao salvar no servidor, salvando localmente.", 'warning');
+                    const localKey = `templates_${state.user.id}`;
+                    const localList = JSON.parse(localStorage.getItem(localKey) || '[]');
+                    localList.push(templateData);
+                    localStorage.setItem(localKey, JSON.stringify(localList));
+                    state.localStorageTemplates = localList;
+                } else {
+                    showToast("Template salvo no servidor!", 'success');
+                    await loadTemplates();
+                }
             } else {
-                showToast("Template salvo!", 'success');
-                await loadTemplates();
+                // Já estava em modo localStorage
+                const localKey = `templates_${state.user.id}`;
+                const localList = JSON.parse(localStorage.getItem(localKey) || '[]');
+                localList.push(templateData);
+                localStorage.setItem(localKey, JSON.stringify(localList));
+                state.localStorageTemplates = localList;
+                showToast("Template salvo localmente!", 'success');
             }
         }
 
@@ -1290,12 +1406,13 @@
             const modal = document.getElementById('template-modal');
             modal.classList.remove('hidden');
             const listDiv = document.getElementById('templates-list');
-            if (state.templatesCache.length === 0) {
+            const templates = state.templatesCache.length > 0 ? state.templatesCache : state.localStorageTemplates;
+            if (templates.length === 0) {
                 listDiv.innerHTML = '<p class="text-center text-slate-500">Nenhum template salvo.</p>';
                 return;
             }
             let html = '';
-            state.templatesCache.forEach(t => {
+            templates.forEach(t => {
                 html += `
                     <div class="flex justify-between items-center border-b pb-2">
                         <span>${t.name}</span>
@@ -1307,7 +1424,8 @@
         }
 
         async function loadTemplate(id) {
-            const template = state.templatesCache.find(t => t.id === id);
+            const templates = state.templatesCache.length > 0 ? state.templatesCache : state.localStorageTemplates;
+            const template = templates.find(t => t.id === id);
             if (!template) return;
             const projectName = prompt("Nome do novo orçamento:", template.name);
             if (!projectName) return;
@@ -1334,98 +1452,136 @@
             showToast('Template carregado!', 'success');
         }
 
-        async function registerView(versionId) {
-            if (!state.data.viewedAt) {
-                state.data.viewedAt = new Date().toISOString();
-                await db.from('versions').update({ items: state.data }).eq('id', versionId);
-                showToast("Cliente visualizou o orçamento!", 'info');
-            }
-        }
+        // ==================== RELATÓRIOS ====================
+        async function loadReports() {
+            if (!state.user) return;
+            await loadProjects(); // recarrega projetos para ter dados atualizados
+            const approvedVersions = [];
+            let totalApproved = 0;
+            let countApproved = 0;
+            const clientMap = new Map(); // nome -> total
+            const itemMap = new Map(); // nome -> total
 
-        async function loadSalesReport() {
-            const period = document.getElementById('report-period').value;
-            const days = parseInt(period);
-            const now = new Date();
-            const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-
-            // Buscar projetos do usuário com suas versões
-            const { data: projects, error } = await db
-                .from('projects')
-                .select('*, versions(created_at, total_value, status, items)')
-                .eq('user_id', state.user.id);
-            if (error) {
-                showToast("Erro ao carregar relatórios", 'error');
-                return;
-            }
-
-            const daily = {};
-            for (let i = 0; i < days; i++) {
-                const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-                const key = d.toLocaleDateString('pt-BR').slice(0,5);
-                daily[key] = 0;
-            }
-
-            const clientTotal = {};
-            const itemTotal = {};
-
-            projects.forEach(p => {
-                const v = p.versions?.[0]; // versão mais recente
+            state.projectsCache.forEach(p => {
+                const v = p.versions?.[0];
                 if (v && v.status === 'approved') {
-                    const date = new Date(v.created_at);
-                    if (date >= startDate) {
-                        const key = date.toLocaleDateString('pt-BR').slice(0,5);
-                        if (daily[key] !== undefined) daily[key] += v.total_value || 0;
-                    }
-                    // Acumular por cliente
-                    const clientName = p.client_name || 'Sem nome';
-                    clientTotal[clientName] = (clientTotal[clientName] || 0) + (v.total_value || 0);
-                    // Acumular por item
+                    const val = v.total_value || 0;
+                    totalApproved += val;
+                    countApproved++;
+                    approvedVersions.push({
+                        projectName: p.name,
+                        clientName: p.client_name || 'Sem nome',
+                        date: v.approved_at || p.created_at,
+                        value: val,
+                        items: v.items?.items || []
+                    });
+
+                    // Cliente
+                    const client = p.client_name || 'Sem nome';
+                    clientMap.set(client, (clientMap.get(client) || 0) + val);
+
+                    // Itens
                     if (v.items?.items) {
                         v.items.items.forEach(i => {
                             if (!i.optional || i.publicSelected) {
                                 const itemName = i.name;
-                                itemTotal[itemName] = (itemTotal[itemName] || 0) + (i.qty * i.price);
+                                const itemTotal = (i.qty || 0) * (i.price || 0);
+                                itemMap.set(itemName, (itemMap.get(itemName) || 0) + itemTotal);
                             }
                         });
                     }
                 }
             });
 
-            const labels = Object.keys(daily).reverse();
-            const data = Object.values(daily).reverse();
+            const average = countApproved > 0 ? totalApproved / countApproved : 0;
 
-            if (salesChart) salesChart.destroy();
-            const ctx = document.getElementById('salesChart').getContext('2d');
-            salesChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Faturamento (R$)',
-                        data: data,
-                        borderColor: '#10B981',
-                        backgroundColor: 'rgba(16,185,129,0.1)',
-                        tension: 0.3
-                    }]
-                },
-                options: { responsive: true }
-            });
+            safeText('report-total-approved', formatPrice(totalApproved));
+            safeText('report-average-ticket', formatPrice(average));
+            safeText('report-total-count', countApproved);
 
-            const sortedClients = Object.entries(clientTotal).sort((a,b) => b[1] - a[1]).slice(0,5);
+            // Top clientes
+            const sortedClients = Array.from(clientMap.entries()).sort((a,b) => b[1] - a[1]).slice(0,10);
             let clientHtml = '';
-            sortedClients.forEach(([name, total]) => {
-                clientHtml += `<div class="flex justify-between"><span>${name}</span><span class="font-bold">${formatPrice(total)}</span></div>`;
-            });
-            document.getElementById('top-clients-list').innerHTML = clientHtml || 'Nenhum dado.';
+            if (sortedClients.length === 0) {
+                clientHtml = '<p class="text-center text-slate-400 py-4">Nenhum cliente com aprovação.</p>';
+            } else {
+                const maxValue = sortedClients[0][1];
+                sortedClients.forEach(([name, total], index) => {
+                    const percent = maxValue > 0 ? (total / maxValue) * 100 : 0;
+                    clientHtml += `
+                        <div class="client-item">
+                            <div class="client-rank">${index+1}</div>
+                            <div class="flex-1">
+                                <div class="flex justify-between">
+                                    <span class="font-medium text-slate-700">${name}</span>
+                                    <span class="font-bold text-[#10B981]">${formatPrice(total)}</span>
+                                </div>
+                                <div class="progress-bar-small mt-1">
+                                    <div class="progress-fill-small" style="width: ${percent}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById('top-clients-list').innerHTML = clientHtml;
 
-            const sortedItems = Object.entries(itemTotal).sort((a,b) => b[1] - a[1]).slice(0,10);
+            // Top itens
+            const sortedItems = Array.from(itemMap.entries()).sort((a,b) => b[1] - a[1]).slice(0,10);
             let itemHtml = '';
-            sortedItems.forEach(([name, total]) => {
-                itemHtml += `<div class="flex justify-between"><span>${name}</span><span class="font-bold">${formatPrice(total)}</span></div>`;
-            });
-            document.getElementById('top-items-list').innerHTML = itemHtml || 'Nenhum dado.';
+            if (sortedItems.length === 0) {
+                itemHtml = '<p class="text-center text-slate-400 py-4">Nenhum item vendido.</p>';
+            } else {
+                const maxValue = sortedItems[0][1];
+                sortedItems.forEach(([name, total], index) => {
+                    const percent = maxValue > 0 ? (total / maxValue) * 100 : 0;
+                    itemHtml += `
+                        <div class="client-item">
+                            <div class="client-rank">${index+1}</div>
+                            <div class="flex-1">
+                                <div class="flex justify-between">
+                                    <span class="font-medium text-slate-700">${name}</span>
+                                    <span class="font-bold text-[#10B981]">${formatPrice(total)}</span>
+                                </div>
+                                <div class="progress-bar-small mt-1">
+                                    <div class="progress-fill-small" style="width: ${percent}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById('top-items-list').innerHTML = itemHtml;
         }
 
+        // ==================== EXPORTAR EXCEL ====================
+        function exportToExcel() {
+            // Coletar dados dos orçamentos aprovados
+            const data = [];
+            // Cabeçalho
+            data.push(['Projeto', 'Cliente', 'Data Aprovação', 'Valor (R$)', 'Itens']);
+
+            state.projectsCache.forEach(p => {
+                const v = p.versions?.[0];
+                if (v && v.status === 'approved') {
+                    const itemsStr = v.items?.items?.map(i => `${i.name} (${i.qty}x ${formatPrice(i.price)})`).join('; ') || '';
+                    data.push([
+                        p.name,
+                        p.client_name || 'Sem nome',
+                        v.approved_at ? new Date(v.approved_at).toLocaleString('pt-BR') : '',
+                        v.total_value || 0,
+                        itemsStr
+                    ]);
+                }
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Orçamentos Aprovados');
+            XLSX.writeFile(wb, `relatorio_aprovados_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
+
+        // ==================== CLIENTES ====================
         async function loadClients() {
             if (!state.user) return;
             const { data, error } = await db
@@ -1608,6 +1764,7 @@
             document.getElementById('client-fields-container').classList.add('hidden');
         }
 
+        // ==================== CATÁLOGO ====================
         async function loadCatalog() {
             if (!state.user) return;
             const { data, error } = await db
@@ -1854,180 +2011,7 @@
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        let publicClientData = null;
-
-        async function loadPublicCatalog(userId) {
-            safeShow('public-catalog-loading');
-            safeHide('public-catalog-content');
-            document.getElementById('client-data-modal').classList.remove('hidden');
-        }
-
-        function cancelPublicClientData() {
-            document.getElementById('client-data-modal').classList.add('hidden');
-            window.location.href = '?view=login';
-        }
-
-        function savePublicClientData() {
-            const name = document.getElementById('public-client-name').value.trim();
-            if (!name) {
-                showToast("Por favor, informe seu nome.", 'error');
-                return;
-            }
-            publicClientData = {
-                name: name,
-                email: document.getElementById('public-client-email').value,
-                phone: document.getElementById('public-client-phone').value,
-                address: document.getElementById('public-client-address').value
-            };
-            document.getElementById('client-data-modal').classList.add('hidden');
-            reallyLoadPublicCatalog();
-        }
-
-        async function reallyLoadPublicCatalog() {
-            const params = new URLSearchParams(window.location.search);
-            const userId = params.get('user');
-            if (!userId) return alert("Usuário não identificado.");
-
-            const { data: catalog, error } = await db
-                .from('service_catalog')
-                .select('*')
-                .eq('user_id', userId)
-                .order('name', { ascending: true });
-            if (error) {
-                alert("Erro ao carregar catálogo.");
-                return;
-            }
-
-            let providerName = "Prestador";
-            document.getElementById('provider-name').innerText = `Serviços de ${providerName}`;
-
-            const container = document.getElementById('public-catalog-items');
-            let html = '';
-            if (catalog.length === 0) {
-                html = '<p class="col-span-2 text-center text-slate-500">Nenhum serviço disponível no momento.</p>';
-            } else {
-                catalog.forEach(item => {
-                    html += `
-                        <div class="public-catalog-card border border-slate-200 rounded-xl p-4 hover:border-[#10B981] transition shadow-sm">
-                            <label class="flex items-start gap-3 cursor-pointer">
-                                <input type="checkbox" class="catalog-item-checkbox mt-1 accent-[#10B981]" data-id="${item.id}" data-name="${item.name}" data-description="${item.description || ''}" data-price="${item.price || 0}">
-                                <div class="flex-1">
-                                    <div class="font-bold text-slate-800">${item.name}</div>
-                                    ${item.description ? `<p class="text-sm text-slate-500">${item.description}</p>` : ''}
-                                    ${item.price ? `<p class="text-sm font-mono text-[#10B981] mt-1">${formatPrice(item.price)}</p>` : ''}
-                                    ${item.category ? `<span class="text-xs bg-slate-100 px-2 py-0.5 rounded">${item.category}</span>` : ''}
-                                </div>
-                            </label>
-                        </div>
-                    `;
-                });
-            }
-            container.innerHTML = html;
-            safeHide('public-catalog-loading');
-            safeShow('public-catalog-content');
-        }
-
-        async function submitPublicCatalogRequest() {
-            if (!publicClientData) {
-                alert("Dados do cliente não informados.");
-                return;
-            }
-            const params = new URLSearchParams(window.location.search);
-            const userId = params.get('user');
-            if (!userId) return alert("Erro: usuário não identificado.");
-
-            const checkboxes = document.querySelectorAll('.catalog-item-checkbox:checked');
-            const selectedItems = [];
-            checkboxes.forEach(cb => {
-                selectedItems.push({
-                    name: cb.dataset.name,
-                    description: cb.dataset.description,
-                    price: parseFloat(cb.dataset.price) || 0
-                });
-            });
-
-            const customDesc = document.getElementById('custom-service-description').value.trim();
-
-            if (selectedItems.length === 0 && !customDesc) {
-                alert("Selecione ao menos um serviço ou descreva o que precisa.");
-                return;
-            }
-
-            const projectName = `Solicitação via catálogo - ${publicClientData.name}`;
-            const { data: project, error: projError } = await db
-                .from('projects')
-                .insert({ name: projectName, user_id: userId, client_name: publicClientData.name })
-                .select()
-                .single();
-            if (projError) {
-                alert("Erro ao criar solicitação.");
-                return;
-            }
-
-            const items = selectedItems.map((item, idx) => ({
-                id: 'item_' + Date.now() + idx + Math.random(),
-                name: item.name,
-                description: item.description,
-                qty: 1,
-                price: item.price,
-                type: 'original',
-                optional: false,
-                publicSelected: false
-            }));
-            if (customDesc) {
-                items.push({
-                    id: 'item_custom_' + Date.now(),
-                    name: '🟡 Serviço personalizado',
-                    description: customDesc + ' (solicitado pelo cliente – revisar e ajustar)',
-                    qty: 1,
-                    price: 0,
-                    type: 'original',
-                    optional: false,
-                    publicSelected: false
-                });
-            }
-
-            const total = items.reduce((acc, i) => acc + i.price, 0);
-            const history = [{
-                date: new Date().toISOString(),
-                action: 'created',
-                user: 'client',
-                detail: 'Orçamento criado via catálogo público'
-            }];
-
-            const versionData = {
-                client: {
-                    name: publicClientData.name,
-                    email: publicClientData.email || '',
-                    phone: publicClientData.phone || '',
-                    address: publicClientData.address || ''
-                },
-                location: { address: '', sameAsClient: true },
-                items: items,
-                terms: { paymentMode: 'custom', paymentText: '', deadline: '', validity: '', obs: '' },
-                settings: { providerName: '', providerDoc: '', providerAddr: '', providerPhone: '' },
-                history: history,
-                attachments: [],
-                signature: null
-            };
-
-            const { error: verError } = await db
-                .from('versions')
-                .insert({
-                    project_id: project.id,
-                    version_number: 1,
-                    items: versionData,
-                    total_value: total,
-                    status: 'draft'
-                });
-            if (verError) {
-                alert("Erro ao criar versão.");
-                return;
-            }
-
-            window.location.href = '?view=success';
-        }
-
+        // ==================== DASHBOARD E PROJETOS ====================
         function getRecentActivities(limit = 10) {
             let activities = [];
             state.projectsCache.forEach(project => {
@@ -2143,132 +2127,6 @@
 
         function showAllActivities() {
             showToast('Em breve: histórico completo.', 'info');
-        }
-
-        async function init() {
-            try {
-                db = createClient(SUPABASE_URL, SUPABASE_KEY);
-                const params = new URLSearchParams(window.location.search);
-                const view = params.get('view') || 'login';
-                const id = params.get('id');
-                const userId = params.get('user');
-                document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
-                document.getElementById('app-layout').classList.add('hidden');
-                
-                const { data: { session } } = await db.auth.getSession();
-                state.user = session?.user;
-
-                if (view === 'public-catalog' && userId) {
-                    await loadPublicCatalog(userId);
-                    safeShow('view-public-catalog');
-                } else if (view === 'public' && id) {
-                    await loadPublicProposal(id);
-                    safeShow('view-public');
-                } else if (view === 'success') {
-                    safeShow('view-success');
-                } else if (!state.user) {
-                    window.history.replaceState(null, '', '?view=login');
-                    safeShow('view-login');
-                    initRotator();
-                } else {
-                    document.getElementById('app-layout').classList.remove('hidden');
-                    await loadProjects();
-                    await loadClients();
-                    await loadCatalog();
-                    await loadTemplates();
-                    if (view === 'editor' && id) {
-                        await loadEditor(id);
-                        switchTab('editor', false);
-                    } else if (view === 'dashboard' || view === 'projects' || view === 'clients' || view === 'catalog' || view === 'reports') {
-                        switchTab(view, false);
-                    } else {
-                        switchTab('dashboard', false);
-                    }
-                }
-                setTimeout(() => { 
-                    document.getElementById('system-loader').style.display = 'none'; 
-                }, 500);
-            } catch (e) {
-                document.getElementById('system-loader').style.display = 'none';
-                safeShow('fatal-error');
-                safeText('error-msg', e.message);
-            }
-        }
-
-        function initRotator() {
-            const words = ["Prestadores","Técnicos", "Mecânicos", "Fotógrafos"];
-            let idx = 0; const el = document.getElementById('rotator'); if(!el) return;
-            el.innerHTML = '';
-            words.forEach((w, i) => { const s = document.createElement('span'); s.className = `rotate-word ${i===0?'active':''}`; s.innerText = w; el.appendChild(s); });
-            setInterval(() => {
-                const spans = el.querySelectorAll('.rotate-word');
-                if(!spans.length) return;
-                spans[idx].classList.remove('active'); spans[idx].classList.add('exit');
-                idx = (idx + 1) % words.length;
-                spans[idx].classList.remove('exit'); spans[idx].classList.add('active');
-            }, 3000);
-        }
-
-        async function handleLogin() {
-            const email = safeVal('email');
-            const btn = document.getElementById('btn-login');
-            if(!email) return showToast("Digite o e-mail", 'error');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...'; 
-            btn.disabled = true;
-            const { error } = await db.auth.signInWithOtp({ 
-                email, 
-                options: { emailRedirectTo: window.location.href }
-            });
-            if(error) { 
-                showToast(error.message, 'error'); 
-                btn.innerText = 'Enviar link de acesso'; 
-                btn.disabled = false; 
-            } else { 
-                btn.innerText = 'Enviado!'; 
-                showToast('Verifique seu e-mail.', 'success'); 
-            }
-        }
-
-        function goTo(view, id = null) {
-            window.history.pushState(null, '', id ? `?view=${view}&id=${id}` : `?view=${view}`);
-            init();
-        }
-
-        function switchTab(tab, updateUrl = true) {
-            document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(`view-${tab}`).classList.remove('hidden');
-            const nav = document.getElementById(`nav-${tab}`);
-            if(nav) nav.classList.add('active');
-            document.querySelector('.sidebar').classList.remove('open');
-            if(updateUrl) window.history.pushState(null, '', tab === 'dashboard' ? '?' : `?view=${tab}`);
-            
-            if (tab === 'dashboard') {
-                renderDashboardKPIs();
-                renderDashboardCharts();
-                renderActivityFeed();
-            }
-            if (tab === 'projects') {
-                renderProjectCards();
-            }
-            if (tab === 'clients') {
-                renderClients();
-            }
-            if (tab === 'catalog') {
-                renderCatalog();
-            }
-            if (tab === 'reports') {
-                loadSalesReport();
-            }
-        }
-
-        function filterProjects(status) {
-            switchTab('projects');
-            const filterEl = document.getElementById('project-status-filter');
-            if(filterEl) {
-                filterEl.value = status;
-                renderProjectCards();
-            }
         }
 
         async function loadProjects() {
@@ -2514,6 +2372,7 @@
             showToast('Orçamento criado!', 'success');
         }
 
+        // ==================== EDITOR ====================
         async function loadEditor(id) {
             const { data: proj } = await db.from('projects').select('*').eq('id', id).single();
             state.project = proj;
@@ -2998,6 +2857,7 @@
             setHTML('ed-history', histHtml);
         }
 
+        // ==================== PÁGINA PÚBLICA (PROPOSTA) ====================
         async function loadPublicProposal(id) {
             try {
                 safeShow('public-loading');
@@ -3006,7 +2866,11 @@
                 state.version = v; 
                 state.data = normalizeData(v.items);
                 const d = state.data;
-                await registerView(id);
+                // Registrar visualização
+                if (!d.viewedAt) {
+                    d.viewedAt = new Date().toISOString();
+                    await db.from('versions').update({ items: d }).eq('id', id);
+                }
                 if(v.status === 'approved') {
                     document.getElementById('stamp-approved').style.display = 'block';
                     if (v.approved_at) {
@@ -3313,6 +3177,113 @@
         }
         function openPrivacyModal() {
             showToast('Política de privacidade em breve.', 'info');
+        }
+
+        // ==================== INICIALIZAÇÃO E ROTEAMENTO ====================
+        async function handleLogin() {
+            const email = safeVal('email');
+            const btn = document.getElementById('btn-login');
+            if(!email) return showToast("Digite o e-mail", 'error');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...'; 
+            btn.disabled = true;
+            const { error } = await db.auth.signInWithOtp({ 
+                email, 
+                options: { emailRedirectTo: window.location.href }
+            });
+            if(error) { 
+                showToast(error.message, 'error'); 
+                btn.innerText = 'Enviar link de acesso'; 
+                btn.disabled = false; 
+            } else { 
+                btn.innerText = 'Enviado!'; 
+                showToast('Verifique seu e-mail.', 'success'); 
+            }
+        }
+
+        function filterProjects(status) {
+            switchTab('projects');
+            const filterEl = document.getElementById('project-status-filter');
+            if(filterEl) {
+                filterEl.value = status;
+                renderProjectCards();
+            }
+        }
+
+        function switchTab(tab, updateUrl = true) {
+            document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            const nav = document.getElementById(`nav-${tab}`);
+            if(nav) nav.classList.add('active');
+            document.querySelector('.sidebar').classList.remove('open');
+            if(updateUrl) window.history.pushState(null, '', tab === 'dashboard' ? '?' : `?view=${tab}`);
+            
+            if (tab === 'dashboard') {
+                renderDashboardKPIs();
+                renderDashboardCharts();
+                renderActivityFeed();
+            }
+            if (tab === 'projects') {
+                renderProjectCards();
+            }
+            if (tab === 'clients') {
+                renderClients();
+            }
+            if (tab === 'catalog') {
+                renderCatalog();
+            }
+            if (tab === 'reports') {
+                loadReports();
+            }
+        }
+
+        async function init() {
+            try {
+                db = createClient(SUPABASE_URL, SUPABASE_KEY);
+                const params = new URLSearchParams(window.location.search);
+                const view = params.get('view') || 'login';
+                const id = params.get('id');
+                const userId = params.get('user');
+                document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
+                document.getElementById('app-layout').classList.add('hidden');
+                
+                const { data: { session } } = await db.auth.getSession();
+                state.user = session?.user;
+
+                if (view === 'public-catalog' && userId) {
+                    await loadPublicCatalog(userId);
+                    safeShow('view-public-catalog');
+                } else if (view === 'public' && id) {
+                    await loadPublicProposal(id);
+                    safeShow('view-public');
+                } else if (view === 'success') {
+                    safeShow('view-success');
+                } else if (!state.user) {
+                    window.history.replaceState(null, '', '?view=login');
+                    safeShow('view-login');
+                } else {
+                    document.getElementById('app-layout').classList.remove('hidden');
+                    await loadProjects();
+                    await loadClients();
+                    await loadCatalog();
+                    await loadTemplates();
+                    if (view === 'editor' && id) {
+                        await loadEditor(id);
+                        switchTab('editor', false);
+                    } else if (view === 'dashboard' || view === 'projects' || view === 'clients' || view === 'catalog' || view === 'reports') {
+                        switchTab(view, false);
+                    } else {
+                        switchTab('dashboard', false);
+                    }
+                }
+                setTimeout(() => { 
+                    document.getElementById('system-loader').style.display = 'none'; 
+                }, 500);
+            } catch (e) {
+                document.getElementById('system-loader').style.display = 'none';
+                safeShow('fatal-error');
+                safeText('error-msg', e.message);
+            }
         }
 
         setChartPeriod(30);
