@@ -351,18 +351,36 @@
         @media print {
             body { background: white; }
             .no-print { display: none !important; }
-            #public-content { box-shadow: none; margin: 0; width: 100%; max-width: 100%; }
+            #public-content { 
+                box-shadow: none; 
+                margin: 0; 
+                width: 100%; 
+                max-width: 100%; 
+                font-size: 12pt; 
+                line-height: 1.4; 
+            }
+            #public-content .p-12 { padding: 1.5cm !important; }
             table, tr, td, th { page-break-inside: avoid; }
             h1, h2, h3, h4 { page-break-after: avoid; }
             .print-break-before { page-break-before: always; }
             .print-break-after { page-break-after: always; }
             .print-break-inside { page-break-inside: avoid; }
+            .bg-slate-900 { background: white !important; color: black !important; }
+            .bg-slate-900 * { color: black !important; }
+            #stamp-approved { opacity: 0.3 !important; }
+        }
+
+        /* ===== VIEW PÚBLICA MOBILE ===== */
+        @media (max-width: 768px) {
+            #public-content .p-12 { padding: 1rem !important; }
+            #public-content .flex.gap-12 { flex-direction: column; gap: 1rem; }
+            #public-content table { font-size: 0.8rem; }
+            #public-content .text-3xl { font-size: 1.5rem; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Toast container -->
     <div id="toast-container"></div>
 
     <div id="system-loader" style="position:fixed; inset:0; background:white; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
@@ -483,6 +501,7 @@
                 </div>
                 <div onclick="switchTab('clients')" class="nav-item" id="nav-clients"><i class="far fa-users"></i> Clientes</div>
                 <div onclick="switchTab('catalog')" class="nav-item" id="nav-catalog"><i class="far fa-box"></i> Catálogo</div>
+                <div onclick="switchTab('reports')" class="nav-item" id="nav-reports"><i class="far fa-chart-pie"></i> Relatórios</div>
             </nav>
             <div class="p-4 border-t border-slate-100">
                 <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="flex items-center text-sm text-red-500 font-medium w-full px-4 py-2"><i class="far fa-sign-out-alt mr-3"></i> Sair</button>
@@ -569,9 +588,7 @@
                         </h3>
                         <span class="text-xs text-slate-400">últimas 10 ações</span>
                     </div>
-                    <div id="activity-feed" class="divide-y divide-slate-100">
-                        <!-- preenchido via JS -->
-                    </div>
+                    <div id="activity-feed" class="divide-y divide-slate-100"></div>
                     <div class="mt-4 text-center">
                         <button onclick="showAllActivities()" class="text-xs font-bold text-[#1E3A8A] hover:underline">Ver todas</button>
                     </div>
@@ -582,7 +599,10 @@
             <section id="view-projects" class="hidden space-y-6">
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-slate-800">Orçamentos</h2>
-                    <button onclick="createProject()" class="bg-[#1E3A8A] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#3B5BA5] transition"><i class="far fa-plus mr-2"></i> Novo</button>
+                    <div class="flex gap-2">
+                        <button onclick="openTemplateModal()" class="bg-[#10B981] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#0E9E6F] transition"><i class="far fa-copy mr-2"></i> Carregar Template</button>
+                        <button onclick="createProject()" class="bg-[#1E3A8A] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#3B5BA5] transition"><i class="far fa-plus mr-2"></i> Novo</button>
+                    </div>
                 </div>
                 <div class="flex flex-col md:flex-row gap-4 items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                     <div class="flex-1 w-full relative">
@@ -657,8 +677,38 @@
                         </select>
                     </div>
                 </div>
-                <!-- Cards em vez de tabela -->
                 <div id="catalog-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </section>
+
+            <!-- RELATÓRIOS (NOVO) -->
+            <section id="view-reports" class="hidden space-y-6">
+                <h2 class="text-2xl font-bold text-slate-800">Relatórios</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-700 mb-4">Vendas por período</h3>
+                        <div class="flex gap-2 mb-4">
+                            <select id="report-period" class="p-2 border rounded text-sm">
+                                <option value="7">Últimos 7 dias</option>
+                                <option value="30" selected>Últimos 30 dias</option>
+                                <option value="90">Últimos 90 dias</option>
+                            </select>
+                            <button onclick="loadSalesReport()" class="bg-[#1E3A8A] text-white px-4 py-2 rounded text-sm font-bold">Carregar</button>
+                        </div>
+                        <canvas id="salesChart" style="height: 250px;"></canvas>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-700 mb-4">Clientes que mais contratam</h3>
+                        <div id="top-clients-list" class="space-y-2 max-h-80 overflow-y-auto">
+                            Carregando...
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-700 mb-4">Itens mais vendidos</h3>
+                    <div id="top-items-list" class="space-y-2 max-h-96 overflow-y-auto">
+                        Carregando...
+                    </div>
+                </div>
             </section>
 
             <!-- EDITOR -->
@@ -675,6 +725,7 @@
                         </div>
                     </div>
                     <div class="flex gap-2">
+                        <button onclick="saveAsTemplate()" class="bg-[#10B981] text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-[#10B981]/20 hover:bg-[#0E9E6F] transition"><i class="far fa-save mr-2"></i> Salvar como Template</button>
                         <button onclick="openShareModal()" class="bg-[#1E3A8A] text-white px-4 py-2 rounded text-sm font-bold shadow-lg shadow-[#1E3A8A]/20 hover:bg-[#3B5BA5] transition">
                             <i class="far fa-share-alt mr-2"></i> Enviar Link
                         </button>
@@ -684,7 +735,7 @@
 
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
                     <div class="xl:col-span-2 space-y-6">
-                        <!-- DADOS DO PRESTADOR (colapsável) -->
+                        <!-- DADOS DO PRESTADOR -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <div class="collapsible-header flex justify-between items-center" onclick="toggleCollapse(this)">
                                 <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="far fa-id-card text-[#1E3A8A]"></i> Seus Dados</h3>
@@ -700,7 +751,7 @@
                             </div>
                         </div>
 
-                        <!-- DADOS DO CLIENTE (colapsável) -->
+                        <!-- DADOS DO CLIENTE -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <div class="collapsible-header flex justify-between items-center" onclick="toggleCollapse(this)">
                                 <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="far fa-user-tie text-[#1E3A8A]"></i> Dados do Cliente</h3>
@@ -744,7 +795,7 @@
                             </div>
                         </div>
 
-                        <!-- ESCOPO DO SERVIÇO (colapsável) -->
+                        <!-- ESCOPO DO SERVIÇO -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                             <div class="collapsible-header flex justify-between items-center" onclick="toggleCollapse(this)">
                                 <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="far fa-list-ol text-[#1E3A8A]"></i> Escopo do Serviço</h3>
@@ -818,7 +869,7 @@
         </main>
     </div>
 
-    <!-- MODAIS (mantidos os mesmos, apenas com ajustes de cor) -->
+    <!-- MODAIS (mantidos os mesmos) -->
     <div id="client-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl">
             <h3 id="client-modal-title" class="text-xl font-bold mb-4 text-slate-800">Novo Cliente</h3>
@@ -900,6 +951,19 @@
         </div>
     </div>
 
+    <!-- MODAL DE TEMPLATES -->
+    <div id="template-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl p-6 rounded-xl max-h-[80vh] overflow-y-auto">
+            <h3 class="text-xl font-bold mb-4 text-slate-800">Carregar Template</h3>
+            <div id="templates-list" class="space-y-2">
+                Carregando...
+            </div>
+            <div class="flex justify-end mt-6">
+                <button onclick="document.getElementById('template-modal').classList.add('hidden')" class="px-4 py-2 border rounded text-slate-600 font-bold">Fechar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- VIEW PÚBLICA DO CATÁLOGO -->
     <section id="view-public-catalog" class="hidden min-h-screen bg-slate-50 p-6">
         <div class="max-w-4xl mx-auto">
@@ -952,7 +1016,7 @@
                 </div>
             </div>
             <div class="p-12 flex-1 print:p-8">
-                <div class="flex gap-12 mb-12 text-sm">
+                <div class="flex gap-12 mb-12 text-sm print:flex-row print:gap-12">
                     <div class="flex-1">
                         <h3 class="font-bold text-xs uppercase text-slate-400 mb-2 border-b pb-1">Contratante</h3>
                         <div id="doc-c-name" class="font-bold text-lg text-slate-800"></div>
@@ -1012,7 +1076,7 @@
 
     <section id="view-success" class="hidden min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
         <div class="max-w-md w-full">
-            <i id="success-icon" class="far fa-check-circle text-6xl text-[#10B981] mb-6 anim-entry"></i>
+            <i id="success-icon" class="far fa-check-circle text-6xl text-[#10B981] mb-6"></i>
             <h2 id="success-title" class="text-3xl font-bold text-slate-900 mb-4">Tudo Certo!</h2>
             <p id="success-desc" class="text-slate-500 text-lg">Sua resposta foi registrada com sucesso.</p>
             <div id="success-actions" class="mt-8"></div>
@@ -1021,7 +1085,7 @@
     </section>
 
     <div id="interaction-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md p-6 rounded-xl animate-[fadeInUp_0.3s]">
+        <div class="bg-white w-full max-w-md p-6 rounded-xl">
             <h3 id="modal-title" class="text-xl font-bold mb-2 text-slate-800"></h3>
             <p id="modal-desc" class="text-sm text-slate-500 mb-4"></p>
             <textarea id="modal-input" class="w-full border p-3 rounded mb-4 h-24 text-sm bg-slate-50" placeholder="Digite aqui..."></textarea>
@@ -1065,6 +1129,7 @@
             projectsCache: [], 
             clientsCache: [],
             catalogCache: [],
+            templatesCache: [],
             data: null, 
             previousData: null, 
             snapshot: [] 
@@ -1090,8 +1155,6 @@
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 5000);
         }
-
-        // Override alert
         window.alert = function(msg) { showToast(msg, 'warning'); };
 
         // ----- FUNÇÕES AUXILIARES -----
@@ -1146,7 +1209,8 @@
                 settings: { providerName: '', providerDoc: '', providerAddr: '', providerPhone: '' },
                 history: [],
                 attachments: [],
-                signature: null 
+                signature: null,
+                viewedAt: null // novo campo para notificação
             };
             if (!dbData) return JSON.parse(JSON.stringify(schema));
             let rawItems = Array.isArray(dbData.items) ? dbData.items : (dbData.scope || []);
@@ -1175,7 +1239,8 @@
                 settings: { ...schema.settings, ...(dbData.settings || {}) }, 
                 history: Array.isArray(dbData.history) ? dbData.history : [],
                 attachments: attachments,
-                signature: dbData.signature || null
+                signature: dbData.signature || null,
+                viewedAt: dbData.viewedAt || null
             };
         }
 
@@ -1204,6 +1269,187 @@
             });
             oldArr.forEach(i => { if(!newMap.has(i.id)) logs.push(`Removeu: ${i.name}`); });
             return logs.length ? logs.join('; ') : null;
+        }
+
+        // ----- TEMPLATES -----
+        async function loadTemplates() {
+            if (!state.user) return;
+            const { data, error } = await db
+                .from('templates')
+                .select('*')
+                .eq('user_id', state.user.id)
+                .order('name', { ascending: true });
+            if (error) {
+                console.error("Erro ao carregar templates:", error);
+                return;
+            }
+            state.templatesCache = data || [];
+        }
+
+        async function saveAsTemplate() {
+            await save();
+            const name = prompt("Nome do template:");
+            if (!name) return;
+            const templateData = {
+                name,
+                user_id: state.user.id,
+                data: state.data,
+                created_at: new Date()
+            };
+            const { error } = await db.from('templates').insert(templateData);
+            if (error) {
+                showToast("Erro ao salvar template: " + error.message, 'error');
+            } else {
+                showToast("Template salvo!", 'success');
+                await loadTemplates();
+            }
+        }
+
+        function openTemplateModal() {
+            const modal = document.getElementById('template-modal');
+            modal.classList.remove('hidden');
+            const listDiv = document.getElementById('templates-list');
+            if (state.templatesCache.length === 0) {
+                listDiv.innerHTML = '<p class="text-center text-slate-500">Nenhum template salvo.</p>';
+                return;
+            }
+            let html = '';
+            state.templatesCache.forEach(t => {
+                html += `
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <span>${t.name}</span>
+                        <button onclick="loadTemplate('${t.id}')" class="text-[#1E3A8A] text-sm font-bold">Carregar</button>
+                    </div>
+                `;
+            });
+            listDiv.innerHTML = html;
+        }
+
+        async function loadTemplate(id) {
+            const template = state.templatesCache.find(t => t.id === id);
+            if (!template) return;
+            // Criar novo projeto baseado no template
+            const projectName = prompt("Nome do novo orçamento:", template.name);
+            if (!projectName) return;
+            const { data: p, error } = await db.from('projects').insert({ 
+                name: projectName, 
+                user_id: state.user.id, 
+                client_name: template.data.client.name || 'Novo Cliente' 
+            }).select().single();
+            if (error) {
+                showToast("Erro ao criar projeto: " + error.message, 'error');
+                return;
+            }
+            const d = JSON.parse(JSON.stringify(template.data));
+            d.history.push({ date: new Date().toISOString(), action: 'created', user: 'provider', detail: 'Criado a partir de template.' });
+            await db.from('versions').insert({ 
+                project_id: p.id, 
+                version_number: 1, 
+                items: d, 
+                total_value: d.items.reduce((a,b)=>a+(b.qty*b.price),0), 
+                status: 'draft' 
+            });
+            document.getElementById('template-modal').classList.add('hidden');
+            openProject(p.id);
+            showToast('Template carregado!', 'success');
+        }
+
+        // ----- NOTIFICAÇÕES -----
+        async function registerView(versionId) {
+            // Chamado quando o cliente visualiza a proposta
+            if (!state.data.viewedAt) {
+                state.data.viewedAt = new Date().toISOString();
+                await db.from('versions').update({ items: state.data }).eq('id', versionId);
+                // Enviar notificação para o prestador (simulado via toast)
+                showToast("Cliente visualizou o orçamento!", 'info');
+            }
+        }
+
+        // ----- RELATÓRIOS -----
+        let salesChart = null;
+
+        async function loadSalesReport() {
+            const period = document.getElementById('report-period').value;
+            const days = parseInt(period);
+            const now = new Date();
+            const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+
+            const { data: versions, error } = await db
+                .from('versions')
+                .select('created_at, total_value, status')
+                .eq('user_id', state.user.id)
+                .gte('created_at', startDate.toISOString());
+            if (error) return;
+
+            // Agrupar por dia
+            const daily = {};
+            for (let i = 0; i < days; i++) {
+                const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+                const key = d.toLocaleDateString('pt-BR').slice(0,5);
+                daily[key] = 0;
+            }
+            versions.forEach(v => {
+                if (v.status === 'approved') {
+                    const key = new Date(v.created_at).toLocaleDateString('pt-BR').slice(0,5);
+                    if (daily[key] !== undefined) daily[key] += v.total_value || 0;
+                }
+            });
+
+            const labels = Object.keys(daily).reverse();
+            const data = Object.values(daily).reverse();
+
+            if (salesChart) salesChart.destroy();
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Faturamento (R$)',
+                        data: data,
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16,185,129,0.1)',
+                        tension: 0.3
+                    }]
+                },
+                options: { responsive: true }
+            });
+
+            // Top clientes
+            const clientCount = {};
+            state.projectsCache.forEach(p => {
+                const v = p.versions?.[0];
+                if (v && v.status === 'approved') {
+                    const client = p.client_name || 'Sem nome';
+                    clientCount[client] = (clientCount[client] || 0) + (v.total_value || 0);
+                }
+            });
+            const sortedClients = Object.entries(clientCount).sort((a,b) => b[1] - a[1]).slice(0,5);
+            let clientHtml = '';
+            sortedClients.forEach(([name, total]) => {
+                clientHtml += `<div class="flex justify-between"><span>${name}</span><span class="font-bold">${formatPrice(total)}</span></div>`;
+            });
+            document.getElementById('top-clients-list').innerHTML = clientHtml || 'Nenhum dado.';
+
+            // Top itens
+            const itemCount = {};
+            state.projectsCache.forEach(p => {
+                const v = p.versions?.[0];
+                if (v && v.status === 'approved' && v.items?.items) {
+                    v.items.items.forEach(i => {
+                        if (!i.optional || i.publicSelected) {
+                            const name = i.name;
+                            itemCount[name] = (itemCount[name] || 0) + (i.qty * i.price);
+                        }
+                    });
+                }
+            });
+            const sortedItems = Object.entries(itemCount).sort((a,b) => b[1] - a[1]).slice(0,10);
+            let itemHtml = '';
+            sortedItems.forEach(([name, total]) => {
+                itemHtml += `<div class="flex justify-between"><span>${name}</span><span class="font-bold">${formatPrice(total)}</span></div>`;
+            });
+            document.getElementById('top-items-list').innerHTML = itemHtml || 'Nenhum dado.';
         }
 
         // ----- CLIENTES (CRUD) -----
@@ -1833,6 +2079,17 @@
                         }
                     });
                 }
+                // Adicionar visualizações
+                if (version?.items?.viewedAt) {
+                    activities.push({
+                        date: version.items.viewedAt,
+                        projectId: project.id,
+                        projectName: projectName,
+                        action: 'viewed',
+                        user: 'client',
+                        detail: 'Cliente visualizou o orçamento'
+                    });
+                }
             });
             activities.sort((a, b) => new Date(b.date) - new Date(a.date));
             return activities.slice(0, limit);
@@ -1869,6 +2126,12 @@
                         bgColor = 'bg-red-100';
                         textColor = 'text-red-600';
                         actionText = 'Cancelou';
+                        break;
+                    case 'viewed':
+                        icon = 'fa-eye';
+                        bgColor = 'bg-blue-100';
+                        textColor = 'text-[#1E3A8A]';
+                        actionText = 'Visualizou';
                         break;
                     default:
                         icon = 'fa-info-circle';
@@ -1946,10 +2209,11 @@
                     await loadProjects();
                     await loadClients();
                     await loadCatalog();
+                    await loadTemplates();
                     if (view === 'editor' && id) {
                         await loadEditor(id);
                         switchTab('editor', false);
-                    } else if (view === 'dashboard' || view === 'projects' || view === 'clients' || view === 'catalog') {
+                    } else if (view === 'dashboard' || view === 'projects' || view === 'clients' || view === 'catalog' || view === 'reports') {
                         switchTab(view, false);
                     } else {
                         switchTab('dashboard', false);
@@ -2026,6 +2290,9 @@
             }
             if (tab === 'catalog') {
                 renderCatalog();
+            }
+            if (tab === 'reports') {
+                loadSalesReport();
             }
         }
 
@@ -2299,7 +2566,6 @@
             } else {
                 document.getElementById('client-fields-container').classList.add('hidden');
             }
-            // Inicializar Sortable após renderização
             setTimeout(() => {
                 if (sortableInstance) sortableInstance.destroy();
                 const itemsContainer = document.getElementById('ed-items');
@@ -2310,7 +2576,7 @@
                         onEnd: function(evt) {
                             const movedItem = state.data.items.splice(evt.oldIndex, 1)[0];
                             state.data.items.splice(evt.newIndex, 0, movedItem);
-                            renderItems(); // re-render para manter consistência
+                            renderItems();
                         }
                     });
                 }
@@ -2776,6 +3042,8 @@
                 state.version = v; 
                 state.data = normalizeData(v.items);
                 const d = state.data;
+                // Registrar visualização
+                await registerView(id);
                 if(v.status === 'approved') {
                     document.getElementById('stamp-approved').style.display = 'block';
                     if (v.approved_at) {
