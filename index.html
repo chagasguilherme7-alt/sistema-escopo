@@ -2037,40 +2037,46 @@
 
         // ==================== VIEW PÚBLICA DO CATÁLOGO ====================
         async function loadPublicCatalog(userId) {
-            safeShow('public-catalog-loading');
-            try {
-                const { data: provider, error: userError } = await db.auth.admin.getUserById(userId);
-                if (userError) throw new Error("Usuário não encontrado");
-                const { data: catalog, error } = await db
-                    .from('service_catalog')
-                    .select('*')
-                    .eq('user_id', userId)
-                    .order('name');
-                if (error) throw error;
-                document.getElementById('provider-name').innerText = provider.user.email || 'Prestador';
-                const container = document.getElementById('public-catalog-items');
-                let html = '';
-                catalog.forEach(item => {
-                    html += `
-                        <div class="border rounded-lg p-4 bg-white hover:shadow-md transition">
-                            <h3 class="font-bold text-slate-800">${escapeHtml(item.name)}</h3>
-                            ${item.description ? `<p class="text-sm text-slate-500 mt-1">${escapeHtml(item.description)}</p>` : ''}
-                            <div class="flex justify-between items-center mt-2">
-                                <span class="text-xs bg-slate-100 px-2 py-1 rounded">${escapeHtml(item.category || 'Sem categoria')}</span>
-                                <span class="font-bold text-[#10B981]">${item.price ? formatPrice(item.price) : 'Sob consulta'}</span>
-                            </div>
-                        </div>
-                    `;
-                });
-                container.innerHTML = html || '<p class="text-center col-span-full text-slate-500">Nenhum serviço disponível no momento.</p>';
-                safeHide('public-catalog-loading');
-                safeShow('public-catalog-content');
-            } catch (e) {
-                safeHide('public-catalog-loading');
-                showToast("Erro ao carregar catálogo: " + e.message, 'error');
-            }
-        }
+    safeShow('public-catalog-loading');
+    try {
+        // Busca apenas os itens do catálogo do usuário
+        const { data: catalog, error } = await db
+            .from('service_catalog')
+            .select('*')
+            .eq('user_id', userId)
+            .order('name');
+        if (error) throw error;
 
+        // Exibe o nome do prestador de forma genérica (pode ser personalizado futuramente)
+        document.getElementById('provider-name').innerText = 'Prestador de Serviços';
+
+        const container = document.getElementById('public-catalog-items');
+        let html = '';
+        if (catalog.length === 0) {
+            html = '<p class="text-center col-span-full text-slate-500">Nenhum serviço disponível no momento.</p>';
+        } else {
+            catalog.forEach(item => {
+                html += `
+                    <div class="border rounded-lg p-4 bg-white hover:shadow-md transition">
+                        <h3 class="font-bold text-slate-800">${escapeHtml(item.name)}</h3>
+                        ${item.description ? `<p class="text-sm text-slate-500 mt-1">${escapeHtml(item.description)}</p>` : ''}
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-xs bg-slate-100 px-2 py-1 rounded">${escapeHtml(item.category || 'Sem categoria')}</span>
+                            <span class="font-bold text-[#10B981]">${item.price ? formatPrice(item.price) : 'Sob consulta'}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        container.innerHTML = html;
+
+        safeHide('public-catalog-loading');
+        safeShow('public-catalog-content');
+    } catch (e) {
+        safeHide('public-catalog-loading');
+        showToast("Erro ao carregar catálogo: " + e.message, 'error');
+    }
+}
         function submitPublicCatalogRequest() {
             const desc = document.getElementById('custom-service-description').value;
             showToast("Funcionalidade em breve: o prestador será notificado.", 'info');
@@ -3385,3 +3391,4 @@
     </script>
 </body>
 </html>
+
