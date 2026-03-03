@@ -15,6 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
+        /* (mesmo estilo original, sem alterações) */
         :root {
             --primary: #1E3A8A;
             --primary-light: #3B5BA5;
@@ -130,7 +131,7 @@
             .fixed.inset-0 .bg-white { max-width: 90%; margin: 0 auto; }
             .kpi-card .text-2xl { font-size: 1.2rem; }
             .reports-grid { grid-template-columns: 1fr; }
-            .project-card { padding: 1rem; } /* Reduzir padding em mobile */
+            .project-card { padding: 1rem; }
         }
 
         .custom-table { width: 100%; text-align: left; border-collapse: separate; border-spacing: 0; }
@@ -393,7 +394,6 @@
             .reports-grid { grid-template-columns: 1fr; }
         }
 
-        /* Estilos para relatórios */
         .stat-card {
             background: white;
             border-radius: 16px;
@@ -743,7 +743,7 @@
                 <div id="catalog-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
 
-            <!-- RELATÓRIOS (REFATORADO) -->
+            <!-- RELATÓRIOS -->
             <section id="view-reports" class="hidden space-y-6">
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-slate-800">Relatórios</h2>
@@ -1188,7 +1188,7 @@
             <p id="modal-desc" class="text-sm text-slate-500 mb-4"></p>
             <textarea id="modal-input" class="w-full border p-3 rounded mb-4 h-24 text-sm bg-slate-50" placeholder="Digite aqui..."></textarea>
             <div id="modal-sig-area" class="hidden mb-4">
-                <canvas id="signature-pad"></canvas>
+                <canvas id="signature-pad" width="400" height="200"></canvas>
                 <div class="text-right mt-1"><button id="clear-sig" class="text-xs text-red-500 underline">Limpar Assinatura</button></div>
             </div>
             <div class="flex gap-2">
@@ -1227,8 +1227,8 @@
             projectsCache: [], 
             clientsCache: [],
             catalogCache: [],
-            templatesCache: [], // templates do Supabase
-            localStorageTemplates: [], // templates do localStorage
+            templatesCache: [], 
+            localStorageTemplates: [], 
             data: null, 
             previousData: null, 
             snapshot: [] 
@@ -1248,7 +1248,7 @@
             if (type === 'warning') icon = 'exclamation-triangle';
             toast.innerHTML = `
                 <i class="fas fa-${icon} toast-icon"></i>
-                <span class="toast-message">${message}</span>
+                <span class="toast-message">${escapeHtml(message)}</span>
                 <i class="fas fa-times toast-close" onclick="this.parentElement.remove()"></i>
             `;
             container.appendChild(toast);
@@ -1257,9 +1257,19 @@
         window.alert = function(msg) { showToast(msg, 'warning'); };
 
         // ==================== FUNÇÕES AUXILIARES ====================
+        function escapeHtml(unsafe) {
+            if (!unsafe) return unsafe;
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         function safeVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
         function safeText(id, val) { const el = document.getElementById(id); if (el) el.innerText = val || ''; }
-        function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; }
+        function setHTML(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val; }
         function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
         function safeShow(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
         function safeHide(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
@@ -1368,10 +1378,9 @@
             return logs.length ? logs.join('; ') : null;
         }
 
-        // ==================== TEMPLATES (com fallback localStorage) ====================
+        // ==================== TEMPLATES ====================
         async function loadTemplates() {
             if (!state.user) return;
-            // Tenta carregar do Supabase
             const { data, error } = await db
                 .from('templates')
                 .select('*')
@@ -1379,10 +1388,9 @@
                 .order('name', { ascending: true });
             if (error) {
                 console.warn("Erro ao carregar templates do Supabase, usando localStorage:", error.message);
-                // Fallback: localStorage
                 const local = localStorage.getItem(`templates_${state.user.id}`);
                 state.localStorageTemplates = local ? JSON.parse(local) : [];
-                state.templatesCache = []; // não usar supabase
+                state.templatesCache = [];
             } else {
                 state.templatesCache = data || [];
                 state.localStorageTemplates = [];
@@ -1401,11 +1409,9 @@
                 created_at: new Date().toISOString()
             };
 
-            // Tenta salvar no Supabase
             if (state.templatesCache.length > 0 || !state.localStorageTemplates) {
                 const { error } = await db.from('templates').insert(templateData);
                 if (error) {
-                    // Fallback: localStorage
                     showToast("Erro ao salvar no servidor, salvando localmente.", 'warning');
                     const localKey = `templates_${state.user.id}`;
                     const localList = JSON.parse(localStorage.getItem(localKey) || '[]');
@@ -1417,7 +1423,6 @@
                     await loadTemplates();
                 }
             } else {
-                // Já estava em modo localStorage
                 const localKey = `templates_${state.user.id}`;
                 const localList = JSON.parse(localStorage.getItem(localKey) || '[]');
                 localList.push(templateData);
@@ -1440,7 +1445,7 @@
             templates.forEach(t => {
                 html += `
                     <div class="flex justify-between items-center border-b pb-2">
-                        <span>${t.name}</span>
+                        <span>${escapeHtml(t.name)}</span>
                         <button onclick="loadTemplate('${t.id}')" class="text-[#1E3A8A] text-sm font-bold">Carregar</button>
                     </div>
                 `;
@@ -1452,7 +1457,6 @@
             const templates = state.templatesCache.length > 0 ? state.templatesCache : state.localStorageTemplates;
             const template = templates.find(t => t.id === id);
             if (!template) return;
-            // Solicita um novo nome para o projeto (evita duplicação de nome)
             const projectName = prompt("Nome do novo orçamento:", template.name + " (cópia)");
             if (!projectName) return;
             const { data: p, error } = await db.from('projects').insert({ 
@@ -1481,12 +1485,12 @@
         // ==================== RELATÓRIOS ====================
         async function loadReports() {
             if (!state.user) return;
-            await loadProjects(); // recarrega projetos para ter dados atualizados
+            await loadProjects();
             const approvedVersions = [];
             let totalApproved = 0;
             let countApproved = 0;
-            const clientMap = new Map(); // nome -> total
-            const itemMap = new Map(); // nome -> total
+            const clientMap = new Map();
+            const itemMap = new Map();
 
             state.projectsCache.forEach(p => {
                 const v = p.versions?.[0];
@@ -1502,11 +1506,9 @@
                         items: v.items?.items || []
                     });
 
-                    // Cliente
                     const client = p.client_name || 'Sem nome';
                     clientMap.set(client, (clientMap.get(client) || 0) + val);
 
-                    // Itens
                     if (v.items?.items) {
                         v.items.items.forEach(i => {
                             if (!i.optional || i.publicSelected) {
@@ -1525,7 +1527,6 @@
             safeText('report-average-ticket', formatPrice(average));
             safeText('report-total-count', countApproved);
 
-            // Top clientes
             const sortedClients = Array.from(clientMap.entries()).sort((a,b) => b[1] - a[1]).slice(0,10);
             let clientHtml = '';
             if (sortedClients.length === 0) {
@@ -1539,7 +1540,7 @@
                             <div class="client-rank">${index+1}</div>
                             <div class="flex-1">
                                 <div class="flex justify-between">
-                                    <span class="font-medium text-slate-700">${name}</span>
+                                    <span class="font-medium text-slate-700">${escapeHtml(name)}</span>
                                     <span class="font-bold text-[#10B981]">${formatPrice(total)}</span>
                                 </div>
                                 <div class="progress-bar-small mt-1">
@@ -1552,7 +1553,6 @@
             }
             document.getElementById('top-clients-list').innerHTML = clientHtml;
 
-            // Top itens
             const sortedItems = Array.from(itemMap.entries()).sort((a,b) => b[1] - a[1]).slice(0,10);
             let itemHtml = '';
             if (sortedItems.length === 0) {
@@ -1566,7 +1566,7 @@
                             <div class="client-rank">${index+1}</div>
                             <div class="flex-1">
                                 <div class="flex justify-between">
-                                    <span class="font-medium text-slate-700">${name}</span>
+                                    <span class="font-medium text-slate-700">${escapeHtml(name)}</span>
                                     <span class="font-bold text-[#10B981]">${formatPrice(total)}</span>
                                 </div>
                                 <div class="progress-bar-small mt-1">
@@ -1582,9 +1582,7 @@
 
         // ==================== EXPORTAR EXCEL ====================
         function exportToExcel() {
-            // Coletar dados dos orçamentos aprovados
             const data = [];
-            // Cabeçalho
             data.push(['Projeto', 'Cliente', 'Data Aprovação', 'Valor (R$)', 'Itens']);
 
             state.projectsCache.forEach(p => {
@@ -1637,11 +1635,11 @@
             } else {
                 filtered.forEach(c => {
                     html += `<tr>
-                        <td class="font-bold">${c.name}</td>
-                        <td>${c.doc || '-'}</td>
-                        <td>${c.phone || '-'}</td>
-                        <td>${c.email || '-'}</td>
-                        <td>${c.address || '-'}</td>
+                        <td class="font-bold">${escapeHtml(c.name)}</td>
+                        <td>${escapeHtml(c.doc || '-')}</td>
+                        <td>${escapeHtml(c.phone || '-')}</td>
+                        <td>${escapeHtml(c.email || '-')}</td>
+                        <td>${escapeHtml(c.address || '-')}</td>
                         <td class="text-right">
                             <button onclick="editClient('${c.id}')" class="text-[#1E3A8A] hover:text-[#3B5BA5] mr-2"><i class="fas fa-edit"></i></button>
                             <button onclick="deleteClient('${c.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
@@ -1748,7 +1746,7 @@
             }
             let html = '';
             results.forEach(c => {
-                html += `<div class="autocomplete-suggestion p-2 cursor-pointer hover:bg-slate-100" onclick="selectClient('${c.id}')">${c.name}</div>`;
+                html += `<div class="autocomplete-suggestion p-2 cursor-pointer hover:bg-slate-100" onclick="selectClient('${c.id}')">${escapeHtml(c.name)}</div>`;
             });
             suggestionsDiv.innerHTML = html;
             suggestionsDiv.classList.remove('hidden');
@@ -1813,11 +1811,11 @@
             const selectorFilter = document.getElementById('catalog-selector-category');
             if (filterSelect) {
                 filterSelect.innerHTML = '<option value="">Todas categorias</option>' + 
-                    categories.map(c => `<option value="${c}">${c}</option>`).join('');
+                    categories.map(c => `<option value="${c}">${escapeHtml(c)}</option>`).join('');
             }
             if (selectorFilter) {
                 selectorFilter.innerHTML = '<option value="">Todas categorias</option>' + 
-                    categories.map(c => `<option value="${c}">${c}</option>`).join('');
+                    categories.map(c => `<option value="${c}">${escapeHtml(c)}</option>`).join('');
             }
         }
 
@@ -1840,10 +1838,10 @@
                             <div class="flex items-start gap-3">
                                 <div class="w-10 h-10 rounded-lg bg-[#1E3A8A]/10 flex items-center justify-center text-[#1E3A8A]"><i class="fas fa-cube"></i></div>
                                 <div class="flex-1">
-                                    <h4 class="font-bold text-slate-800">${item.name}</h4>
-                                    ${item.description ? `<p class="text-xs text-slate-500 mt-1">${item.description}</p>` : ''}
+                                    <h4 class="font-bold text-slate-800">${escapeHtml(item.name)}</h4>
+                                    ${item.description ? `<p class="text-xs text-slate-500 mt-1">${escapeHtml(item.description)}</p>` : ''}
                                     <div class="flex justify-between items-center mt-2">
-                                        <span class="text-xs bg-slate-100 px-2 py-0.5 rounded">${item.category || 'Sem categoria'}</span>
+                                        <span class="text-xs bg-slate-100 px-2 py-0.5 rounded">${escapeHtml(item.category || 'Sem categoria')}</span>
                                         <span class="font-bold text-[#10B981]">${item.price ? formatPrice(item.price) : 'Sob consulta'}</span>
                                     </div>
                                     <div class="flex justify-end gap-2 mt-3">
@@ -1966,10 +1964,10 @@
                         <div class="catalog-item flex items-center p-2 border-b">
                             <input type="checkbox" id="cat_${item.id}" value="${item.id}" ${checked} onchange="toggleCatalogSelect('${item.id}')" class="mr-3 accent-[#1E3A8A]">
                             <label for="cat_${item.id}" class="flex-1 cursor-pointer">
-                                <span class="font-bold">${item.name}</span>
-                                ${item.description ? `<span class="text-sm text-slate-500 ml-2">${item.description}</span>` : ''}
+                                <span class="font-bold">${escapeHtml(item.name)}</span>
+                                ${item.description ? `<span class="text-sm text-slate-500 ml-2">${escapeHtml(item.description)}</span>` : ''}
                                 ${item.price ? `<span class="text-sm font-mono ml-2">${formatPrice(item.price)}</span>` : ''}
-                                ${item.category ? `<span class="text-xs bg-slate-100 px-2 py-0.5 rounded ml-2">${item.category}</span>` : ''}
+                                ${item.category ? `<span class="text-xs bg-slate-100 px-2 py-0.5 rounded ml-2">${escapeHtml(item.category)}</span>` : ''}
                             </label>
                         </div>
                     `;
@@ -2035,6 +2033,48 @@
             const link = document.getElementById('catalog-share-link').innerText;
             const msg = `Confira meu catálogo de serviços: ${link}`;
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        // ==================== VIEW PÚBLICA DO CATÁLOGO ====================
+        async function loadPublicCatalog(userId) {
+            safeShow('public-catalog-loading');
+            try {
+                const { data: provider, error: userError } = await db.auth.admin.getUserById(userId);
+                if (userError) throw new Error("Usuário não encontrado");
+                const { data: catalog, error } = await db
+                    .from('service_catalog')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('name');
+                if (error) throw error;
+                document.getElementById('provider-name').innerText = provider.user.email || 'Prestador';
+                const container = document.getElementById('public-catalog-items');
+                let html = '';
+                catalog.forEach(item => {
+                    html += `
+                        <div class="border rounded-lg p-4 bg-white hover:shadow-md transition">
+                            <h3 class="font-bold text-slate-800">${escapeHtml(item.name)}</h3>
+                            ${item.description ? `<p class="text-sm text-slate-500 mt-1">${escapeHtml(item.description)}</p>` : ''}
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-xs bg-slate-100 px-2 py-1 rounded">${escapeHtml(item.category || 'Sem categoria')}</span>
+                                <span class="font-bold text-[#10B981]">${item.price ? formatPrice(item.price) : 'Sob consulta'}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html || '<p class="text-center col-span-full text-slate-500">Nenhum serviço disponível no momento.</p>';
+                safeHide('public-catalog-loading');
+                safeShow('public-catalog-content');
+            } catch (e) {
+                safeHide('public-catalog-loading');
+                showToast("Erro ao carregar catálogo: " + e.message, 'error');
+            }
+        }
+
+        function submitPublicCatalogRequest() {
+            const desc = document.getElementById('custom-service-description').value;
+            showToast("Funcionalidade em breve: o prestador será notificado.", 'info');
+            // Aqui poderia salvar em uma tabela de solicitações
         }
 
         // ==================== DASHBOARD E PROJETOS ====================
@@ -2117,14 +2157,14 @@
                         actionText = act.action;
                 }
                 const userLabel = 'Cliente';
-                const detail = act.detail ? ` – ${act.detail}` : '';
+                const detail = act.detail ? ` – ${escapeHtml(act.detail)}` : '';
                 const initials = act.projectName.charAt(0).toUpperCase();
                 html += `
                     <div class="activity-item flex gap-3 py-3">
                         <div class="avatar-circle w-8 h-8 bg-[#1E3A8A] text-white text-xs flex items-center justify-center rounded-full">${initials}</div>
                         <div class="flex-1">
                             <div class="flex items-center gap-2">
-                                <span class="font-bold text-sm">${act.projectName}</span>
+                                <span class="font-bold text-sm">${escapeHtml(act.projectName)}</span>
                                 <span class="text-xs px-2 py-0.5 rounded-full ${bgColor} ${textColor}">${actionText}</span>
                             </div>
                             <p class="text-xs text-slate-500 mt-1">${detail}</p>
@@ -2330,10 +2370,10 @@
                             <div class="avatar-circle w-10 h-10 bg-[#1E3A8A] text-white text-sm flex items-center justify-center rounded-full">${initials}</div>
                             <div class="flex-1">
                                 <div class="flex justify-between">
-                                    <h3 class="font-bold text-slate-800 group-hover:text-[#1E3A8A] transition truncate">${p.name}</h3>
+                                    <h3 class="font-bold text-slate-800 group-hover:text-[#1E3A8A] transition truncate">${escapeHtml(p.name)}</h3>
                                     <span class="status-badge ${badgeClass} ml-2">${statusLabel}</span>
                                 </div>
-                                <p class="text-xs text-slate-500 mt-1 truncate">${p.client_name || 'Novo Cliente'}</p>
+                                <p class="text-xs text-slate-500 mt-1 truncate">${escapeHtml(p.client_name || 'Novo Cliente')}</p>
                                 <div class="progress-bar mt-2">
                                     <div class="progress-fill ${progressClass}"></div>
                                 </div>
@@ -2565,7 +2605,7 @@
                                 Item 
                                 ${i.optional ? '<span class="optional-badge ml-2">Opcional</span>' : ''}
                             </label>
-                            <input class="w-full font-bold bg-transparent outline-none border-b border-transparent focus:border-blue-200" placeholder="Nome do Item..." value="${i.name}" oninput="upItem(${x},'name',this.value)" ${isLocked?'disabled':''}>
+                            <input class="w-full font-bold bg-transparent outline-none border-b border-transparent focus:border-blue-200" placeholder="Nome do Item..." value="${escapeHtml(i.name)}" oninput="upItem(${x},'name',this.value)" ${isLocked?'disabled':''}>
                         </div>
                         <div class="col-span-2">
                             <label class="text-[10px] font-bold text-gray-400 uppercase text-center block">Qtd</label>
@@ -2576,7 +2616,7 @@
                             <input type="text" class="w-full bg-slate-50 border rounded text-right text-xs p-1 price-input" value="${formatPrice(i.price)}" oninput="applyPriceMask(this, ${x})" data-index="${x}" ${isLocked?'disabled':''}>
                         </div>
                     </div>
-                    <textarea class="w-full bg-transparent text-xs text-slate-500 resize-none outline-none border-t border-dashed pt-2 mt-2" rows="2" placeholder="Descrição técnica..." oninput="upItem(${x},'description',this.value)" ${isLocked?'disabled':''}>${i.description||''}</textarea>
+                    <textarea class="w-full bg-transparent text-xs text-slate-500 resize-none outline-none border-t border-dashed pt-2 mt-2" rows="2" placeholder="Descrição técnica..." oninput="upItem(${x},'description',this.value)" ${isLocked?'disabled':''}>${escapeHtml(i.description||'')}</textarea>
                     ${!isLocked ? `
                         <button onclick="toggleOpt(${x})" class="text-[10px] mt-2 px-2 py-1 rounded border ${i.optional ? 'bg-slate-600 text-white border-slate-600' : 'text-slate-400 border-slate-200 hover:border-slate-400'}">
                             ${i.optional ? 'ITEM OPCIONAL' : 'Marcar como Opcional?'}
@@ -2725,17 +2765,32 @@
                 e.target.value = '';
             }
         }
-        function deleteAttachment(idx) {
+
+        async function deleteAttachment(idx) {
             if(!confirm("Remover este anexo?")) return;
+            const att = state.data.attachments[idx];
+            // Extrair o path da URL pública (assumindo que o bucket é público)
+            const urlParts = att.url.split('/');
+            const path = urlParts.slice(urlParts.indexOf('attachments') + 1).join('/');
+            if (path) {
+                try {
+                    await db.storage.from('attachments').remove([path]);
+                } catch (err) {
+                    console.warn("Erro ao remover arquivo do storage:", err);
+                }
+            }
             state.data.attachments.splice(idx, 1);
-            save().then(() => renderAttachments());
+            await save();
+            renderAttachments();
             showToast('Anexo removido.', 'success');
         }
+
         function updateAttachmentDescription(idx, desc) {
             state.data.attachments[idx].description = desc;
             clearTimeout(window.descTimeout);
             window.descTimeout = setTimeout(() => save(), 800);
         }
+
         function renderAttachments() {
             const attachList = document.getElementById('ed-attachments-list');
             if (!attachList) return;
@@ -2749,7 +2804,7 @@
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2 overflow-hidden">
                                 ${preview || `<i class="fas ${icon}"></i>`}
-                                <span class="truncate font-medium">${att.name}</span>
+                                <span class="truncate font-medium">${escapeHtml(att.name)}</span>
                             </div>
                             <div class="flex gap-2">
                                 <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700"><i class="fas fa-eye"></i></a>
@@ -2760,10 +2815,10 @@
                             <label class="text-[10px] font-bold text-slate-400 uppercase">Descrição</label>
                             ${!isLocked 
                                 ? `<input type="text" class="w-full border-0 border-b border-slate-200 bg-transparent text-xs p-1 focus:border-[#1E3A8A]" 
-                                    value="${att.description || ''}" 
+                                    value="${escapeHtml(att.description || '')}" 
                                     placeholder="Ex: Nota fiscal, memorial fotográfico..."
                                     onchange="updateAttachmentDescription(${idx}, this.value);">`
-                                : `<p class="text-xs text-slate-600 mt-1">${att.description || '—'}</p>`
+                                : `<p class="text-xs text-slate-600 mt-1">${escapeHtml(att.description || '—')}</p>`
                             }
                         </div>
                     </div>`;
@@ -2874,7 +2929,7 @@
                         <div class="font-bold text-sm text-slate-700 flex items-center gap-2 mt-1">
                             <i class="fas fa-${icon}"></i> ${actionLabel}
                         </div>
-                        ${h.detail ? `<div class="timeline-desc ${h.action.includes('request') ? '' : 'system'}">${h.detail}</div>` : ''}
+                        ${h.detail ? `<div class="timeline-desc ${h.action.includes('request') ? '' : 'system'}">${escapeHtml(h.detail)}</div>` : ''}
                     </div>`;
                 });
             } else {
@@ -2892,7 +2947,6 @@
                 state.version = v; 
                 state.data = normalizeData(v.items);
                 const d = state.data;
-                // Registrar visualização
                 if (!d.viewedAt) {
                     d.viewedAt = new Date().toISOString();
                     await db.from('versions').update({ items: d }).eq('id', id);
@@ -2907,7 +2961,7 @@
                     safeText('doc-date', '--/--/--');
                 }
                 if(d.settings.providerName) {
-                    setHTML('doc-provider-info', `<div class="mb-4 pb-4 border-b border-slate-700"><h2 class="text-xl font-bold">${d.settings.providerName}</h2><p class="text-slate-400 text-sm">${d.settings.providerDoc || ''} • ${d.settings.providerPhone || ''}</p><p class="text-slate-400 text-xs">${d.settings.providerAddr || ''}</p></div>`);
+                    setHTML('doc-provider-info', `<div class="mb-4 pb-4 border-b border-slate-700"><h2 class="text-xl font-bold">${escapeHtml(d.settings.providerName)}</h2><p class="text-slate-400 text-sm">${escapeHtml(d.settings.providerDoc || '')} • ${escapeHtml(d.settings.providerPhone || '')}</p><p class="text-slate-400 text-xs">${escapeHtml(d.settings.providerAddr || '')}</p></div>`);
                 }
                 safeText('doc-title', v.projects?.name);
                 safeText('doc-id', `#${v.project_id ? v.project_id.substr(0,4).toUpperCase() : 'XXXX'}-${v.version_number}`);
@@ -2927,10 +2981,10 @@
                         attHtml += `<div class="att-card border rounded-lg p-3">
                             <div class="flex items-center gap-3">
                                 <i class="fas ${icon} text-lg"></i>
-                                <span class="text-sm font-medium text-slate-700 truncate">${att.name}</span>
+                                <span class="text-sm font-medium text-slate-700 truncate">${escapeHtml(att.name)}</span>
                                 <a href="${att.url}" target="_blank" class="text-blue-500 hover:text-blue-700 ml-auto"><i class="fas fa-eye"></i></a>
                             </div>
-                            ${att.description ? `<p class="text-xs text-slate-500 mt-1 pl-2 border-l-2 border-blue-200">${att.description}</p>` : ''}
+                            ${att.description ? `<p class="text-xs text-slate-500 mt-1 pl-2 border-l-2 border-blue-200">${escapeHtml(att.description)}</p>` : ''}
                         </div>`;
                     });
                     attHtml += '</div>';
@@ -2982,9 +3036,9 @@
                             ${i.optional && isFrozen ? (i.publicSelected ? '<i class="fas fa-check-square text-[#10B981] mt-1"></i>' : '<i class="fas fa-square text-slate-400 mt-1"></i>') : ''}
                             <div>
                                 <div class="font-bold text-slate-800 ${i.optional ? 'text-slate-600' : ''}">
-                                    ${i.name} ${i.optional ? '<span class="text-[10px] bg-slate-200 text-slate-600 px-1 rounded uppercase ml-2">Opcional</span>' : ''}
+                                    ${escapeHtml(i.name)} ${i.optional ? '<span class="text-[10px] bg-slate-200 text-slate-600 px-1 rounded uppercase ml-2">Opcional</span>' : ''}
                                 </div>
-                                <span class="font-normal text-xs text-slate-500">${i.description}</span>
+                                <span class="font-normal text-xs text-slate-500">${escapeHtml(i.description)}</span>
                             </div>
                         </div>
                     </td>
@@ -3027,45 +3081,16 @@
             });
         }
 
-        function openModal(type) {
-            const modal = document.getElementById('interaction-modal');
-            const title = document.getElementById('modal-title');
-            const desc = document.getElementById('modal-desc');
-            const input = document.getElementById('modal-input');
-            const sigArea = document.getElementById('modal-sig-area');
-            const btn = document.getElementById('modal-btn');
-            modal.classList.remove('hidden');
-            input.value = '';
-            input.classList.add('hidden');
-            sigArea.classList.add('hidden');
-            if(type === 'approve') {
-                title.innerText = 'Assinar e Aprovar';
-                desc.innerText = 'Por favor, assine abaixo para confirmar a aprovação.';
-                sigArea.classList.remove('hidden');
-                btn.innerText = 'Confirmar Aprovação';
-                btn.className = "flex-1 bg-[#10B981] text-white py-3 rounded font-bold hover:bg-[#0E9E6F]";
-                btn.onclick = () => executeAction('approve');
-                setTimeout(initSignaturePad, 100); 
-            } else if(type === 'change') {
-                title.innerText = 'O que deseja alterar?';
-                desc.innerText = 'Descreva as mudanças desejadas:';
-                input.classList.remove('hidden');
-                btn.innerText = 'Enviar Solicitação';
-                btn.className = "flex-1 bg-[#F59E0B] text-white py-3 rounded font-bold hover:bg-[#E68A00]";
-                btn.onclick = () => executeAction('change');
-            } else if(type === 'cancel') {
-                title.innerText = 'Recusar Orçamento';
-                desc.innerText = 'Motivo (Opcional):';
-                input.classList.remove('hidden');
-                btn.innerText = 'Confirmar Recusa';
-                btn.className = "flex-1 bg-red-600 text-white py-3 rounded font-bold hover:bg-red-700";
-                btn.onclick = () => executeAction('cancel');
-            }
-        }
-
+        let signaturePadInitialized = false;
         function initSignaturePad() {
             const canvas = document.getElementById('signature-pad');
             if (!canvas) return;
+            if (signaturePadInitialized) {
+                // Limpa o canvas e reinicia contexto
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                return;
+            }
             const ctx = canvas.getContext('2d');
             function resizeCanvas() {
                 const ratio = Math.max(window.devicePixelRatio || 1, 1);
@@ -3107,6 +3132,43 @@
             document.getElementById('clear-sig').onclick = () => { 
                 ctx.clearRect(0, 0, canvas.width, canvas.height); 
             };
+            signaturePadInitialized = true;
+        }
+
+        function openModal(type) {
+            const modal = document.getElementById('interaction-modal');
+            const title = document.getElementById('modal-title');
+            const desc = document.getElementById('modal-desc');
+            const input = document.getElementById('modal-input');
+            const sigArea = document.getElementById('modal-sig-area');
+            const btn = document.getElementById('modal-btn');
+            modal.classList.remove('hidden');
+            input.value = '';
+            input.classList.add('hidden');
+            sigArea.classList.add('hidden');
+            if(type === 'approve') {
+                title.innerText = 'Assinar e Aprovar';
+                desc.innerText = 'Por favor, assine abaixo para confirmar a aprovação.';
+                sigArea.classList.remove('hidden');
+                btn.innerText = 'Confirmar Aprovação';
+                btn.className = "flex-1 bg-[#10B981] text-white py-3 rounded font-bold hover:bg-[#0E9E6F]";
+                btn.onclick = () => executeAction('approve');
+                setTimeout(initSignaturePad, 100); 
+            } else if(type === 'change') {
+                title.innerText = 'O que deseja alterar?';
+                desc.innerText = 'Descreva as mudanças desejadas:';
+                input.classList.remove('hidden');
+                btn.innerText = 'Enviar Solicitação';
+                btn.className = "flex-1 bg-[#F59E0B] text-white py-3 rounded font-bold hover:bg-[#E68A00]";
+                btn.onclick = () => executeAction('change');
+            } else if(type === 'cancel') {
+                title.innerText = 'Recusar Orçamento';
+                desc.innerText = 'Motivo (Opcional):';
+                input.classList.remove('hidden');
+                btn.innerText = 'Confirmar Recusa';
+                btn.className = "flex-1 bg-red-600 text-white py-3 rounded font-bold hover:bg-red-700";
+                btn.onclick = () => executeAction('cancel');
+            }
         }
 
         async function executeAction(type) {
@@ -3114,21 +3176,26 @@
             const btn = document.getElementById('modal-btn');
             btn.innerText = "Processando...";
             btn.disabled = true;
-            if (type === 'approve') {
-                const canvas = document.getElementById('signature-pad');
-                const signatureData = canvas.toDataURL();
-                state.data.signature = signatureData;
-                await approveLogic();
-            } else if (type === 'change') {
-                if(!inputVal) { 
-                    showToast("Escreva o que deseja alterar.", 'warning'); 
-                    btn.disabled = false; 
-                    btn.innerText = "Enviar Solicitação"; 
-                    return; 
+            try {
+                if (type === 'approve') {
+                    const canvas = document.getElementById('signature-pad');
+                    const signatureData = canvas.toDataURL();
+                    state.data.signature = signatureData;
+                    await approveLogic();
+                } else if (type === 'change') {
+                    if(!inputVal) { 
+                        showToast("Escreva o que deseja alterar.", 'warning'); 
+                        return; 
+                    }
+                    await sendLogic('change_request', 'negotiating', inputVal);
+                } else if (type === 'cancel') {
+                    await sendLogic('canceled', 'canceled', inputVal || 'Recusado pelo cliente');
                 }
-                await sendLogic('change_request', 'negotiating', inputVal);
-            } else if (type === 'cancel') {
-                await sendLogic('canceled', 'canceled', inputVal || 'Recusado pelo cliente');
+            } catch (err) {
+                showToast("Erro: " + err.message, 'error');
+            } finally {
+                btn.innerText = type === 'approve' ? 'Confirmar Aprovação' : (type === 'change' ? 'Enviar Solicitação' : 'Confirmar Recusa');
+                btn.disabled = false;
             }
         }
 
