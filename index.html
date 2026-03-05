@@ -1412,21 +1412,47 @@
             });
         }
 
-        function getChanges(oldArr, newArr) {
-            let logs = [];
-            const oldMap = new Map(oldArr.map(i => [i.id, i]));
-            const newMap = new Map(newArr.map(i => [i.id, i]));
-            newArr.forEach(i => {
-                if(!oldMap.has(i.id)) logs.push(`Adicionou: ${i.name || 'Item sem nome'}`);
-                else {
-                    const old = oldMap.get(i.id);
-                    if(old.name !== i.name) logs.push(`Renomeou: ${old.name || 'Sem nome'} -> ${i.name}`);
-                    if(old.price !== i.price || old.qty !== i.qty) logs.push(`Alterou valor/qtd: ${i.name}`);
-                }
-            });
-            oldArr.forEach(i => { if(!newMap.has(i.id)) logs.push(`Removeu: ${i.name}`); });
-            return logs.length ? logs.join('; ') : null;
+function getChanges(oldArr, newArr) {
+    let logs = [];
+    const oldMap = new Map(oldArr.map(i => [i.id, i]));
+    const newMap = new Map(newArr.map(i => [i.id, i]));
+
+    // Itens adicionados
+    newArr.forEach(i => {
+        if (!oldMap.has(i.id)) {
+            logs.push(`➕ Adicionou: ${i.name || 'Item sem nome'} (R$ ${i.price?.toFixed(2)} - ${i.qty} und)`);
         }
+    });
+
+    // Itens removidos
+    oldArr.forEach(i => {
+        if (!newMap.has(i.id)) {
+            logs.push(`➖ Removeu: ${i.name || 'Item sem nome'}`);
+        }
+    });
+
+    // Itens modificados
+    newArr.forEach(i => {
+        if (oldMap.has(i.id)) {
+            const old = oldMap.get(i.id);
+            const changes = [];
+            if (old.name !== i.name) {
+                changes.push(`✏️ Renomeou: "${old.name}" → "${i.name}"`);
+            }
+            if (old.price !== i.price) {
+                changes.push(`💰 Preço: R$ ${old.price?.toFixed(2)} → R$ ${i.price?.toFixed(2)}`);
+            }
+            if (old.qty !== i.qty) {
+                changes.push(`📦 Quantidade: ${old.qty} → ${i.qty}`);
+            }
+            if (changes.length > 0) {
+                logs.push(`📝 Item "${i.name}": ${changes.join('; ')}`);
+            }
+        }
+    });
+
+    return logs.length ? logs.join('; ') : null;
+}
 
         // ----- CLIENTES (CRUD) -----
         async function loadClients() {
@@ -3039,16 +3065,13 @@ async function exportHistoryPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
-    // Cores da marca
     const primaryColor = [46, 125, 50]; // #2e7d32
-    const lightGreen = [225, 240, 225];
     
-    // Tentar carregar a logo do DOM
+    // Tentar carregar a logo
     let logoDataUrl = null;
     try {
         const logoImg = document.querySelector('img[src="logo.png"]');
         if (logoImg) {
-            // Criar um canvas para converter a imagem em dataURL
             const canvas = document.createElement('canvas');
             canvas.width = logoImg.naturalWidth || 100;
             canvas.height = logoImg.naturalHeight || 40;
@@ -3057,10 +3080,10 @@ async function exportHistoryPDF() {
             logoDataUrl = canvas.toDataURL('image/png');
         }
     } catch (e) {
-        console.warn("Não foi possível carregar a logo:", e);
+        console.warn("Logo não carregada, usando texto");
     }
     
-    // Cabeçalho
+    // Cabeçalho com logo
     if (logoDataUrl) {
         doc.addImage(logoDataUrl, 'PNG', 14, 10, 40, 16);
     } else {
@@ -3075,9 +3098,7 @@ async function exportHistoryPDF() {
     doc.setFont('helvetica', 'bold');
     doc.text('Histórico do Orçamento', 70, 20);
     
-    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.setLineWidth(1);
-    doc.line(14, 25, 196, 25);
+    // LINHA VERDE REMOVIDA - não desenhamos mais a linha
     
     // Informações do projeto
     doc.setFontSize(11);
@@ -3099,7 +3120,6 @@ async function exportHistoryPDF() {
         if (y > pageHeight - marginBottom) {
             doc.addPage();
             y = 20;
-            // Redesenhar cabeçalho simplificado
             if (logoDataUrl) {
                 doc.addImage(logoDataUrl, 'PNG', 14, 10, 40, 16);
             } else {
@@ -3112,8 +3132,6 @@ async function exportHistoryPDF() {
             doc.setTextColor(60,60,60);
             doc.setFont('helvetica', 'bold');
             doc.text('Histórico (continuação)', 70, 20);
-            doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-            doc.line(14, 25, 196, 25);
             y = 35;
         }
         
@@ -3152,7 +3170,7 @@ async function exportHistoryPDF() {
                 actionLabel = 'Cancelamento';
                 break;
             case 'sent':
-                icon = '➤';
+                icon = '→';
                 color = [33, 150, 243];
                 actionLabel = 'Envio de link';
                 break;
@@ -3168,7 +3186,6 @@ async function exportHistoryPDF() {
                 break;
         }
         
-        // Desenhar marcador
         doc.setFillColor(color[0], color[1], color[2]);
         doc.circle(18, y - 2, 2, 'F');
         
@@ -3184,31 +3201,14 @@ async function exportHistoryPDF() {
         
         y += 8;
         
-        // Detalhes: melhorar a exibição das alterações
         if (h.detail) {
-            // Para ação 'edited', podemos tentar formatar melhor
+            // Se for uma edição, já vem com os ícones e valores detalhados
             if (h.action === 'edited') {
                 const changes = h.detail.split('; ');
                 changes.forEach(change => {
-                    // Tentar extrair informações de antes/depois se no formato "Alterou valor/qtd: Nome"
-                    // Como não temos os valores antigos/novos estruturados, mostramos a mensagem original
-                    // Mas podemos adicionar uma seta ou algo
-                    let displayChange = change;
-                    // Se começar com "Alterou valor/qtd:", pode ser interessante
-                    if (change.startsWith('Alterou valor/qtd:')) {
-                        displayChange = '⚡ ' + change;
-                    } else if (change.startsWith('Renomeou:')) {
-                        displayChange = '✏️ ' + change;
-                    } else if (change.startsWith('Adicionou:')) {
-                        displayChange = '➕ ' + change;
-                    } else if (change.startsWith('Removeu:')) {
-                        displayChange = '➖ ' + change;
-                    }
-                    
                     if (y > pageHeight - marginBottom) {
                         doc.addPage();
                         y = 20;
-                        // Redesenhar cabeçalho (simplificado)
                         if (logoDataUrl) {
                             doc.addImage(logoDataUrl, 'PNG', 14, 10, 40, 16);
                         } else {
@@ -3221,18 +3221,15 @@ async function exportHistoryPDF() {
                         doc.setTextColor(60,60,60);
                         doc.setFont('helvetica', 'bold');
                         doc.text('Histórico (continuação)', 70, 20);
-                        doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-                        doc.line(14, 25, 196, 25);
                         y = 35;
                     }
                     doc.setFontSize(9);
                     doc.setTextColor(80, 80, 80);
                     doc.setFont('helvetica', 'normal');
-                    doc.text(`   ${displayChange}`, 24, y);
+                    doc.text(`   ${change}`, 24, y);
                     y += 5;
                 });
             } else {
-                // Outras ações
                 if (y > pageHeight - marginBottom) {
                     doc.addPage();
                     y = 20;
@@ -3248,8 +3245,6 @@ async function exportHistoryPDF() {
                     doc.setTextColor(60,60,60);
                     doc.setFont('helvetica', 'bold');
                     doc.text('Histórico (continuação)', 70, 20);
-                    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-                    doc.line(14, 25, 196, 25);
                     y = 35;
                 }
                 doc.setFontSize(9);
@@ -3265,7 +3260,7 @@ async function exportHistoryPDF() {
         y += 4;
     });
     
-    // Rodapé com código de validação
+    // Rodapé
     const hash = btoa(state.project.id + state.data.client.name + state.version.id).substring(0, 10);
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
@@ -3783,5 +3778,6 @@ async function exportHistoryPDF() {
     </script>
 </body>
 </html>
+
 
 
