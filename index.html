@@ -539,6 +539,63 @@
             font-weight: 700;
             color: #059669;
         }
+
+        /* Estilos para o histórico melhorado */
+        .timeline-modern {
+            position: relative;
+            padding-left: 2rem;
+        }
+        .timeline-modern::before {
+            content: '';
+            position: absolute;
+            left: 7px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e2e8f0;
+        }
+        .timeline-event {
+            position: relative;
+            padding-bottom: 1.5rem;
+        }
+        .timeline-event:last-child {
+            padding-bottom: 0;
+        }
+        .timeline-bullet {
+            position: absolute;
+            left: -2rem;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5rem;
+        }
+        .timeline-date {
+            font-size: 0.7rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+        .timeline-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .timeline-detail {
+            font-size: 0.8rem;
+            color: #475569;
+            background: #f8fafc;
+            padding: 0.5rem;
+            border-radius: 6px;
+            margin-top: 0.25rem;
+            border-left: 2px solid #94a3b8;
+        }
     </style>
 </head>
 <body>
@@ -997,9 +1054,15 @@
                             <div id="ed-actions-area" class="space-y-3"></div>
                         </div>
 
+                        <!-- HISTÓRICO MELHORADO COM TIMELINE E BOTÃO DE EXPORTAÇÃO -->
                         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                            <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-history text-blue-600"></i> Histórico</h3>
-                            <div id="ed-history" class="space-y-4 max-h-80 overflow-y-auto pr-1"></div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-bold text-slate-700 flex items-center gap-2"><i class="fas fa-history text-blue-600"></i> Linha do Tempo</h3>
+                                <button onclick="exportHistoryPDF()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1 rounded font-bold">
+                                    <i class="fas fa-file-pdf mr-1"></i> Exportar PDF
+                                </button>
+                            </div>
+                            <div id="ed-history" class="timeline-modern max-h-96 overflow-y-auto pr-2"></div>
                         </div>
                     </div>
                 </div>
@@ -1970,7 +2033,8 @@
                 const version = project.versions?.[0] || null;
                 if (version?.items?.history && Array.isArray(version.items.history)) {
                     version.items.history.forEach(h => {
-                        if (h.user === 'client' && ['approved', 'change_request', 'canceled'].includes(h.action)) {
+                        // Inclui ações do cliente e também a criação via catálogo (user 'client', action 'created')
+                        if (h.user === 'client' && ['approved', 'change_request', 'canceled', 'created'].includes(h.action)) {
                             activities.push({
                                 date: h.date,
                                 projectId: project.id,
@@ -2018,6 +2082,12 @@
                         bgColor = 'bg-red-100';
                         textColor = 'text-red-600';
                         actionText = 'Cancelou';
+                        break;
+                    case 'created':
+                        icon = 'fa-plus-circle';
+                        bgColor = 'bg-blue-100';
+                        textColor = 'text-blue-600';
+                        actionText = 'Solicitou orçamento via catálogo';
                         break;
                     default:
                         icon = 'fa-info-circle';
@@ -2892,32 +2962,114 @@
             safeShow('share-modal');
         }
 
+        // Histórico melhorado em timeline
         function renderHistory() {
             const hist = state.data.history || [];
+            hist.sort((a, b) => new Date(a.date) - new Date(b.date));
             let histHtml = '';
-            if(hist.length > 0) {
-                hist.sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(h => {
+            if (hist.length > 0) {
+                hist.forEach(h => {
                     const date = new Date(h.date).toLocaleString('pt-BR');
-                    let icon = 'info-circle text-blue-400';
-                    let actionLabel = 'Visualizou';
-                    if (h.action === 'approved') { icon = 'check text-green-500'; actionLabel = 'Aprovou'; }
-                    else if (h.action === 'change_request') { icon = 'comment-dots text-amber-500'; actionLabel = 'Solicitou alteração'; }
-                    else if (h.action === 'canceled') { icon = 'times text-red-500'; actionLabel = 'Recusou/Cancelou'; }
-                    else if (h.action === 'created') { icon = 'plus-circle text-blue-600'; actionLabel = 'Criou o orçamento'; }
-                    else if (h.action === 'edited') { icon = 'pen text-indigo-500'; actionLabel = 'Alterou o escopo'; }
-                    else if (h.action === 'sent') { icon = 'paper-plane text-blue-500'; actionLabel = 'Enviou link'; }
-                    histHtml += `<div class="timeline-item">
-                        <div class="text-xs text-slate-400">${date} • ${h.user === 'provider' ? 'Você' : 'Cliente'}</div>
-                        <div class="font-bold text-sm text-slate-700 flex items-center gap-2 mt-1">
-                            <i class="fas fa-${icon}"></i> ${actionLabel}
+                    let icon = 'info-circle';
+                    let color = 'text-blue-500';
+                    let borderColor = 'border-blue-500';
+                    let actionLabel = 'Evento';
+                    if (h.action === 'created') {
+                        icon = 'plus-circle';
+                        color = 'text-green-600';
+                        borderColor = 'border-green-600';
+                        actionLabel = h.user === 'provider' ? 'Criação' : 'Solicitação via catálogo';
+                    } else if (h.action === 'edited') {
+                        icon = 'pen';
+                        color = 'text-indigo-500';
+                        borderColor = 'border-indigo-500';
+                        actionLabel = 'Alteração de escopo';
+                    } else if (h.action === 'approved') {
+                        icon = 'check-circle';
+                        color = 'text-green-500';
+                        borderColor = 'border-green-500';
+                        actionLabel = 'Aprovação';
+                    } else if (h.action === 'change_request') {
+                        icon = 'comment-dots';
+                        color = 'text-amber-500';
+                        borderColor = 'border-amber-500';
+                        actionLabel = 'Solicitação de alteração';
+                    } else if (h.action === 'canceled') {
+                        icon = 'times-circle';
+                        color = 'text-red-500';
+                        borderColor = 'border-red-500';
+                        actionLabel = 'Cancelamento';
+                    } else if (h.action === 'sent') {
+                        icon = 'paper-plane';
+                        color = 'text-blue-500';
+                        borderColor = 'border-blue-500';
+                        actionLabel = 'Envio de link';
+                    } else if (h.action === 'viewed') {
+                        icon = 'eye';
+                        color = 'text-slate-500';
+                        borderColor = 'border-slate-500';
+                        actionLabel = 'Visualização';
+                    } else if (h.action === 'pdf_downloaded') {
+                        icon = 'file-pdf';
+                        color = 'text-red-500';
+                        borderColor = 'border-red-500';
+                        actionLabel = 'Download do PDF';
+                    }
+                    const userLabel = h.user === 'provider' ? 'Você' : 'Cliente';
+                    histHtml += `
+                        <div class="timeline-event">
+                            <div class="timeline-bullet ${borderColor}" style="background: white;">
+                                <i class="fas fa-${icon} ${color} text-[0.5rem]"></i>
+                            </div>
+                            <div class="timeline-date">${date} • ${userLabel}</div>
+                            <div class="timeline-title">${actionLabel}</div>
+                            ${h.detail ? `<div class="timeline-detail">${h.detail}</div>` : ''}
                         </div>
-                        ${h.detail ? `<div class="timeline-desc ${h.action.includes('request') ? '' : 'system'}">${h.detail}</div>` : ''}
-                    </div>`;
+                    `;
                 });
             } else {
-                histHtml = '<div class="text-xs text-slate-400 italic">Sem histórico registrado.</div>';
+                histHtml = '<div class="text-center text-slate-400 py-4">Nenhum evento registrado ainda.</div>';
             }
             setHTML('ed-history', histHtml);
+        }
+
+        // Exportar histórico em PDF
+        async function exportHistoryPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const history = state.data.history || [];
+            history.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            doc.setFontSize(16);
+            doc.text(`Histórico do Orçamento: ${state.project.name}`, 14, 20);
+            doc.setFontSize(10);
+            let y = 30;
+            history.forEach((h, index) => {
+                const date = new Date(h.date).toLocaleString('pt-BR');
+                const user = h.user === 'provider' ? 'Você' : 'Cliente';
+                let action = h.action;
+                if (h.action === 'created') action = 'Criação';
+                else if (h.action === 'edited') action = 'Alteração';
+                else if (h.action === 'approved') action = 'Aprovação';
+                else if (h.action === 'change_request') action = 'Solicitação de alteração';
+                else if (h.action === 'canceled') action = 'Cancelamento';
+                else if (h.action === 'sent') action = 'Envio de link';
+                else if (h.action === 'viewed') action = 'Visualização';
+                else if (h.action === 'pdf_downloaded') action = 'Download do PDF';
+                
+                doc.text(`${date} - ${user} - ${action}`, 14, y);
+                y += 5;
+                if (h.detail) {
+                    doc.text(`  Detalhe: ${h.detail}`, 14, y);
+                    y += 5;
+                }
+                y += 2;
+                if (y > 280) {
+                    doc.addPage();
+                    y = 20;
+                }
+            });
+            doc.save(`historico_${state.project.name}.pdf`);
         }
 
         // ========== PÁGINA PÚBLICA (PROPOSTA) ==========
@@ -2929,6 +3081,11 @@
                 state.version = v; 
                 state.data = normalizeData(v.items);
                 const d = state.data;
+
+                // Registrar visualização
+                logHistory('viewed', 'client', 'Cliente visualizou o orçamento');
+                await db.from('versions').update({ items: state.data }).eq('id', state.version.id);
+
                 if(v.status === 'approved') {
                     document.getElementById('stamp-approved').style.display = 'block';
                     if (v.approved_at) {
@@ -3057,6 +3214,9 @@
                 document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
                 stamp.style.display = originalDisplay;
             });
+            // Registrar download
+            logHistory('pdf_downloaded', 'client', 'Cliente baixou o PDF');
+            db.from('versions').update({ items: state.data }).eq('id', state.version.id);
         }
 
         function openModal(type) {
@@ -3441,7 +3601,7 @@
         }
 
         setChartPeriod(30);
-         window.onload = init;
+        window.onload = init;
         window.onpopstate = init;
     </script>
 </body>
