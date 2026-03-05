@@ -1,9 +1,8 @@
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
 diff --git a/index.html b/index.html
-index c7079289eb6dfbc8b2aa078d29f1ac8f3589a7c7..8b5ffff1c11979ae24aeed5124457fb51bf21a9f 100644
+index c7079289eb6dfbc8b2aa078d29f1ac8f3589a7c7..68eb10863166a2af2f0150640e2e988a79fce458 100644
 --- a/index.html
 +++ b/index.html
-@@ -1,3394 +1,3419 @@
+@@ -1,3394 +1,3447 @@
 -<!DOCTYPE html>
 -<html lang="pt-BR">
 -<head>
@@ -6761,8 +6760,28 @@ index c7079289eb6dfbc8b2aa078d29f1ac8f3589a7c7..8b5ffff1c11979ae24aeed5124457fb5
 +            }
 +        }
 +
++        function failBoot(message) {
++            const loader = document.getElementById('system-loader');
++            if (loader) loader.style.display = 'none';
++            safeShow('fatal-error');
++            safeText('error-msg', message);
++        }
++
++        function checkRequiredLibs() {
++            const missing = [];
++            if (typeof supabase === 'undefined') missing.push('Supabase SDK');
++            if (typeof Chart === 'undefined') missing.push('Chart.js');
++            if (typeof html2pdf === 'undefined') missing.push('html2pdf');
++            return missing;
++        }
++
 +        async function init() {
 +            try {
++                const missing = checkRequiredLibs();
++                if (missing.length > 0) {
++                    failBoot(`Dependências não carregadas: ${missing.join(', ')}. Verifique internet/CDN e recarregue.`);
++                    return;
++                }
 +                db = createClient(SUPABASE_URL, SUPABASE_KEY);
 +                const params = new URLSearchParams(window.location.search);
 +                const view = params.get('view') || 'login';
@@ -6813,10 +6832,15 @@ index c7079289eb6dfbc8b2aa078d29f1ac8f3589a7c7..8b5ffff1c11979ae24aeed5124457fb5
 +        setChartPeriod(30);
 +        window.onload = init;
 +        window.onpopstate = init;
++
++        setTimeout(() => {
++            const loader = document.getElementById('system-loader');
++            const fatal = document.getElementById('fatal-error');
++            if (loader && loader.style.display !== 'none' && fatal && fatal.classList.contains('hidden')) {
++                failBoot('A inicialização demorou demais. Verifique conexão com CDN e recarregue a página (Ctrl+F5).');
++            }
++        }, 12000);
 +    </script>
 +</body>
 +</html>
 +
- 
-EOF
-)
