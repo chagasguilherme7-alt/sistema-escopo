@@ -391,7 +391,6 @@
 
         /* ========== MELHORIAS MOBILE ========== */
         @media (max-width: 767px) {
-            /* Aumenta área de toque */
             .nav-item {
                 padding: 16px 24px;
                 min-height: 56px;
@@ -414,7 +413,6 @@
                 margin-left: 0;
                 padding: 1rem;
             }
-            /* Backdrop para o sidebar */
             .sidebar-backdrop {
                 display: none;
                 position: fixed;
@@ -428,33 +426,27 @@
             .sidebar.open ~ .sidebar-backdrop {
                 display: block;
             }
-            /* KPIs: 2 por linha */
             .grid-cols-1.md\:grid-cols-2.lg\:grid-cols-5 {
                 grid-template-columns: repeat(2, 1fr);
             }
-            /* Cards de projeto em coluna única */
             #project-cards-container {
                 grid-template-columns: 1fr;
             }
-            /* Tabelas com rolagem horizontal */
             .bg-white.rounded-xl.border.border-slate-200.overflow-hidden {
                 overflow-x: auto;
             }
             .custom-table {
                 min-width: 600px;
             }
-            /* Editor: empilha colunas */
             .xl\:col-span-2, .xl\:col-span-1 {
                 grid-column: span 1 / span 1;
             }
             .grid-cols-1.xl\:grid-cols-3 {
                 grid-template-columns: 1fr;
             }
-            /* Campos do cliente em uma coluna */
             .grid-cols-2 {
                 grid-template-columns: 1fr;
             }
-            /* Itens do escopo (nome, qtd, preço) */
             .item-box .grid.grid-cols-12 {
                 grid-template-columns: 1fr 1fr 1fr;
                 gap: 0.5rem;
@@ -465,17 +457,14 @@
             .item-box .grid.grid-cols-12 > .col-span-2 {
                 grid-column: span 1 / span 1;
             }
-            /* Inputs e botões maiores */
             input, select, textarea, button {
                 font-size: 16px;
                 min-height: 48px;
             }
-            /* Modais ocupam 90% da largura */
             .fixed.inset-0 .bg-white {
                 max-width: 90%;
                 margin: 0 auto;
             }
-            /* Header mobile mais espaçoso */
             .mobile-header {
                 padding: 0.75rem 1rem;
             }
@@ -483,14 +472,73 @@
                 min-height: 48px;
                 min-width: 48px;
             }
-            /* Filtros rápidos no sidebar */
             .sidebar .px-6.py-4 .flex.items-center {
                 min-height: 44px;
             }
-            /* Botão de novo orçamento flutuante? mantido no menu */
         }
 
-        /* ===== FIM DAS MELHORIAS MOBILE ===== */
+        /* Novos estilos para cards do catálogo */
+        .catalog-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1.25rem;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .catalog-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+        }
+        .catalog-card .category-tag {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+        .catalog-card .price-tag {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+        .ranking-item:last-child {
+            border-bottom: none;
+        }
+        .ranking-position {
+            width: 24px;
+            height: 24px;
+            background: #f1f5f9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #334155;
+            margin-right: 0.75rem;
+        }
+        .ranking-name {
+            flex: 1;
+            font-weight: 500;
+            color: #0f172a;
+        }
+        .ranking-value {
+            font-weight: 700;
+            color: #059669;
+        }
     </style>
 </head>
 <body>
@@ -613,6 +661,9 @@
                 </div>
                 <div onclick="switchTab('clients')" class="nav-item" id="nav-clients"><i class="fas fa-users"></i> Clientes</div>
                 <div onclick="switchTab('catalog')" class="nav-item" id="nav-catalog"><i class="fas fa-box"></i> Catálogo</div>
+                <!-- NOVOS ITENS -->
+                <div onclick="switchTab('reports')" class="nav-item" id="nav-reports"><i class="fas fa-chart-bar"></i> Relatórios</div>
+                <div onclick="switchTab('requests')" class="nav-item" id="nav-requests"><i class="fas fa-inbox"></i> Solicitações</div>
             </nav>
             <div class="p-4 border-t border-slate-100">
                 <button onclick="db.auth.signOut().then(()=>window.location.reload())" class="flex items-center text-sm text-red-500 font-medium w-full px-4 py-2"><i class="fas fa-sign-out-alt mr-3"></i> Sair</button>
@@ -644,8 +695,8 @@
                         <div class="text-2xl font-bold text-orange-600" id="kpi-count-neg">0</div>
                     </div>
                     <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <div class="text-xs text-slate-500 uppercase mb-1">Rascunhos</div>
-                        <div class="text-2xl font-bold text-slate-600" id="kpi-count-open">0</div>
+                        <div class="text-xs text-slate-500 uppercase mb-1">Aprovados</div>
+                        <div class="text-2xl font-bold text-green-600" id="kpi-count-approved">0</div>
                     </div>
                 </div>
 
@@ -661,6 +712,7 @@
                     <div style="height: 320px;">
                         <canvas id="dashboardChart"></canvas>
                     </div>
+                    <p class="text-xs text-slate-400 mt-2 text-center">Barras: número de orçamentos | Linha: valor total (R$)</p>
                 </div>
 
                 <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
@@ -734,7 +786,7 @@
                 </div>
             </section>
 
-            <!-- CATÁLOGO (PRESTADOR) -->
+            <!-- CATÁLOGO (PRESTADOR) - agora em cards -->
             <section id="view-catalog" class="hidden space-y-6">
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-slate-800">Catálogo de Serviços</h2>
@@ -758,20 +810,58 @@
                         </select>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                    <table class="custom-table">
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Descrição</th>
-                                <th>Preço</th>
-                                <th>Categoria</th>
-                                <th class="text-right">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="catalog-table-body"></tbody>
-                    </table>
+                <!-- Container de cards -->
+                <div id="catalog-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </section>
+
+            <!-- RELATÓRIOS (novo) -->
+            <section id="view-reports" class="hidden space-y-6">
+                <h2 class="text-2xl font-bold text-slate-800">Relatórios</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="text-xs text-slate-500 uppercase mb-1">Faturamento Aprovado</div>
+                        <div class="text-2xl font-bold text-emerald-600" id="report-approved-revenue">R$ 0,00</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="text-xs text-slate-500 uppercase mb-1">Ticket Médio</div>
+                        <div class="text-2xl font-bold text-blue-600" id="report-average-ticket">R$ 0,00</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="text-xs text-slate-500 uppercase mb-1">Total de Orçamentos</div>
+                        <div class="text-2xl font-bold text-slate-600" id="report-total-projects">0</div>
+                    </div>
                 </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-crown text-amber-500"></i> Itens Mais Vendidos</h3>
+                        <div id="top-items-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fas fa-star text-amber-500"></i> Top Clientes</h3>
+                        <div id="top-clients-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <button onclick="exportReportsToExcel()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold shadow hover:bg-green-700">
+                        <i class="fas fa-file-excel mr-2"></i> Exportar para Excel
+                    </button>
+                </div>
+            </section>
+
+            <!-- SOLICITAÇÕES (novo) -->
+            <section id="view-requests" class="hidden space-y-6">
+                <h2 class="text-2xl font-bold text-slate-800">Solicitações via Catálogo</h2>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex gap-4 items-center">
+                        <div class="flex-1 relative">
+                            <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
+                            <input id="request-search" onkeyup="renderRequests()" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500" placeholder="Buscar solicitação...">
+                        </div>
+                    </div>
+                </div>
+                <div id="request-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </section>
 
             <!-- EDITOR -->
@@ -917,7 +1007,7 @@
         </main>
     </div>
 
-    <!-- MODAL CLIENTE (CRUD) -->
+    <!-- MODAIS -->
     <div id="client-modal" class="hidden fixed inset-0 bg-black/50 z-[80] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl">
             <h3 id="client-modal-title" class="text-xl font-bold mb-4 text-slate-800">Novo Cliente</h3>
@@ -936,7 +1026,6 @@
         </div>
     </div>
 
-    <!-- MODAL CATÁLOGO (CRUD) -->
     <div id="catalog-modal" class="hidden fixed inset-0 bg-black/50 z-[80] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl">
             <h3 id="catalog-modal-title" class="text-xl font-bold mb-4 text-slate-800">Novo Serviço</h3>
@@ -954,7 +1043,6 @@
         </div>
     </div>
 
-    <!-- MODAL SELETOR CATÁLOGO (no editor) -->
     <div id="catalog-selector-modal" class="hidden fixed inset-0 bg-black/50 z-[90] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl p-6 rounded-xl max-h-[80vh] overflow-y-auto">
             <h3 class="text-xl font-bold mb-4 text-slate-800">Selecionar serviços do catálogo</h3>
@@ -972,7 +1060,6 @@
         </div>
     </div>
 
-    <!-- MODAL COMPARTILHAR CATÁLOGO -->
     <div id="share-catalog-modal" class="hidden fixed inset-0 bg-black/50 z-[90] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl">
             <h3 class="text-xl font-bold mb-4 text-slate-800">Compartilhar Catálogo</h3>
@@ -986,7 +1073,6 @@
         </div>
     </div>
 
-    <!-- MODAL DE DADOS DO CLIENTE (PÚBLICO) -->
     <div id="client-data-modal" class="hidden fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl">
             <h3 class="text-xl font-bold mb-4 text-slate-800">Para continuar, informe seus dados</h3>
@@ -1000,6 +1086,37 @@
                 <button onclick="cancelPublicClientData()" class="flex-1 border py-2 rounded text-slate-600 font-bold hover:bg-slate-50">Cancelar</button>
                 <button onclick="savePublicClientData()" class="flex-1 bg-green-600 text-white py-2 rounded font-bold hover:bg-green-700">Continuar</button>
             </div>
+        </div>
+    </div>
+
+    <div id="interaction-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-6 rounded-xl animate-[fadeInUp_0.3s]">
+            <h3 id="modal-title" class="text-xl font-bold mb-2 text-slate-800"></h3>
+            <p id="modal-desc" class="text-sm text-slate-500 mb-4"></p>
+            <textarea id="modal-input" class="w-full border p-3 rounded mb-4 h-24 text-sm bg-slate-50" placeholder="Digite aqui..."></textarea>
+            <div id="modal-sig-area" class="hidden mb-4">
+                <canvas id="signature-pad"></canvas>
+                <div class="text-right mt-1"><button id="clear-sig" class="text-xs text-red-500 underline">Limpar Assinatura</button></div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="document.getElementById('interaction-modal').classList.add('hidden')" class="flex-1 border py-3 rounded text-slate-600 font-bold hover:bg-slate-50">Cancelar</button>
+                <button id="modal-btn" class="flex-1 bg-slate-900 text-white py-3 rounded font-bold"></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="share-modal" class="hidden fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-xl w-full max-w-sm text-center">
+            <h3 class="text-xl font-bold mb-6 text-slate-800"><i class="fas fa-share-alt mr-2 text-blue-600"></i>Enviar Proposta</h3>
+            <div class="space-y-3">
+                <button id="btn-share-wa" class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-3 transition-transform hover:scale-[1.02] shadow-lg shadow-emerald-100">
+                    <i class="fab fa-whatsapp text-2xl"></i> Enviar no WhatsApp
+                </button>
+                <button id="btn-share-copy" class="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl font-bold flex items-center justify-center gap-3 transition-colors">
+                    <i class="fas fa-link text-lg"></i> Copiar Link
+                </button>
+            </div>
+            <button onclick="document.getElementById('share-modal').classList.add('hidden')" class="mt-6 text-sm text-slate-400 hover:text-slate-600 underline">Cancelar</button>
         </div>
     </div>
 
@@ -1123,37 +1240,6 @@
         </div>
     </section>
 
-    <div id="interaction-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md p-6 rounded-xl animate-[fadeInUp_0.3s]">
-            <h3 id="modal-title" class="text-xl font-bold mb-2 text-slate-800"></h3>
-            <p id="modal-desc" class="text-sm text-slate-500 mb-4"></p>
-            <textarea id="modal-input" class="w-full border p-3 rounded mb-4 h-24 text-sm bg-slate-50" placeholder="Digite aqui..."></textarea>
-            <div id="modal-sig-area" class="hidden mb-4">
-                <canvas id="signature-pad"></canvas>
-                <div class="text-right mt-1"><button id="clear-sig" class="text-xs text-red-500 underline">Limpar Assinatura</button></div>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="document.getElementById('interaction-modal').classList.add('hidden')" class="flex-1 border py-3 rounded text-slate-600 font-bold hover:bg-slate-50">Cancelar</button>
-                <button id="modal-btn" class="flex-1 bg-slate-900 text-white py-3 rounded font-bold"></button>
-            </div>
-        </div>
-    </div>
-
-    <div id="share-modal" class="hidden fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4">
-        <div class="bg-white p-6 rounded-xl w-full max-w-sm text-center">
-            <h3 class="text-xl font-bold mb-6 text-slate-800"><i class="fas fa-share-alt mr-2 text-blue-600"></i>Enviar Proposta</h3>
-            <div class="space-y-3">
-                <button id="btn-share-wa" class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-3 transition-transform hover:scale-[1.02] shadow-lg shadow-emerald-100">
-                    <i class="fab fa-whatsapp text-2xl"></i> Enviar no WhatsApp
-                </button>
-                <button id="btn-share-copy" class="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl font-bold flex items-center justify-center gap-3 transition-colors">
-                    <i class="fas fa-link text-lg"></i> Copiar Link
-                </button>
-            </div>
-            <button onclick="document.getElementById('share-modal').classList.add('hidden')" class="mt-6 text-sm text-slate-400 hover:text-slate-600 underline">Cancelar</button>
-        </div>
-    </div>
-
     <script>
         // ----- SUPABASE -----
         const SUPABASE_URL = 'https://outasfgohiiyndsjciau.supabase.co'; 
@@ -1183,7 +1269,6 @@
         function safeShow(id) { const el = document.getElementById(id); if(el) el.classList.remove('hidden'); }
         function safeHide(id) { const el = document.getElementById(id); if(el) el.classList.add('hidden'); }
 
-        // ----- FORMATAÇÃO DE MOEDA -----
         function formatPrice(value) {
             if (value === null || value === undefined || value === '') return '';
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -1191,15 +1276,12 @@
 
         function parsePrice(str) {
             if (!str) return 0;
-            // Remove "R$", espaços, e substitui vírgula por ponto
             let cleaned = str.replace(/[R$\s]/g, '').replace(/\./g, '').replace(',', '.');
             return parseFloat(cleaned) || 0;
         }
 
-        // ----- MÁSCARA DE MOEDA EM TEMPO REAL -----
         function applyPriceMask(input, index) {
             let value = input.value;
-            // Remove tudo que não for dígito
             let digits = value.replace(/\D/g, '');
             if (digits.length === 0) {
                 input.value = '';
@@ -1207,16 +1289,12 @@
                 updateTotal();
                 return;
             }
-            // Converte para centavos
             let numericValue = parseInt(digits) / 100;
-            // Armazena o valor numérico no state
             state.data.items[index].price = numericValue;
-            // Aplica a máscara no campo
             input.value = formatPrice(numericValue);
             updateTotal();
         }
 
-        // ----- NORMALIZAÇÃO -----
         function normalizeData(dbData) {
             const schema = { 
                 client: { name: '', doc: '', email: '', phone: '', address: '' }, 
@@ -1259,7 +1337,6 @@
             };
         }
 
-        // ----- HISTÓRICO -----
         function logHistory(action, user, detail) {
             if (!state.data) state.data = { history: [] };
             if (!state.data.history) state.data.history = [];
@@ -1271,7 +1348,6 @@
             });
         }
 
-        // ----- DETECTAR MUDANÇAS -----
         function getChanges(oldArr, newArr) {
             let logs = [];
             const oldMap = new Map(oldArr.map(i => [i.id, i]));
@@ -1500,8 +1576,8 @@
         }
 
         function renderCatalog() {
-            const tbody = document.getElementById('catalog-table-body');
-            if (!tbody) return;
+            const container = document.getElementById('catalog-cards-container');
+            if (!container) return;
             const search = safeVal('catalog-search').toLowerCase();
             const category = safeVal('catalog-category-filter');
             const filtered = state.catalogCache.filter(item => 
@@ -1510,22 +1586,28 @@
             );
             let html = '';
             if (filtered.length === 0) {
-                html = '<tr><td colspan="5" class="text-center py-4 text-slate-400">Nenhum serviço encontrado.</td></tr>';
+                html = '<div class="col-span-full text-center py-20 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Nenhum serviço encontrado.</div>';
             } else {
                 filtered.forEach(item => {
-                    html += `<tr>
-                        <td class="font-bold">${item.name}</td>
-                        <td>${item.description || '-'}</td>
-                        <td>${item.price ? formatPrice(item.price) : '-'}</td>
-                        <td>${item.category || '-'}</td>
-                        <td class="text-right">
-                            <button onclick="editCatalogItem('${item.id}')" class="text-blue-600 hover:text-blue-800 mr-2"><i class="fas fa-edit"></i></button>
-                            <button onclick="deleteCatalogItem('${item.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
-                        </td>
-                    </tr>`;
+                    html += `
+                        <div class="catalog-card">
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-slate-800 text-lg">${item.name}</h3>
+                                <div>
+                                    <button onclick="editCatalogItem('${item.id}')" class="text-blue-600 hover:text-blue-800 mr-2"><i class="fas fa-edit"></i></button>
+                                    <button onclick="deleteCatalogItem('${item.id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                            ${item.description ? `<p class="text-sm text-slate-500">${item.description}</p>` : ''}
+                            <div class="flex items-center justify-between mt-2">
+                                <span class="category-tag">${item.category || 'Geral'}</span>
+                                <span class="price-tag">${item.price ? formatPrice(item.price) : 'Sob consulta'}</span>
+                            </div>
+                        </div>
+                    `;
                 });
             }
-            tbody.innerHTML = html;
+            container.innerHTML = html;
         }
 
         function openCatalogModal(editId = null) {
@@ -2016,7 +2098,7 @@
                     if (view === 'editor' && id) {
                         await loadEditor(id);
                         switchTab('editor', false);
-                    } else if (view === 'dashboard' || view === 'projects' || view === 'clients' || view === 'catalog') {
+                    } else if (view === 'dashboard' || view === 'projects' || view === 'clients' || view === 'catalog' || view === 'reports' || view === 'requests') {
                         switchTab(view, false);
                     } else {
                         switchTab('dashboard', false);
@@ -2094,6 +2176,12 @@
             if (tab === 'catalog') {
                 renderCatalog();
             }
+            if (tab === 'reports') {
+                renderReports();
+            }
+            if (tab === 'requests') {
+                renderRequests();
+            }
         }
 
         function filterProjects(status) {
@@ -2136,9 +2224,8 @@
             safeText('kpi-total-est', formatPrice(totalRev));
             safeText('kpi-total-apr', formatPrice(totalAprov));
             safeText('kpi-count-neg', countNegoc);
-            safeText('kpi-count-apr', countAprov);
-            safeText('kpi-count-open', countOpen);
             safeText('kpi-count-sent', countSent);
+            safeText('kpi-count-approved', countAprov);
         }
 
         function setChartPeriod(days) {
@@ -2187,7 +2274,6 @@
             const countData = Object.values(days).map(d => d.count);
             const totalData = Object.values(days).map(d => d.total);
 
-            // Detectar mobile para ajustar gráfico
             const isMobile = window.innerWidth < 768;
 
             chartInstance = new Chart(ctx, {
@@ -2430,7 +2516,6 @@
             if(locDiv) locDiv.style.display = d.location.sameAsClient ? 'none' : 'block';
             setVal('loc-addr', d.location.address);
             
-            // Lista de elementos que devem ser desabilitados quando isLocked
             const staticInputs = [
                 'p-name','p-doc','p-addr','p-phone',
                 'c-name','c-doc','c-phone','c-email','c-addr',
@@ -2443,7 +2528,6 @@
                 if(el) el.disabled = isLocked; 
             });
             
-            // Botões específicos
             const btnAdd = document.getElementById('btn-add-item');
             if(btnAdd) {
                 btnAdd.disabled = isLocked;
@@ -2462,7 +2546,6 @@
                 btnCalc.style.opacity = isLocked ? '0.5' : '1';
                 btnCalc.style.pointerEvents = isLocked ? 'none' : 'auto';
             }
-            // Botões de cliente
             const btnNewClient = document.querySelector('button[onclick="openClientModal(true)"]');
             if(btnNewClient) btnNewClient.disabled = isLocked;
             const btnClearClient = document.querySelector('button[onclick="clearSelectedClient()"]');
@@ -2557,8 +2640,6 @@
             if(f === 'qty') { 
                 it[f] = parseFloat(v) || 0; 
                 updateTotal(); 
-            } else if (f === 'price') {
-                // não usado diretamente, a máscara já atualiza o state
             } else { 
                 it[f] = v; 
             }
@@ -3147,6 +3228,216 @@
                 title.innerText = "Orçamento Recusado";
                 desc.innerText = "O orçamento foi marcado como recusado.";
             }
+        }
+
+        // ========== NOVAS FUNÇÕES PARA RELATÓRIOS ==========
+        function renderReports() {
+            let approvedRevenue = 0;
+            let approvedCount = 0;
+            let totalProjects = state.projectsCache.length;
+            let itemsMap = new Map(); // nome do item -> { qty: total, revenue: total }
+            let clientsMap = new Map(); // nome do cliente -> total revenue
+
+            state.projectsCache.forEach(p => {
+                const v = p.versions?.[0];
+                if (!v) return;
+                if (v.status === 'approved') {
+                    const val = parseFloat(v.total_value) || 0;
+                    approvedRevenue += val;
+                    approvedCount++;
+                    // Agregar itens
+                    if (v.items && v.items.items) {
+                        v.items.items.forEach(item => {
+                            if (!item.optional || item.publicSelected) { // considera opcionais selecionados
+                                const name = item.name || 'Item sem nome';
+                                const qty = item.qty || 0;
+                                const price = item.price || 0;
+                                const totalItem = qty * price;
+                                if (itemsMap.has(name)) {
+                                    const prev = itemsMap.get(name);
+                                    itemsMap.set(name, {
+                                        qty: prev.qty + qty,
+                                        revenue: prev.revenue + totalItem
+                                    });
+                                } else {
+                                    itemsMap.set(name, { qty, revenue: totalItem });
+                                }
+                            }
+                        });
+                    }
+                    // Agregar clientes
+                    if (v.items && v.items.client && v.items.client.name) {
+                        const clientName = v.items.client.name;
+                        const prev = clientsMap.get(clientName) || 0;
+                        clientsMap.set(clientName, prev + val);
+                    }
+                }
+            });
+
+            // KPIs
+            safeText('report-approved-revenue', formatPrice(approvedRevenue));
+            const avgTicket = approvedCount > 0 ? approvedRevenue / approvedCount : 0;
+            safeText('report-average-ticket', formatPrice(avgTicket));
+            safeText('report-total-projects', totalProjects);
+
+            // Top 10 itens
+            const sortedItems = Array.from(itemsMap.entries())
+                .sort((a, b) => b[1].revenue - a[1].revenue)
+                .slice(0, 10);
+            let itemsHtml = '';
+            sortedItems.forEach(([name, data], idx) => {
+                itemsHtml += `
+                    <div class="ranking-item">
+                        <div class="flex items-center">
+                            <span class="ranking-position">${idx+1}</span>
+                            <span class="ranking-name">${name}</span>
+                        </div>
+                        <div class="ranking-value">${data.qty} und • ${formatPrice(data.revenue)}</div>
+                    </div>
+                `;
+            });
+            if (!itemsHtml) itemsHtml = '<div class="text-center text-slate-400 py-4">Nenhum item vendido ainda.</div>';
+            setHTML('top-items-list', itemsHtml);
+
+            // Top 10 clientes
+            const sortedClients = Array.from(clientsMap.entries())
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+            let clientsHtml = '';
+            sortedClients.forEach(([name, total], idx) => {
+                clientsHtml += `
+                    <div class="ranking-item">
+                        <div class="flex items-center">
+                            <span class="ranking-position">${idx+1}</span>
+                            <span class="ranking-name">${name}</span>
+                        </div>
+                        <div class="ranking-value">${formatPrice(total)}</div>
+                    </div>
+                `;
+            });
+            if (!clientsHtml) clientsHtml = '<div class="text-center text-slate-400 py-4">Nenhum cliente com aprovação.</div>';
+            setHTML('top-clients-list', clientsHtml);
+        }
+
+        function exportReportsToExcel() {
+            // Gera um CSV simples com os dados dos relatórios
+            let csv = "Relatório de Vendas\n\n";
+            csv += "Faturamento Aprovado;Ticket Médio;Total de Orçamentos\n";
+            csv += `${document.getElementById('report-approved-revenue').innerText};${document.getElementById('report-average-ticket').innerText};${document.getElementById('report-total-projects').innerText}\n\n`;
+            
+            csv += "Itens Mais Vendidos\n";
+            csv += "Item;Quantidade;Receita\n";
+            const itemsDiv = document.getElementById('top-items-list');
+            const items = itemsDiv.querySelectorAll('.ranking-item');
+            items.forEach(item => {
+                const name = item.querySelector('.ranking-name')?.innerText || '';
+                const value = item.querySelector('.ranking-value')?.innerText || '';
+                const parts = value.split(' • ');
+                const qty = parts[0]?.replace(' und', '') || '';
+                const rev = parts[1] || '';
+                csv += `"${name}";${qty};${rev}\n`;
+            });
+
+            csv += "\nTop Clientes\n";
+            csv += "Cliente;Total\n";
+            const clientsDiv = document.getElementById('top-clients-list');
+            const clients = clientsDiv.querySelectorAll('.ranking-item');
+            clients.forEach(item => {
+                const name = item.querySelector('.ranking-name')?.innerText || '';
+                const total = item.querySelector('.ranking-value')?.innerText || '';
+                csv += `"${name}";${total}\n`;
+            });
+
+            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); // BOM para acentos
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute('download', 'relatorio_aprova_ai.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // ========== NOVAS FUNÇÕES PARA SOLICITAÇÕES ==========
+        async function loadRequests() {
+            // Filtra projetos cujo nome começa com "Solicitação via catálogo"
+            const requests = state.projectsCache.filter(p => 
+                p.name && p.name.startsWith('Solicitação via catálogo') && 
+                p.versions?.[0]?.status !== 'canceled' // não mostrar cancelados
+            );
+            return requests;
+        }
+
+        async function renderRequests() {
+            const container = document.getElementById('request-cards-container');
+            if (!container) return;
+            const search = safeVal('request-search').toLowerCase();
+            const requests = await loadRequests();
+            const filtered = requests.filter(r => 
+                (r.client_name || '').toLowerCase().includes(search) || r.name.toLowerCase().includes(search)
+            );
+            let html = '';
+            if (filtered.length === 0) {
+                html = '<div class="col-span-full text-center py-20 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">Nenhuma solicitação pendente.</div>';
+            } else {
+                filtered.forEach(p => {
+                    const v = p.versions?.[0] || { total_value: 0, status: 'draft' };
+                    const date = new Date(p.created_at).toLocaleDateString();
+                    html += `
+                        <div class="project-card">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-bold text-slate-800">${p.client_name || 'Cliente'}</h3>
+                                <span class="status-badge st-draft">Solicitação</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-3">${p.name}</p>
+                            <p class="text-xs text-slate-400 mb-4">Criado em: ${date}</p>
+                            <div class="flex gap-2">
+                                <button onclick="approveRequest('${p.id}')" class="flex-1 bg-green-600 text-white py-2 rounded text-sm font-bold hover:bg-green-700">
+                                    <i class="fas fa-check mr-1"></i> Aprovar
+                                </button>
+                                <button onclick="rejectRequest('${p.id}')" class="flex-1 bg-red-500 text-white py-2 rounded text-sm font-bold hover:bg-red-600">
+                                    <i class="fas fa-times mr-1"></i> Recusar
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            container.innerHTML = html;
+        }
+
+        async function approveRequest(projectId) {
+            if (!confirm("Aprovar esta solicitação? Ela será movida para a lista de orçamentos como rascunho.")) return;
+            // Renomeia o projeto para remover o prefixo "Solicitação via catálogo"
+            const project = state.projectsCache.find(p => p.id === projectId);
+            if (!project) return;
+            const newName = project.name.replace('Solicitação via catálogo - ', '').trim() || 'Orçamento';
+            const { error } = await db.from('projects').update({ name: newName }).eq('id', projectId);
+            if (error) {
+                alert("Erro ao aprovar: " + error.message);
+                return;
+            }
+            // Atualiza cache e recarrega
+            await loadProjects();
+            renderRequests();
+            alert("Solicitação aprovada e movida para orçamentos.");
+        }
+
+        async function rejectRequest(projectId) {
+            if (!confirm("Recusar esta solicitação? O orçamento será cancelado.")) return;
+            // Altera status da última versão para cancelado
+            const project = state.projectsCache.find(p => p.id === projectId);
+            if (!project || !project.versions || !project.versions[0]) return;
+            const versionId = project.versions[0].id;
+            const { error } = await db.from('versions').update({ status: 'canceled' }).eq('id', versionId);
+            if (error) {
+                alert("Erro ao recusar: " + error.message);
+                return;
+            }
+            await loadProjects();
+            renderRequests();
+            alert("Solicitação recusada.");
         }
 
         setChartPeriod(30);
