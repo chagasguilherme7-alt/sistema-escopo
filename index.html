@@ -1412,47 +1412,48 @@
             });
         }
 
-function getChanges(oldArr, newArr) {
-    let logs = [];
-    const oldMap = new Map(oldArr.map(i => [i.id, i]));
-    const newMap = new Map(newArr.map(i => [i.id, i]));
+        // NOVA FUNÇÃO PARA GERAR LOG DE ALTERAÇÕES (SEM EMOJIS, APENAS TEXTO LIMPO)
+        function generateChangesLog(oldArr, newArr) {
+            let logs = [];
+            const oldMap = new Map(oldArr.map(i => [i.id, i]));
+            const newMap = new Map(newArr.map(i => [i.id, i]));
 
-    // Itens adicionados
-    newArr.forEach(i => {
-        if (!oldMap.has(i.id)) {
-            logs.push(`➕ Adicionou: ${i.name || 'Item sem nome'} (R$ ${i.price?.toFixed(2)} - ${i.qty} und)`);
+            // Itens adicionados
+            newArr.forEach(i => {
+                if (!oldMap.has(i.id)) {
+                    logs.push(`Adicionou: ${i.name || 'Item sem nome'} (R$ ${i.price?.toFixed(2)} - ${i.qty} und)`);
+                }
+            });
+
+            // Itens removidos
+            oldArr.forEach(i => {
+                if (!newMap.has(i.id)) {
+                    logs.push(`Removeu: ${i.name || 'Item sem nome'}`);
+                }
+            });
+
+            // Itens modificados
+            newArr.forEach(i => {
+                if (oldMap.has(i.id)) {
+                    const old = oldMap.get(i.id);
+                    const changes = [];
+                    if (old.name !== i.name) {
+                        changes.push(`Nome: "${old.name}" → "${i.name}"`);
+                    }
+                    if (old.price !== i.price) {
+                        changes.push(`Preço: R$ ${old.price?.toFixed(2)} → R$ ${i.price?.toFixed(2)}`);
+                    }
+                    if (old.qty !== i.qty) {
+                        changes.push(`Quantidade: ${old.qty} → ${i.qty}`);
+                    }
+                    if (changes.length > 0) {
+                        logs.push(`Item "${i.name}": ${changes.join('; ')}`);
+                    }
+                }
+            });
+
+            return logs.length ? logs.join('; ') : null;
         }
-    });
-
-    // Itens removidos
-    oldArr.forEach(i => {
-        if (!newMap.has(i.id)) {
-            logs.push(`➖ Removeu: ${i.name || 'Item sem nome'}`);
-        }
-    });
-
-    // Itens modificados
-    newArr.forEach(i => {
-        if (oldMap.has(i.id)) {
-            const old = oldMap.get(i.id);
-            const changes = [];
-            if (old.name !== i.name) {
-                changes.push(`✏️ Renomeou: "${old.name}" → "${i.name}"`);
-            }
-            if (old.price !== i.price) {
-                changes.push(`💰 Preço: R$ ${old.price?.toFixed(2)} → R$ ${i.price?.toFixed(2)}`);
-            }
-            if (old.qty !== i.qty) {
-                changes.push(`📦 Quantidade: ${old.qty} → ${i.qty}`);
-            }
-            if (changes.length > 0) {
-                logs.push(`📝 Item "${i.name}": ${changes.join('; ')}`);
-            }
-        }
-    });
-
-    return logs.length ? logs.join('; ') : null;
-}
 
         // ----- CLIENTES (CRUD) -----
         async function loadClients() {
@@ -2910,13 +2911,10 @@ function getChanges(oldArr, newArr) {
             attachList.innerHTML = attHtml;
         }
 
+        // FUNÇÃO SAVE MODIFICADA: não registra histórico se status for draft
         async function save() {
             const t = state.data.items.reduce((a,b)=> (!b.optional ? a+(b.qty*b.price) : a),0);
-            const changes = getChanges(state.snapshot, state.data.items);
-            if(changes) {
-                logHistory('edited', 'provider', changes);
-                state.snapshot = JSON.parse(JSON.stringify(state.data.items)); 
-            }
+            // Não gera log aqui, apenas salva no banco e atualiza snapshot
             if(state.data.client.name) {
                 await db.from('projects').update({client_name: state.data.client.name}).eq('id', state.project.id);
             }
@@ -2925,6 +2923,8 @@ function getChanges(oldArr, newArr) {
                 total_value: t, 
                 notes: state.data.terms.obs || state.data.terms.paymentText
             }).eq('id', state.version.id);
+            // Atualiza o snapshot após salvar (para capturar próximas mudanças)
+            state.snapshot = JSON.parse(JSON.stringify(state.data.items));
             renderHistory();
         }
 
@@ -2943,10 +2943,22 @@ function getChanges(oldArr, newArr) {
             loadEditor(state.project.id);
         }
 
+        // FUNÇÃO changeStatus MODIFICADA: ao mudar para 'sent', registra as alterações acumuladas
         async function changeStatus(newStatus, skipConfirm = false) {
             if (!skipConfirm && !confirm(`Mudar status para ${newStatus}?`)) return;
+            
+            // Se estiver saindo de draft para sent, registrar alterações
+            if (state.version.status === 'draft' && newStatus === 'sent') {
+                const changes = generateChangesLog(state.snapshot, state.data.items);
+                if (changes) {
+                    logHistory('edited', 'provider', changes);
+                }
+                logHistory('sent', 'provider', 'Link enviado ao cliente');
+            } else {
+                logHistory(newStatus, 'provider', skipConfirm ? 'Status alterado automaticamente (envio de link)' : 'Alteração manual de status.');
+            }
+            
             await db.from('versions').update({status: newStatus}).eq('id', state.version.id);
-            logHistory(newStatus, 'provider', skipConfirm ? 'Status alterado automaticamente (envio de link)' : 'Alteração manual de status.');
             await loadProjects();
             renderDashboardKPIs();
             renderDashboardCharts();
@@ -2988,7 +3000,7 @@ function getChanges(oldArr, newArr) {
             safeShow('share-modal');
         }
 
-        // Histórico melhorado em timeline
+        // Histórico em timeline (usa a função generateChangesLog indiretamente via logHistory)
         function renderHistory() {
             const hist = state.data.history || [];
             hist.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -3059,65 +3071,29 @@ function getChanges(oldArr, newArr) {
             setHTML('ed-history', histHtml);
         }
 
-        // Exportar histórico em PDF (CORRIGIDO)
-        // Exportar histórico em PDF (VERSÃO MELHORADA)
-async function exportHistoryPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    const primaryColor = [46, 125, 50]; // #2e7d32
-    
-    // Tentar carregar a logo
-    let logoDataUrl = null;
-    try {
-        const logoImg = document.querySelector('img[src="logo.png"]');
-        if (logoImg) {
-            const canvas = document.createElement('canvas');
-            canvas.width = logoImg.naturalWidth || 100;
-            canvas.height = logoImg.naturalHeight || 40;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(logoImg, 0, 0, canvas.width, canvas.height);
-            logoDataUrl = canvas.toDataURL('image/png');
-        }
-    } catch (e) {
-        console.warn("Logo não carregada, usando texto");
-    }
-    
-    // Cabeçalho com logo
-    if (logoDataUrl) {
-        doc.addImage(logoDataUrl, 'PNG', 14, 10, 40, 16);
-    } else {
-        doc.setFontSize(22);
-        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Aprova Ai', 14, 20);
-    }
-    
-    doc.setFontSize(16);
-    doc.setTextColor(60, 60, 60);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Histórico do Orçamento', 70, 20);
-    
-    // Informações do projeto
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(80, 80, 80);
-    doc.text(`Projeto: ${state.project.name}`, 14, 35);
-    doc.text(`Cliente: ${state.data.client.name || 'Não informado'}`, 14, 42);
-    doc.text(`ID: ${state.project.id}`, 14, 49);
-    doc.text(`Data de emissão: ${new Date().toLocaleDateString('pt-BR')}`, 14, 56);
-    
-    const history = state.data.history || [];
-    history.sort((a, b) => new Date(a.date) - new Date(b.date));
-    
-    let y = 70;
-    const pageHeight = doc.internal.pageSize.height;
-    const marginBottom = 25;
-    
-    history.forEach((h) => {
-        if (y > pageHeight - marginBottom) {
-            doc.addPage();
-            y = 20;
+        // Exportar histórico em PDF (versão limpa, sem substituições desnecessárias)
+        async function exportHistoryPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const primaryColor = [46, 125, 50]; // #2e7d32
+            
+            // Tentar carregar a logo
+            let logoDataUrl = null;
+            try {
+                const logoImg = document.querySelector('img[src="logo.png"]');
+                if (logoImg) {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = logoImg.naturalWidth || 100;
+                    canvas.height = logoImg.naturalHeight || 40;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(logoImg, 0, 0, canvas.width, canvas.height);
+                    logoDataUrl = canvas.toDataURL('image/png');
+                }
+            } catch (e) {
+                console.warn("Logo não carregada, usando texto");
+            }
+            
             if (logoDataUrl) {
                 doc.addImage(logoDataUrl, 'PNG', 14, 10, 40, 16);
             } else {
@@ -3126,104 +3102,28 @@ async function exportHistoryPDF() {
                 doc.setFont('helvetica', 'bold');
                 doc.text('Aprova Ai', 14, 20);
             }
-            doc.setFontSize(16);
-            doc.setTextColor(60,60,60);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Histórico (continuação)', 70, 20);
-            y = 35;
-        }
-        
-        const date = new Date(h.date).toLocaleString('pt-BR');
-        const user = h.user === 'provider' ? 'Você (prestador)' : 'Cliente';
-        
-        // Definir ícone textual (usaremos apenas caracteres ASCII)
-        let icon = '•';
-        let color = [100, 100, 100];
-        let actionLabel = h.action;
-        
-        switch (h.action) {
-            case 'created':
-                icon = '*';
-                color = [46, 125, 50];
-                actionLabel = h.user === 'provider' ? 'Criacao' : 'Solicitacao via catalogo';
-                break;
-            case 'edited':
-                icon = '~';
-                color = [255, 152, 0];
-                actionLabel = 'Alteracao de escopo';
-                break;
-            case 'approved':
-                icon = 'v';
-                color = [46, 125, 50];
-                actionLabel = 'Aprovacao';
-                break;
-            case 'change_request':
-                icon = '?';
-                color = [255, 152, 0];
-                actionLabel = 'Solicitacao de alteracao';
-                break;
-            case 'canceled':
-                icon = 'x';
-                color = [211, 47, 47];
-                actionLabel = 'Cancelamento';
-                break;
-            case 'sent':
-                icon = '>';
-                color = [33, 150, 243];
-                actionLabel = 'Envio de link';
-                break;
-            case 'viewed':
-                icon = 'o';
-                color = [100, 100, 100];
-                actionLabel = 'Visualizacao';
-                break;
-            case 'pdf_downloaded':
-                icon = 'P';
-                color = [211, 47, 47];
-                actionLabel = 'Download do PDF';
-                break;
-        }
-        
-        doc.setFillColor(color[0], color[1], color[2]);
-        doc.circle(18, y - 2, 2, 'F');
-        
-        doc.setFontSize(9);
-        doc.setTextColor(150, 150, 150);
-        doc.setFont('helvetica', 'italic');
-        doc.text(`${date} - ${user}`, 24, y - 2);
-        
-        doc.setFontSize(10);
-        doc.setTextColor(40, 40, 40);
-        doc.setFont('helvetica', 'bold');
-        doc.text(actionLabel, 24, y + 3);
-        
-        y += 8;
-        
-        if (h.detail) {
-            // Substituir todos os caracteres especiais por versões seguras
-            let detailText = h.detail
-                // Emojis comuns
-                .replace(/[💰]/g, 'R$ ')
-                .replace(/[📦]/g, 'Qtd: ')
-                .replace(/[✏️]/g, 'Edit: ')
-                .replace(/[➕]/g, '+ ')
-                .replace(/[➖]/g, '- ')
-                .replace(/[⚡]/g, 'Alt: ')
-                .replace(/[★]/g, '*')
-                .replace(/[✓]/g, 'ok')
-                .replace(/[✗]/g, 'X')
-                .replace(/[✉]/g, 'Msg')
-                .replace(/[👁]/g, 'View')
-                .replace(/[📄]/g, 'PDF')
-                .replace(/[→]/g, '->')
-                .replace(/[➔]/g, '->')
-                // Remove qualquer caractere não imprimível ou acentuado problemático
-                .replace(/[^\x20-\x7E\u00C0-\u00FF]/g, '') // mantém acentos básicos
-                .replace(/[ØøÜüÝý]/g, ''); // remove esses especificamente
             
-            // Divide em linhas (ponto e vírgula)
-            const lines = detailText.split('; ');
-            lines.forEach(line => {
+            doc.setFontSize(16);
+            doc.setTextColor(60, 60, 60);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Histórico do Orçamento', 70, 20);
+            
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(80, 80, 80);
+            doc.text(`Projeto: ${state.project.name}`, 14, 35);
+            doc.text(`Cliente: ${state.data.client.name || 'Não informado'}`, 14, 42);
+            doc.text(`ID: ${state.project.id}`, 14, 49);
+            doc.text(`Data de emissão: ${new Date().toLocaleDateString('pt-BR')}`, 14, 56);
+            
+            const history = state.data.history || [];
+            history.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            let y = 70;
+            const pageHeight = doc.internal.pageSize.height;
+            const marginBottom = 25;
+            
+            history.forEach((h) => {
                 if (y > pageHeight - marginBottom) {
                     doc.addPage();
                     y = 20;
@@ -3241,27 +3141,115 @@ async function exportHistoryPDF() {
                     doc.text('Histórico (continuação)', 70, 20);
                     y = 35;
                 }
+                
+                const date = new Date(h.date).toLocaleString('pt-BR');
+                const user = h.user === 'provider' ? 'Você (prestador)' : 'Cliente';
+                
+                // Definir ícone textual simples
+                let icon = '•';
+                let color = [100, 100, 100];
+                let actionLabel = h.action;
+                
+                switch (h.action) {
+                    case 'created':
+                        icon = '★';
+                        color = [46, 125, 50];
+                        actionLabel = h.user === 'provider' ? 'Criação' : 'Solicitação via catálogo';
+                        break;
+                    case 'edited':
+                        icon = '✎';
+                        color = [255, 152, 0];
+                        actionLabel = 'Alteração de escopo';
+                        break;
+                    case 'approved':
+                        icon = '✓';
+                        color = [46, 125, 50];
+                        actionLabel = 'Aprovação';
+                        break;
+                    case 'change_request':
+                        icon = '✉';
+                        color = [255, 152, 0];
+                        actionLabel = 'Solicitação de alteração';
+                        break;
+                    case 'canceled':
+                        icon = '✗';
+                        color = [211, 47, 47];
+                        actionLabel = 'Cancelamento';
+                        break;
+                    case 'sent':
+                        icon = '→';
+                        color = [33, 150, 243];
+                        actionLabel = 'Envio de link';
+                        break;
+                    case 'viewed':
+                        icon = '👁';
+                        color = [100, 100, 100];
+                        actionLabel = 'Visualização';
+                        break;
+                    case 'pdf_downloaded':
+                        icon = '📄';
+                        color = [211, 47, 47];
+                        actionLabel = 'Download do PDF';
+                        break;
+                }
+                
+                doc.setFillColor(color[0], color[1], color[2]);
+                doc.circle(18, y - 2, 2, 'F');
+                
                 doc.setFontSize(9);
-                doc.setTextColor(80, 80, 80);
-                doc.setFont('helvetica', 'normal');
-                doc.text(`   ${line}`, 24, y);
-                y += 5;
+                doc.setTextColor(150, 150, 150);
+                doc.setFont('helvetica', 'italic');
+                doc.text(`${date} - ${user}`, 24, y - 2);
+                
+                doc.setFontSize(10);
+                doc.setTextColor(40, 40, 40);
+                doc.setFont('helvetica', 'bold');
+                doc.text(actionLabel, 24, y + 3);
+                
+                y += 8;
+                
+                if (h.detail) {
+                    // Usa o detalhe diretamente, sem substituições (já está limpo)
+                    const lines = h.detail.split('; ');
+                    lines.forEach(line => {
+                        if (y > pageHeight - marginBottom) {
+                            doc.addPage();
+                            y = 20;
+                            if (logoDataUrl) {
+                                doc.addImage(logoDataUrl, 'PNG', 14, 10, 40, 16);
+                            } else {
+                                doc.setFontSize(22);
+                                doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                                doc.setFont('helvetica', 'bold');
+                                doc.text('Aprova Ai', 14, 20);
+                            }
+                            doc.setFontSize(16);
+                            doc.setTextColor(60,60,60);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text('Histórico (continuação)', 70, 20);
+                            y = 35;
+                        }
+                        doc.setFontSize(9);
+                        doc.setTextColor(80, 80, 80);
+                        doc.setFont('helvetica', 'normal');
+                        doc.text(`   ${line}`, 24, y);
+                        y += 5;
+                    });
+                } else {
+                    y += 2;
+                }
+                
+                y += 4;
             });
-        } else {
-            y += 2;
+            
+            const hash = btoa(state.project.id + state.data.client.name + state.version.id).substring(0, 10);
+            doc.setFontSize(8);
+            doc.setTextColor(150, 150, 150);
+            doc.text(`Documento gerado pelo sistema Aprova Ai - Código de verificação: ${hash}`, 14, pageHeight - 10);
+            
+            doc.save(`historico_${state.project.name}.pdf`);
         }
-        
-        y += 4;
-    });
-    
-    // Rodapé
-    const hash = btoa(state.project.id + state.data.client.name + state.version.id).substring(0, 10);
-    doc.setFontSize(8);
-    doc.setTextColor(150, 150, 150);
-    doc.text(`Documento gerado pelo sistema Aprova Ai - Codigo de verificacao: ${hash}`, 14, pageHeight - 10);
-    
-    doc.save(`historico_${state.project.name}.pdf`);
-}
+
         // ========== PÁGINA PÚBLICA (PROPOSTA) ==========
         async function loadPublicProposal(id) {
             try {
@@ -3772,8 +3760,3 @@ async function exportHistoryPDF() {
     </script>
 </body>
 </html>
-
-
-
-
-
