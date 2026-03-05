@@ -3039,41 +3039,42 @@ async function exportHistoryPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
-    // Cores da marca (verde Aprova Ai)
+    // Cores da marca
     const primaryColor = [46, 125, 50]; // #2e7d32
-    const lightGreen = [200, 230, 200];
+    const lightGreen = [225, 240, 225];
     
-    // === CABEÇALHO ===
-    // Logo (tenta usar a imagem do DOM, se não, texto)
+    // Tentar carregar a logo do DOM
+    let logoDataUrl = null;
     try {
         const logoImg = document.querySelector('img[src="logo.png"]');
         if (logoImg) {
-            // Converte a imagem para dataURL (simplificado - pode precisar de canvas)
-            // Como alternativa, usamos texto estilizado para garantir
-            doc.setFontSize(22);
-            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Aprova Ai', 14, 20);
-        } else {
-            doc.setFontSize(22);
-            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Aprova Ai', 14, 20);
+            // Criar um canvas para converter a imagem em dataURL
+            const canvas = document.createElement('canvas');
+            canvas.width = logoImg.naturalWidth || 100;
+            canvas.height = logoImg.naturalHeight || 40;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(logoImg, 0, 0, canvas.width, canvas.height);
+            logoDataUrl = canvas.toDataURL('image/png');
         }
     } catch (e) {
+        console.warn("Não foi possível carregar a logo:", e);
+    }
+    
+    // Cabeçalho
+    if (logoDataUrl) {
+        doc.addImage(logoDataUrl, 'PNG', 14, 10, 40, 16);
+    } else {
         doc.setFontSize(22);
         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
         doc.setFont('helvetica', 'bold');
         doc.text('Aprova Ai', 14, 20);
     }
     
-    // Título
     doc.setFontSize(16);
     doc.setTextColor(60, 60, 60);
     doc.setFont('helvetica', 'bold');
     doc.text('Histórico do Orçamento', 70, 20);
     
-    // Linha decorativa
     doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.setLineWidth(1);
     doc.line(14, 25, 196, 25);
@@ -3087,7 +3088,6 @@ async function exportHistoryPDF() {
     doc.text(`ID: ${state.project.id}`, 14, 49);
     doc.text(`Data de emissão: ${new Date().toLocaleDateString('pt-BR')}`, 14, 56);
     
-    // === CORPO DO HISTÓRICO ===
     const history = state.data.history || [];
     history.sort((a, b) => new Date(a.date) - new Date(b.date));
     
@@ -3096,17 +3096,21 @@ async function exportHistoryPDF() {
     const marginBottom = 25;
     
     history.forEach((h) => {
-        // Verificar se precisa de nova página
         if (y > pageHeight - marginBottom) {
             doc.addPage();
             y = 20;
-            // Redesenhar cabeçalho na nova página (opcional)
+            // Redesenhar cabeçalho simplificado
+            if (logoDataUrl) {
+                doc.addImage(logoDataUrl, 'PNG', 14, 10, 40, 16);
+            } else {
+                doc.setFontSize(22);
+                doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Aprova Ai', 14, 20);
+            }
             doc.setFontSize(16);
-            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.setTextColor(60,60,60);
             doc.setFont('helvetica', 'bold');
-            doc.text('Aprova Ai', 14, 20);
-            doc.setFontSize(12);
-            doc.setTextColor(80,80,80);
             doc.text('Histórico (continuação)', 70, 20);
             doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
             doc.line(14, 25, 196, 25);
@@ -3116,7 +3120,7 @@ async function exportHistoryPDF() {
         const date = new Date(h.date).toLocaleString('pt-BR');
         const user = h.user === 'provider' ? 'Você (prestador)' : 'Cliente';
         
-        // Definir cor e ícone baseado na ação
+        // Definir ícone e cor
         let icon = '•';
         let color = [100, 100, 100];
         let actionLabel = h.action;
@@ -3124,12 +3128,12 @@ async function exportHistoryPDF() {
         switch (h.action) {
             case 'created':
                 icon = '★';
-                color = [46, 125, 50]; // verde
+                color = [46, 125, 50];
                 actionLabel = h.user === 'provider' ? 'Criação' : 'Solicitação via catálogo';
                 break;
             case 'edited':
                 icon = '✎';
-                color = [255, 152, 0]; // laranja
+                color = [255, 152, 0];
                 actionLabel = 'Alteração de escopo';
                 break;
             case 'approved':
@@ -3144,12 +3148,12 @@ async function exportHistoryPDF() {
                 break;
             case 'canceled':
                 icon = '✗';
-                color = [211, 47, 47]; // vermelho
+                color = [211, 47, 47];
                 actionLabel = 'Cancelamento';
                 break;
             case 'sent':
                 icon = '➤';
-                color = [33, 150, 243]; // azul
+                color = [33, 150, 243];
                 actionLabel = 'Envio de link';
                 break;
             case 'viewed':
@@ -3162,23 +3166,17 @@ async function exportHistoryPDF() {
                 color = [211, 47, 47];
                 actionLabel = 'Download do PDF';
                 break;
-            default:
-                icon = '•';
-                color = [100, 100, 100];
-                actionLabel = h.action;
         }
         
-        // Desenhar o ícone (círculo colorido)
+        // Desenhar marcador
         doc.setFillColor(color[0], color[1], color[2]);
         doc.circle(18, y - 2, 2, 'F');
         
-        // Data e usuário
         doc.setFontSize(9);
         doc.setTextColor(150, 150, 150);
         doc.setFont('helvetica', 'italic');
         doc.text(`${date} - ${user}`, 24, y - 2);
         
-        // Ação em negrito
         doc.setFontSize(10);
         doc.setTextColor(40, 40, 40);
         doc.setFont('helvetica', 'bold');
@@ -3186,27 +3184,69 @@ async function exportHistoryPDF() {
         
         y += 8;
         
-        // Detalhes - se for 'edited', tentamos mostrar as mudanças de forma mais clara
+        // Detalhes: melhorar a exibição das alterações
         if (h.detail) {
-            let details = [];
+            // Para ação 'edited', podemos tentar formatar melhor
             if (h.action === 'edited') {
-                // Divide as mudanças por '; ' e exibe cada uma em linha separada
-                details = h.detail.split('; ');
+                const changes = h.detail.split('; ');
+                changes.forEach(change => {
+                    // Tentar extrair informações de antes/depois se no formato "Alterou valor/qtd: Nome"
+                    // Como não temos os valores antigos/novos estruturados, mostramos a mensagem original
+                    // Mas podemos adicionar uma seta ou algo
+                    let displayChange = change;
+                    // Se começar com "Alterou valor/qtd:", pode ser interessante
+                    if (change.startsWith('Alterou valor/qtd:')) {
+                        displayChange = '⚡ ' + change;
+                    } else if (change.startsWith('Renomeou:')) {
+                        displayChange = '✏️ ' + change;
+                    } else if (change.startsWith('Adicionou:')) {
+                        displayChange = '➕ ' + change;
+                    } else if (change.startsWith('Removeu:')) {
+                        displayChange = '➖ ' + change;
+                    }
+                    
+                    if (y > pageHeight - marginBottom) {
+                        doc.addPage();
+                        y = 20;
+                        // Redesenhar cabeçalho (simplificado)
+                        if (logoDataUrl) {
+                            doc.addImage(logoDataUrl, 'PNG', 14, 10, 40, 16);
+                        } else {
+                            doc.setFontSize(22);
+                            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text('Aprova Ai', 14, 20);
+                        }
+                        doc.setFontSize(16);
+                        doc.setTextColor(60,60,60);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('Histórico (continuação)', 70, 20);
+                        doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                        doc.line(14, 25, 196, 25);
+                        y = 35;
+                    }
+                    doc.setFontSize(9);
+                    doc.setTextColor(80, 80, 80);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(`   ${displayChange}`, 24, y);
+                    y += 5;
+                });
             } else {
-                details = [h.detail];
-            }
-            
-            details.forEach(line => {
+                // Outras ações
                 if (y > pageHeight - marginBottom) {
                     doc.addPage();
                     y = 20;
-                    // Redesenhar cabeçalho
+                    if (logoDataUrl) {
+                        doc.addImage(logoDataUrl, 'PNG', 14, 10, 40, 16);
+                    } else {
+                        doc.setFontSize(22);
+                        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('Aprova Ai', 14, 20);
+                    }
                     doc.setFontSize(16);
-                    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                    doc.setTextColor(60,60,60);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('Aprova Ai', 14, 20);
-                    doc.setFontSize(12);
-                    doc.setTextColor(80,80,80);
                     doc.text('Histórico (continuação)', 70, 20);
                     doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
                     doc.line(14, 25, 196, 25);
@@ -3215,27 +3255,24 @@ async function exportHistoryPDF() {
                 doc.setFontSize(9);
                 doc.setTextColor(80, 80, 80);
                 doc.setFont('helvetica', 'normal');
-                doc.text(`   ${line}`, 24, y);
+                doc.text(`   ${h.detail}`, 24, y);
                 y += 5;
-            });
+            }
         } else {
             y += 2;
         }
         
-        // Espaço entre eventos
         y += 4;
     });
     
-    // === RODAPÉ COM CÓDIGO DE VALIDAÇÃO ===
+    // Rodapé com código de validação
     const hash = btoa(state.project.id + state.data.client.name + state.version.id).substring(0, 10);
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
     doc.text(`Documento gerado pelo sistema Aprova Ai - Código de verificação: ${hash}`, 14, pageHeight - 10);
     
-    // Salvar o PDF
     doc.save(`historico_${state.project.name}.pdf`);
 }
-
         // ========== PÁGINA PÚBLICA (PROPOSTA) ==========
         async function loadPublicProposal(id) {
             try {
@@ -3746,4 +3783,5 @@ async function exportHistoryPDF() {
     </script>
 </body>
 </html>
+
 
