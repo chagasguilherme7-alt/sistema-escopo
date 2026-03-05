@@ -3136,57 +3136,53 @@ async function exportHistoryPDF() {
         const date = new Date(h.date).toLocaleString('pt-BR');
         const user = h.user === 'provider' ? 'Você (prestador)' : 'Cliente';
         
-        // Definir ícone textual e cor
+        // Definir ícone textual (usaremos apenas caracteres ASCII)
         let icon = '•';
         let color = [100, 100, 100];
         let actionLabel = h.action;
         
         switch (h.action) {
             case 'created':
-                icon = '★';
+                icon = '*';
                 color = [46, 125, 50];
-                actionLabel = h.user === 'provider' ? 'Criação' : 'Solicitação via catálogo';
+                actionLabel = h.user === 'provider' ? 'Criacao' : 'Solicitacao via catalogo';
                 break;
             case 'edited':
-                icon = '✎';
+                icon = '~';
                 color = [255, 152, 0];
-                actionLabel = 'Alteração de escopo';
+                actionLabel = 'Alteracao de escopo';
                 break;
             case 'approved':
-                icon = '✓';
+                icon = 'v';
                 color = [46, 125, 50];
-                actionLabel = 'Aprovação';
+                actionLabel = 'Aprovacao';
                 break;
             case 'change_request':
-                icon = '✉';
+                icon = '?';
                 color = [255, 152, 0];
-                actionLabel = 'Solicitação de alteração';
+                actionLabel = 'Solicitacao de alteracao';
                 break;
             case 'canceled':
-                icon = '✗';
+                icon = 'x';
                 color = [211, 47, 47];
                 actionLabel = 'Cancelamento';
                 break;
             case 'sent':
-                icon = '→';
+                icon = '>';
                 color = [33, 150, 243];
                 actionLabel = 'Envio de link';
                 break;
             case 'viewed':
-                icon = '👁';
+                icon = 'o';
                 color = [100, 100, 100];
-                actionLabel = 'Visualização';
+                actionLabel = 'Visualizacao';
                 break;
             case 'pdf_downloaded':
-                icon = '📄';
+                icon = 'P';
                 color = [211, 47, 47];
                 actionLabel = 'Download do PDF';
                 break;
         }
-        
-        // Substituir ícones problemáticos por versões seguras
-        const safeIcon = icon.replace(/[^\x00-\x7F]/g, ''); // remove não-ASCII
-        const safeActionLabel = actionLabel.replace(/[^\x00-\x7F]/g, '');
         
         doc.setFillColor(color[0], color[1], color[2]);
         doc.circle(18, y - 2, 2, 'F');
@@ -3199,14 +3195,14 @@ async function exportHistoryPDF() {
         doc.setFontSize(10);
         doc.setTextColor(40, 40, 40);
         doc.setFont('helvetica', 'bold');
-        doc.text(safeActionLabel, 24, y + 3);
+        doc.text(actionLabel, 24, y + 3);
         
         y += 8;
         
         if (h.detail) {
-            // Substituir caracteres especiais no detalhe
+            // Substituir todos os caracteres especiais por versões seguras
             let detailText = h.detail
-                .replace(/[→➔]/g, '->')
+                // Emojis comuns
                 .replace(/[💰]/g, 'R$ ')
                 .replace(/[📦]/g, 'Qtd: ')
                 .replace(/[✏️]/g, 'Edit: ')
@@ -3218,8 +3214,14 @@ async function exportHistoryPDF() {
                 .replace(/[✗]/g, 'X')
                 .replace(/[✉]/g, 'Msg')
                 .replace(/[👁]/g, 'View')
-                .replace(/[📄]/g, 'PDF');
+                .replace(/[📄]/g, 'PDF')
+                .replace(/[→]/g, '->')
+                .replace(/[➔]/g, '->')
+                // Remove qualquer caractere não imprimível ou acentuado problemático
+                .replace(/[^\x20-\x7E\u00C0-\u00FF]/g, '') // mantém acentos básicos
+                .replace(/[ØøÜüÝý]/g, ''); // remove esses especificamente
             
+            // Divide em linhas (ponto e vírgula)
             const lines = detailText.split('; ');
             lines.forEach(line => {
                 if (y > pageHeight - marginBottom) {
@@ -3256,7 +3258,7 @@ async function exportHistoryPDF() {
     const hash = btoa(state.project.id + state.data.client.name + state.version.id).substring(0, 10);
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
-    doc.text(`Documento gerado pelo sistema Aprova Ai - Código de verificação: ${hash}`, 14, pageHeight - 10);
+    doc.text(`Documento gerado pelo sistema Aprova Ai - Codigo de verificacao: ${hash}`, 14, pageHeight - 10);
     
     doc.save(`historico_${state.project.name}.pdf`);
 }
@@ -3770,6 +3772,7 @@ async function exportHistoryPDF() {
     </script>
 </body>
 </html>
+
 
 
 
