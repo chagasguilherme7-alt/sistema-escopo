@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
@@ -901,8 +902,8 @@
                 </div>
 
                 <div class="flex justify-end">
-                    <button onclick="exportReportsToExcel()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold shadow hover:bg-green-700">
-                        <i class="fas fa-file-excel mr-2"></i> Exportar para Excel
+                    <button onclick="exportFullDataToExcel()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold shadow hover:bg-green-700">
+                        <i class="fas fa-file-excel mr-2"></i> Exportar Dados Completos
                     </button>
                 </div>
             </section>
@@ -1070,7 +1071,7 @@
         </main>
     </div>
 
-    <!-- MODAIS -->
+    <!-- MODAIS (completos) -->
     <div id="client-modal" class="hidden fixed inset-0 bg-black/50 z-[80] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md p-6 rounded-xl">
             <h3 id="client-modal-title" class="text-xl font-bold mb-4 text-slate-800">Novo Cliente</h3>
@@ -2033,7 +2034,6 @@
                 const version = project.versions?.[0] || null;
                 if (version?.items?.history && Array.isArray(version.items.history)) {
                     version.items.history.forEach(h => {
-                        // Inclui ações do cliente e também a criação via catálogo (user 'client', action 'created')
                         if (h.user === 'client' && ['approved', 'change_request', 'canceled', 'created'].includes(h.action)) {
                             activities.push({
                                 date: h.date,
@@ -3033,17 +3033,24 @@
             setHTML('ed-history', histHtml);
         }
 
-        // Exportar histórico em PDF
+        // Exportar histórico em PDF (CORRIGIDO)
         async function exportHistoryPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             const history = state.data.history || [];
             history.sort((a, b) => new Date(a.date) - new Date(b.date));
             
+            // Cabeçalho com informações de validação
             doc.setFontSize(16);
-            doc.text(`Histórico do Orçamento: ${state.project.name}`, 14, 20);
+            doc.text(`Histórico do Orçamento`, 14, 20);
+            doc.setFontSize(11);
+            doc.text(`Projeto: ${state.project.name}`, 14, 30);
+            doc.text(`Cliente: ${state.data.client.name || 'Não informado'}`, 14, 37);
+            doc.text(`ID: ${state.project.id}`, 14, 44);
+            doc.text(`Data de emissão: ${new Date().toLocaleDateString('pt-BR')}`, 14, 51);
+            
             doc.setFontSize(10);
-            let y = 30;
+            let y = 65;
             history.forEach((h, index) => {
                 const date = new Date(h.date).toLocaleString('pt-BR');
                 const user = h.user === 'provider' ? 'Você' : 'Cliente';
@@ -3390,12 +3397,12 @@
             }
         }
 
-        // ========== NOVAS FUNÇÕES PARA RELATÓRIOS ==========
+        // ========== RELATÓRIOS ==========
         function renderReports() {
             let approvedRevenue = 0;
             let approvedCount = 0;
             let totalProjects = state.projectsCache.length;
-            let itemsMap = new Map(); // nome do item -> { qty: total, revenue: total }
+            let itemsMap = new Map(); // nome do item -> qty total
             let clientsMap = new Map(); // nome do cliente -> total revenue
 
             state.projectsCache.forEach(p => {
@@ -3405,22 +3412,16 @@
                     const val = parseFloat(v.total_value) || 0;
                     approvedRevenue += val;
                     approvedCount++;
-                    // Agregar itens
+                    // Agregar itens (apenas quantidade)
                     if (v.items && v.items.items) {
                         v.items.items.forEach(item => {
-                            if (!item.optional || item.publicSelected) { // considera opcionais selecionados
+                            if (!item.optional || item.publicSelected) {
                                 const name = item.name || 'Item sem nome';
                                 const qty = item.qty || 0;
-                                const price = item.price || 0;
-                                const totalItem = qty * price;
                                 if (itemsMap.has(name)) {
-                                    const prev = itemsMap.get(name);
-                                    itemsMap.set(name, {
-                                        qty: prev.qty + qty,
-                                        revenue: prev.revenue + totalItem
-                                    });
+                                    itemsMap.set(name, itemsMap.get(name) + qty);
                                 } else {
-                                    itemsMap.set(name, { qty, revenue: totalItem });
+                                    itemsMap.set(name, qty);
                                 }
                             }
                         });
@@ -3440,19 +3441,19 @@
             safeText('report-average-ticket', formatPrice(avgTicket));
             safeText('report-total-projects', totalProjects);
 
-            // Top 10 itens
+            // Top 10 itens (somente quantidade)
             const sortedItems = Array.from(itemsMap.entries())
-                .sort((a, b) => b[1].revenue - a[1].revenue)
+                .sort((a, b) => b[1] - a[1])
                 .slice(0, 10);
             let itemsHtml = '';
-            sortedItems.forEach(([name, data], idx) => {
+            sortedItems.forEach(([name, qty], idx) => {
                 itemsHtml += `
                     <div class="ranking-item">
                         <div class="flex items-center">
                             <span class="ranking-position">${idx+1}</span>
                             <span class="ranking-name">${name}</span>
                         </div>
-                        <div class="ranking-value">${data.qty} und • ${formatPrice(data.revenue)}</div>
+                        <div class="ranking-value">${qty} und</div>
                     </div>
                 `;
             });
@@ -3479,52 +3480,37 @@
             setHTML('top-clients-list', clientsHtml);
         }
 
-        function exportReportsToExcel() {
-            // Gera um CSV simples com os dados dos relatórios
-            let csv = "Relatório de Vendas\n\n";
-            csv += "Faturamento Aprovado;Ticket Médio;Total de Orçamentos\n";
-            csv += `${document.getElementById('report-approved-revenue').innerText};${document.getElementById('report-average-ticket').innerText};${document.getElementById('report-total-projects').innerText}\n\n`;
+        // Exportar dados completos para Excel (CSV)
+        function exportFullDataToExcel() {
+            let csv = "ID do Projeto;Nome do Projeto;Cliente;Data Criação;Status;Valor Total;Versão;Item;Descrição;Quantidade;Preço Unitário;Subtotal\n";
             
-            csv += "Itens Mais Vendidos\n";
-            csv += "Item;Quantidade;Receita\n";
-            const itemsDiv = document.getElementById('top-items-list');
-            const items = itemsDiv.querySelectorAll('.ranking-item');
-            items.forEach(item => {
-                const name = item.querySelector('.ranking-name')?.innerText || '';
-                const value = item.querySelector('.ranking-value')?.innerText || '';
-                const parts = value.split(' • ');
-                const qty = parts[0]?.replace(' und', '') || '';
-                const rev = parts[1] || '';
-                csv += `"${name}";${qty};${rev}\n`;
+            state.projectsCache.forEach(p => {
+                const versions = p.versions || [];
+                versions.forEach(v => {
+                    const items = v.items?.items || [];
+                    items.forEach(item => {
+                        const subtotal = (item.qty || 0) * (item.price || 0);
+                        csv += `"${p.id}";"${p.name}";"${p.client_name || ''}";"${new Date(p.created_at).toLocaleDateString('pt-BR')}";"${v.status || ''}";${v.total_value || 0};${v.version_number || 1};"${item.name || ''}";"${item.description || ''}";${item.qty || 0};${item.price || 0};${subtotal}\n`;
+                    });
+                });
             });
 
-            csv += "\nTop Clientes\n";
-            csv += "Cliente;Total\n";
-            const clientsDiv = document.getElementById('top-clients-list');
-            const clients = clientsDiv.querySelectorAll('.ranking-item');
-            clients.forEach(item => {
-                const name = item.querySelector('.ranking-name')?.innerText || '';
-                const total = item.querySelector('.ranking-value')?.innerText || '';
-                csv += `"${name}";${total}\n`;
-            });
-
-            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }); // BOM para acentos
+            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             link.href = url;
-            link.setAttribute('download', 'relatorio_aprova_ai.csv');
+            link.setAttribute('download', 'dados_completos_aprova_ai.csv');
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
 
-        // ========== NOVAS FUNÇÕES PARA SOLICITAÇÕES ==========
+        // ========== SOLICITAÇÕES ==========
         async function loadRequests() {
-            // Filtra projetos cujo nome começa com "Solicitação via catálogo"
             const requests = state.projectsCache.filter(p => 
                 p.name && p.name.startsWith('Solicitação via catálogo') && 
-                p.versions?.[0]?.status !== 'canceled' // não mostrar cancelados
+                p.versions?.[0]?.status !== 'canceled'
             );
             return requests;
         }
@@ -3569,7 +3555,6 @@
 
         async function approveRequest(projectId) {
             if (!confirm("Aprovar esta solicitação? Ela será movida para a lista de orçamentos como rascunho.")) return;
-            // Renomeia o projeto para remover o prefixo "Solicitação via catálogo"
             const project = state.projectsCache.find(p => p.id === projectId);
             if (!project) return;
             const newName = project.name.replace('Solicitação via catálogo - ', '').trim() || 'Orçamento';
@@ -3578,7 +3563,6 @@
                 alert("Erro ao aprovar: " + error.message);
                 return;
             }
-            // Atualiza cache e recarrega
             await loadProjects();
             renderRequests();
             alert("Solicitação aprovada e movida para orçamentos.");
@@ -3586,7 +3570,6 @@
 
         async function rejectRequest(projectId) {
             if (!confirm("Recusar esta solicitação? O orçamento será cancelado.")) return;
-            // Altera status da última versão para cancelado
             const project = state.projectsCache.find(p => p.id === projectId);
             if (!project || !project.versions || !project.versions[0]) return;
             const versionId = project.versions[0].id;
