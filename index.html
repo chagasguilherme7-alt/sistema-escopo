@@ -3034,50 +3034,207 @@
         }
 
         // Exportar histórico em PDF (CORRIGIDO)
-        async function exportHistoryPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const history = state.data.history || [];
-            history.sort((a, b) => new Date(a.date) - new Date(b.date));
-            
-            // Cabeçalho com informações de validação
+        // Exportar histórico em PDF (VERSÃO MELHORADA)
+async function exportHistoryPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Cores da marca (verde Aprova Ai)
+    const primaryColor = [46, 125, 50]; // #2e7d32
+    const lightGreen = [200, 230, 200];
+    
+    // === CABEÇALHO ===
+    // Logo (tenta usar a imagem do DOM, se não, texto)
+    try {
+        const logoImg = document.querySelector('img[src="logo.png"]');
+        if (logoImg) {
+            // Converte a imagem para dataURL (simplificado - pode precisar de canvas)
+            // Como alternativa, usamos texto estilizado para garantir
+            doc.setFontSize(22);
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Aprova Ai', 14, 20);
+        } else {
+            doc.setFontSize(22);
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Aprova Ai', 14, 20);
+        }
+    } catch (e) {
+        doc.setFontSize(22);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Aprova Ai', 14, 20);
+    }
+    
+    // Título
+    doc.setFontSize(16);
+    doc.setTextColor(60, 60, 60);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Histórico do Orçamento', 70, 20);
+    
+    // Linha decorativa
+    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.setLineWidth(1);
+    doc.line(14, 25, 196, 25);
+    
+    // Informações do projeto
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Projeto: ${state.project.name}`, 14, 35);
+    doc.text(`Cliente: ${state.data.client.name || 'Não informado'}`, 14, 42);
+    doc.text(`ID: ${state.project.id}`, 14, 49);
+    doc.text(`Data de emissão: ${new Date().toLocaleDateString('pt-BR')}`, 14, 56);
+    
+    // === CORPO DO HISTÓRICO ===
+    const history = state.data.history || [];
+    history.sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    let y = 70;
+    const pageHeight = doc.internal.pageSize.height;
+    const marginBottom = 25;
+    
+    history.forEach((h) => {
+        // Verificar se precisa de nova página
+        if (y > pageHeight - marginBottom) {
+            doc.addPage();
+            y = 20;
+            // Redesenhar cabeçalho na nova página (opcional)
             doc.setFontSize(16);
-            doc.text(`Histórico do Orçamento`, 14, 20);
-            doc.setFontSize(11);
-            doc.text(`Projeto: ${state.project.name}`, 14, 30);
-            doc.text(`Cliente: ${state.data.client.name || 'Não informado'}`, 14, 37);
-            doc.text(`ID: ${state.project.id}`, 14, 44);
-            doc.text(`Data de emissão: ${new Date().toLocaleDateString('pt-BR')}`, 14, 51);
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Aprova Ai', 14, 20);
+            doc.setFontSize(12);
+            doc.setTextColor(80,80,80);
+            doc.text('Histórico (continuação)', 70, 20);
+            doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+            doc.line(14, 25, 196, 25);
+            y = 35;
+        }
+        
+        const date = new Date(h.date).toLocaleString('pt-BR');
+        const user = h.user === 'provider' ? 'Você (prestador)' : 'Cliente';
+        
+        // Definir cor e ícone baseado na ação
+        let icon = '•';
+        let color = [100, 100, 100];
+        let actionLabel = h.action;
+        
+        switch (h.action) {
+            case 'created':
+                icon = '★';
+                color = [46, 125, 50]; // verde
+                actionLabel = h.user === 'provider' ? 'Criação' : 'Solicitação via catálogo';
+                break;
+            case 'edited':
+                icon = '✎';
+                color = [255, 152, 0]; // laranja
+                actionLabel = 'Alteração de escopo';
+                break;
+            case 'approved':
+                icon = '✓';
+                color = [46, 125, 50];
+                actionLabel = 'Aprovação';
+                break;
+            case 'change_request':
+                icon = '✉';
+                color = [255, 152, 0];
+                actionLabel = 'Solicitação de alteração';
+                break;
+            case 'canceled':
+                icon = '✗';
+                color = [211, 47, 47]; // vermelho
+                actionLabel = 'Cancelamento';
+                break;
+            case 'sent':
+                icon = '➤';
+                color = [33, 150, 243]; // azul
+                actionLabel = 'Envio de link';
+                break;
+            case 'viewed':
+                icon = '👁';
+                color = [100, 100, 100];
+                actionLabel = 'Visualização';
+                break;
+            case 'pdf_downloaded':
+                icon = '📄';
+                color = [211, 47, 47];
+                actionLabel = 'Download do PDF';
+                break;
+            default:
+                icon = '•';
+                color = [100, 100, 100];
+                actionLabel = h.action;
+        }
+        
+        // Desenhar o ícone (círculo colorido)
+        doc.setFillColor(color[0], color[1], color[2]);
+        doc.circle(18, y - 2, 2, 'F');
+        
+        // Data e usuário
+        doc.setFontSize(9);
+        doc.setTextColor(150, 150, 150);
+        doc.setFont('helvetica', 'italic');
+        doc.text(`${date} - ${user}`, 24, y - 2);
+        
+        // Ação em negrito
+        doc.setFontSize(10);
+        doc.setTextColor(40, 40, 40);
+        doc.setFont('helvetica', 'bold');
+        doc.text(actionLabel, 24, y + 3);
+        
+        y += 8;
+        
+        // Detalhes - se for 'edited', tentamos mostrar as mudanças de forma mais clara
+        if (h.detail) {
+            let details = [];
+            if (h.action === 'edited') {
+                // Divide as mudanças por '; ' e exibe cada uma em linha separada
+                details = h.detail.split('; ');
+            } else {
+                details = [h.detail];
+            }
             
-            doc.setFontSize(10);
-            let y = 65;
-            history.forEach((h, index) => {
-                const date = new Date(h.date).toLocaleString('pt-BR');
-                const user = h.user === 'provider' ? 'Você' : 'Cliente';
-                let action = h.action;
-                if (h.action === 'created') action = 'Criação';
-                else if (h.action === 'edited') action = 'Alteração';
-                else if (h.action === 'approved') action = 'Aprovação';
-                else if (h.action === 'change_request') action = 'Solicitação de alteração';
-                else if (h.action === 'canceled') action = 'Cancelamento';
-                else if (h.action === 'sent') action = 'Envio de link';
-                else if (h.action === 'viewed') action = 'Visualização';
-                else if (h.action === 'pdf_downloaded') action = 'Download do PDF';
-                
-                doc.text(`${date} - ${user} - ${action}`, 14, y);
-                y += 5;
-                if (h.detail) {
-                    doc.text(`  Detalhe: ${h.detail}`, 14, y);
-                    y += 5;
-                }
-                y += 2;
-                if (y > 280) {
+            details.forEach(line => {
+                if (y > pageHeight - marginBottom) {
                     doc.addPage();
                     y = 20;
+                    // Redesenhar cabeçalho
+                    doc.setFontSize(16);
+                    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Aprova Ai', 14, 20);
+                    doc.setFontSize(12);
+                    doc.setTextColor(80,80,80);
+                    doc.text('Histórico (continuação)', 70, 20);
+                    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                    doc.line(14, 25, 196, 25);
+                    y = 35;
                 }
+                doc.setFontSize(9);
+                doc.setTextColor(80, 80, 80);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`   ${line}`, 24, y);
+                y += 5;
             });
-            doc.save(`historico_${state.project.name}.pdf`);
+        } else {
+            y += 2;
         }
+        
+        // Espaço entre eventos
+        y += 4;
+    });
+    
+    // === RODAPÉ COM CÓDIGO DE VALIDAÇÃO ===
+    const hash = btoa(state.project.id + state.data.client.name + state.version.id).substring(0, 10);
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Documento gerado pelo sistema Aprova Ai - Código de verificação: ${hash}`, 14, pageHeight - 10);
+    
+    // Salvar o PDF
+    doc.save(`historico_${state.project.name}.pdf`);
+}
 
         // ========== PÁGINA PÚBLICA (PROPOSTA) ==========
         async function loadPublicProposal(id) {
@@ -3589,3 +3746,4 @@
     </script>
 </body>
 </html>
+
