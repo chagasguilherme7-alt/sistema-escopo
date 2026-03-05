@@ -3098,8 +3098,6 @@ async function exportHistoryPDF() {
     doc.setFont('helvetica', 'bold');
     doc.text('Histórico do Orçamento', 70, 20);
     
-    // LINHA VERDE REMOVIDA - não desenhamos mais a linha
-    
     // Informações do projeto
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
@@ -3138,7 +3136,7 @@ async function exportHistoryPDF() {
         const date = new Date(h.date).toLocaleString('pt-BR');
         const user = h.user === 'provider' ? 'Você (prestador)' : 'Cliente';
         
-        // Definir ícone e cor
+        // Definir ícone textual e cor
         let icon = '•';
         let color = [100, 100, 100];
         let actionLabel = h.action;
@@ -3186,6 +3184,10 @@ async function exportHistoryPDF() {
                 break;
         }
         
+        // Substituir ícones problemáticos por versões seguras
+        const safeIcon = icon.replace(/[^\x00-\x7F]/g, ''); // remove não-ASCII
+        const safeActionLabel = actionLabel.replace(/[^\x00-\x7F]/g, '');
+        
         doc.setFillColor(color[0], color[1], color[2]);
         doc.circle(18, y - 2, 2, 'F');
         
@@ -3197,39 +3199,29 @@ async function exportHistoryPDF() {
         doc.setFontSize(10);
         doc.setTextColor(40, 40, 40);
         doc.setFont('helvetica', 'bold');
-        doc.text(actionLabel, 24, y + 3);
+        doc.text(safeActionLabel, 24, y + 3);
         
         y += 8;
         
         if (h.detail) {
-            // Se for uma edição, já vem com os ícones e valores detalhados
-            if (h.action === 'edited') {
-                const changes = h.detail.split('; ');
-                changes.forEach(change => {
-                    if (y > pageHeight - marginBottom) {
-                        doc.addPage();
-                        y = 20;
-                        if (logoDataUrl) {
-                            doc.addImage(logoDataUrl, 'PNG', 14, 10, 40, 16);
-                        } else {
-                            doc.setFontSize(22);
-                            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-                            doc.setFont('helvetica', 'bold');
-                            doc.text('Aprova Ai', 14, 20);
-                        }
-                        doc.setFontSize(16);
-                        doc.setTextColor(60,60,60);
-                        doc.setFont('helvetica', 'bold');
-                        doc.text('Histórico (continuação)', 70, 20);
-                        y = 35;
-                    }
-                    doc.setFontSize(9);
-                    doc.setTextColor(80, 80, 80);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(`   ${change}`, 24, y);
-                    y += 5;
-                });
-            } else {
+            // Substituir caracteres especiais no detalhe
+            let detailText = h.detail
+                .replace(/[→➔]/g, '->')
+                .replace(/[💰]/g, 'R$ ')
+                .replace(/[📦]/g, 'Qtd: ')
+                .replace(/[✏️]/g, 'Edit: ')
+                .replace(/[➕]/g, '+ ')
+                .replace(/[➖]/g, '- ')
+                .replace(/[⚡]/g, 'Alt: ')
+                .replace(/[★]/g, '*')
+                .replace(/[✓]/g, 'ok')
+                .replace(/[✗]/g, 'X')
+                .replace(/[✉]/g, 'Msg')
+                .replace(/[👁]/g, 'View')
+                .replace(/[📄]/g, 'PDF');
+            
+            const lines = detailText.split('; ');
+            lines.forEach(line => {
                 if (y > pageHeight - marginBottom) {
                     doc.addPage();
                     y = 20;
@@ -3250,9 +3242,9 @@ async function exportHistoryPDF() {
                 doc.setFontSize(9);
                 doc.setTextColor(80, 80, 80);
                 doc.setFont('helvetica', 'normal');
-                doc.text(`   ${h.detail}`, 24, y);
+                doc.text(`   ${line}`, 24, y);
                 y += 5;
-            }
+            });
         } else {
             y += 2;
         }
@@ -3778,6 +3770,7 @@ async function exportHistoryPDF() {
     </script>
 </body>
 </html>
+
 
 
 
